@@ -1,29 +1,32 @@
 # MARKET-OS — C1 Qualification
 
-## Scope
+## Result
 
-C1 converts the deployment and operability requirements into explicit service, profile, telemetry, alerting, secret and recovery contracts.
+`C1_DESIGN_GATE_PASS` on GitHub Actions run `31739921853` for head `621b3ffe8b14abcc75de84a81d15de7ce8510b0e`.
 
-## Decisions
+## Verified outputs
 
-- rootless Podman Quadlet is the mandatory standalone candidate;
-- K3s is optional and requires parity plus measured multi-node value;
-- OpenTelemetry/OTLP is the telemetry contract;
-- Alertmanager is the preferred alert-routing candidate with at-least-once semantics;
-- remote access is private by default;
-- secret handling is split into bootstrap, standalone-runtime and distributed tiers;
-- a backup is unverified until an isolated restore and hash/semantic checks pass;
-- complete applications are evaluated before custom rebuilding;
-- no software package is globally adopted in C1.
+- service and trust-zone topology;
+- mandatory rootless standalone profile plus optional cluster, batch and cloud profiles;
+- OpenTelemetry correlation and cardinality rules;
+- alert severity, deduplication, acknowledgement and runbook contract;
+- bootstrap, standalone and distributed secret tiers with no browser readback;
+- encrypted backup contract requiring clean restore and hash/semantic checks;
+- role-specific complete-application matrix;
+- 11 C1 requirements mapped to artifacts.
 
-## Evidence boundary
+## Fresh evidence
 
-The phase uses current official documentation to support architecture screening. It does not prove target-node compatibility, resource consumption, security, recovery time or operational value. Those claims remain implementation and target-test gates.
+- 24/24 unit and adversarial tests passed;
+- C1 validator passed with 5 profiles, 24 candidates and 11 mapped requirements;
+- repository validator passed with 108 requirements, 16 phases, 10 execution contracts and 76 manifest files;
+- Python compilation passed;
+- derived-file reconciliation passed.
 
-## Fresh controls
+## Failure retained
 
-Machine-readable validation covers deployment profiles, ingress, secret readback, global adoption, telemetry correlation, alert delivery assumptions, restore requirements, requirement mapping and hard financial locks.
+`FAIL-C1-001`: the first derived-manifest implementation hashed stale derived indexes before writing their expected contents. The CI test reproduced the non-idempotence. The generator now hashes the expected derived bytes and the regression test passes.
 
-## Status
+## Honest boundary
 
-`CANDIDATE_PENDING_CI_AND_ADVERSARIAL_VERIFICATION`.
+This gate verifies the design and its anti-drift controls. It does not prove target-host installation, actual resource use, clean-host restoration, security under attack or operational value. Those implementation and target gates remain open.

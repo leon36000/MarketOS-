@@ -2,8 +2,16 @@
   "artifact_id": "ART-C1-DECISIONS-001",
   "version": "0.1.0",
   "phase": "C1",
-  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "status": "DESIGN_GATE_PASS",
   "as_of": "2026-08-13",
+  "verification": {
+    "github_run_id": 31739921853,
+    "verified_head_sha": "621b3ffe8b14abcc75de84a81d15de7ce8510b0e",
+    "unit_tests": "24/24_PASS",
+    "c1_validator": "PASS_11_REQUIREMENTS_5_PROFILES_24_CANDIDATES",
+    "repository_validator": "PASS_108_REQUIREMENTS_16_PHASES_76_FILES",
+    "python_compile": "PASS"
+  },
   "locks": {
     "live_trading": "HARD_LOCKED",
     "profitability": "UNPROVEN",

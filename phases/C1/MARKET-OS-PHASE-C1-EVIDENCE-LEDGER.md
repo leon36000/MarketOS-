@@ -2,26 +2,26 @@
 
 ## Primary evidence families
 
-- Podman rootless and Quadlet documentation;
-- K3s requirements and security documentation;
-- OpenTelemetry Collector and security documentation;
-- Grafana Alloy documentation and Grafana Agent EOL notice;
-- Prometheus Alertmanager and high-availability semantics;
-- Loki retention and Tempo storage documentation;
-- OpenBao KV, AppRole and Transit documentation;
-- systemd credential documentation;
-- restic backup and restore documentation;
-- notification, private-access and registry candidates.
+Podman rootless and Quadlet, K3s requirements, OpenTelemetry Collector security, Grafana Alloy and Agent EOL, Alertmanager routing and HA semantics, Loki retention, Tempo storage, OpenBao KV/AppRole/Transit, systemd credentials, restic, notifications, private-overlay access and registry candidates.
+
+## Reproduced failure
+
+### FAIL-C1-001 — non-idempotent derived manifest
+
+- **Observed:** after regeneration, a second `--check` still reported the manifest stale.
+- **Cause:** the manifest hashed old requirement/phase index bytes before writing the new derived contents.
+- **Correction:** manifest generation now accepts expected-content overrides and hashes the bytes that will be written.
+- **Regression:** `test_regeneration_repairs_manifest_and_indexes` passes in run `31739921853`.
 
 ## Negative findings retained
 
-- Portainer's documented Podman support does not fit the rootless baseline.
-- Grafana Agent is EOL and cannot be introduced.
-- Alloy's alternative OTel engine is experimental and excluded from the baseline.
-- Alertmanager HA can deliver duplicates by design; receivers must be idempotent.
-- A backup without a clean restore remains unverified.
-- K3s resource minimums do not prove appropriate MARKET-OS sizing.
+- Portainer does not fit the rootless Podman baseline documented for MARKET-OS.
+- Grafana Agent is EOL and is excluded.
+- Alloy's experimental OTel engine is excluded from the baseline.
+- Alertmanager HA can deliver duplicate notifications; receivers must be idempotent.
+- A backup without clean restoration remains unverified.
+- K3s minimum resources do not establish MARKET-OS sizing.
 
-## Unresolved evidence
+## Unresolved
 
-Exact versions, images, licences, signatures, resource budgets, compact-stack comparisons, identity-provider choice, object storage, RPO/RTO and target-node tests remain open.
+Exact versions, image digests, licences, signatures, resource budgets, compact-stack comparisons, identity-provider choice, object storage, final RPO/RTO and target-host tests remain open.

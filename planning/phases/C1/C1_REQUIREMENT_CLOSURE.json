@@ -2,8 +2,13 @@
   "artifact_id": "ART-C1-REQUIREMENT-CLOSURE-001",
   "version": "0.1.0",
   "phase": "C1",
-  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "status": "DESIGN_GATE_PASS",
   "closure_semantics": "DESIGN_SPECIFIED_IMPLEMENTATION_AND_TARGET_GATES_OPEN",
+  "verification": {
+    "github_run_id": 31739921853,
+    "unit_tests": "24/24_PASS",
+    "validator": "PASS"
+  },
   "requirements": [
     {"id":"AUD-CMP-008","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_DEPLOYMENT_PROFILES.md"]},
     {"id":"AUD-CMP-009","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_SERVICE_TOPOLOGY.md"]},
