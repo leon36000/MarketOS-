@@ -338,8 +338,8 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "2a64d94b33a34de7962921341fd0efba6359702914ac14f72793f700ba23f807",
-      "bytes": 5280
+      "sha256": "4b6be3e095050ba0a7ba0034739e113344bc3248a029639c10270a7336854e78",
+      "bytes": 5305
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -453,8 +453,8 @@
     },
     {
       "path": "planning/phases/C4/C4_DECISIONS.json",
-      "sha256": "4735ced5eca127a37e79cb51d3cfba49db6bf924af8fdc7390c374c8027c310f",
-      "bytes": 2634
+      "sha256": "4ad1989757d5ab7035c3c838c1ef11238aa2e0d77906d5597c1c873379e5f46c",
+      "bytes": 2771
     },
     {
       "path": "planning/phases/C4/C4_REQUIREMENT_CLOSURE.json",
