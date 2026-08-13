@@ -1,5 +1,23 @@
 {
+  "artifact_id": "ART-C2-REQUIREMENT-CLOSURE-001",
+  "version": "0.1.0",
   "phase": "C2",
   "status": "CANDIDATE_PENDING_VERIFICATION",
-  "requirement_ids": ["AUD-DAT-001","AUD-DAT-002","AUD-DAT-003","AUD-DAT-010","AUD-DAT-011","AUD-SOC-003"]
+  "closure_semantics": "DESIGN_SPECIFIED_VENDOR_AND_REAL_DATA_GATES_OPEN",
+  "requirements": [
+    {"id":"AUD-DAT-001","state":"PARTIAL_C2_DATA_SOURCE_CONTRACT","artifacts":["docs/research/C2_SOURCE_ATLAS.md","docs/architecture/C2_SOURCE_ADMISSION_RECONCILIATION.md"]},
+    {"id":"AUD-DAT-002","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C2_SECURITY_MASTER.md","docs/architecture/C2_CORPORATE_ACTIONS.md"]},
+    {"id":"AUD-DAT-003","state":"DESIGN_SPECIFIED_PROCUREMENT_GATE_OPEN","artifacts":["docs/research/C2_L0_L1_L2_L3_PROCUREMENT.md"]},
+    {"id":"AUD-DAT-010","state":"DESIGN_SPECIFIED_QUOTES_OPEN","artifacts":["docs/architecture/C2_DATA_RIGHTS_TCO.md","docs/research/C2_VENDOR_RFQ.md"]},
+    {"id":"AUD-DAT-011","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C2_SECURITY_MASTER.md"]},
+    {"id":"AUD-SOC-003","state":"PARTIAL_C2_RIGHTS_CONTRACT","artifacts":["docs/architecture/C2_DATA_RIGHTS_TCO.md"]}
+  ],
+  "hard_boundary": {
+    "provider_adopted": false,
+    "purchase_authorized": false,
+    "written_licences_obtained": false,
+    "real_data_qualified": false,
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN"
+  }
 }
