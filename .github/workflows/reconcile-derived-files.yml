@@ -7,6 +7,10 @@ on:
       - codex/c0-memory-c1-bootstrap
     paths:
       - ".github/workflows/reconcile-derived-files.yml"
+      - "requirements/REQUIREMENT_CROSSWALK.csv"
+      - "requirements/README.md"
+      - "execution-contracts/**"
+      - "planning/phases/**"
 
 permissions:
   contents: write
