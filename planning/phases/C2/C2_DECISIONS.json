@@ -1,0 +1,26 @@
+{
+  "phase": "C2",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "provider_adopted": false,
+    "unknown_rights_default": "DENY",
+    "symbol_as_primary_key": "FORBIDDEN",
+    "delisted_record_deletion": "FORBIDDEN",
+    "silent_history_rewrite": "FORBIDDEN"
+  },
+  "primary_identity": "MARKETOS_INTERNAL_UUID",
+  "external_identifiers": "VERSIONED_ALIASES",
+  "ticker_semantics": "LISTING_PLUS_VENUE_PLUS_VALIDITY_INTERVAL",
+  "all_entities_bitemporal": true,
+  "corporate_actions": "APPEND_ONLY_VERSIONED_EVENTS",
+  "raw_and_adjusted_data": "SEPARATE",
+  "source_conflicts": "QUARANTINE_UNTIL_RESOLVED",
+  "depth_policy": {
+    "L0": "BROAD",
+    "L1": "BROAD_PRIORITY",
+    "L2": "SELECTIVE",
+    "L3": "SELECTIVE"
+  }
+}
