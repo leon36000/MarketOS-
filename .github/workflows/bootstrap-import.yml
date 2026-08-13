@@ -1,0 +1,105 @@
+name: Bootstrap verified MARKET-OS source
+
+on:
+  push:
+    branches:
+      - codex/plan-completion-c0-2
+    paths:
+      - "bootstrap/**"
+      - ".github/workflows/bootstrap-import.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marketos-bootstrap-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  import-and-verify:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[bootstrap-marketos]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout bootstrap branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/plan-completion-c0-2
+          fetch-depth: 0
+
+      - name: Reconstruct and verify source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d bootstrap/part-000.b64 > /tmp/marketos-source-pack.tar.xz
+          base64 -d bootstrap/part-001.b64 >> /tmp/marketos-source-pack.tar.xz
+          base64 -d bootstrap/part-002-006.b64 >> /tmp/marketos-source-pack.tar.xz
+          cp bootstrap/SHA256 /tmp/SHA256
+          (cd /tmp && sha256sum -c SHA256)
+          tar -xJf /tmp/marketos-source-pack.tar.xz -C "$GITHUB_WORKSPACE"
+          rm -rf bootstrap
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install locked test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Verify source before sealing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/validate_final_plan.py --root . --strict
+          python tools/validate_plan_completion.py --root . --strict
+          python tools/validate_implementation_dag.py final-plan/IMPLEMENTATION_DAG.yaml
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q tests/test_neon_memory_tools.py
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=implementation/phases/00/src python -m pytest -q implementation/phases/00/tests
+
+      - name: Seal source commit
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "marketos-verifier[bot]"
+          git config user.email "marketos-verifier[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: import verified MARKET-OS plan and Phase 00 source"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Phase 00 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python implementation/phases/00/benchmarks/run_phase00_qualification.py \
+            --root . \
+            --source-commit "${{ steps.source.outputs.sha }}"
+          python tools/build_repository_manifest.py .
+
+      - name: Run complete repository verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/verify.sh
+          python -m compileall -q \
+            implementation/phases/00/src \
+            implementation/phases/01/src \
+            memory/neon/tools \
+            tools
+
+      - name: Seal generated evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "test: add Phase 00 qualification evidence"
+          fi
+          git status --short
+
+      - name: Push verified branch
+        shell: bash
+        run: git push origin HEAD:codex/plan-completion-c0-2
