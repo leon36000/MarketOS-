@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "encoding": "base64",
+  "archive": "C1-plan-source.tar.gz",
+  "archive_sha256": "4c026d623b3de2e8c379169d51fc713f3027b9eb88732507e133b02510004d6b",
+  "archive_bytes": 28304,
+  "parts": [
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part000","sha256":"69e6e006715e367ae2b26b17fefa18ea791337607eb184d692fae5c374ac9889","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part001","sha256":"a3a8a2cbaf8d5d720b1af7f3914339311d73e40230ee8003f19a5dccf3b60e8a","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part002","sha256":"87f8e899f41f2b07fefa1b217116f95e1676ee78ad9c6a80fa8d56237abd2140","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part003","sha256":"2f8c892d0be9706cc0c88d4af7ef3aec2bcae91298f97f8b0ec2cd58c98ff92c","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part004","sha256":"13f17a55219db66d57ce94efd5cc728451815b67147dfb1dc0e928ea8aa661a0","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part005","sha256":"e15c79d13989daf9df0266a539daa2d4e5530e218f08d070f0ba66286df5ca7e","chars":6000},
+    {"path":"bundles/C1-plan-source.tar.gz.b64.part006","sha256":"3fb557ce06042d03cd006d830ff21de4430221d8ef0375dbbf66bedf711f1ec2","chars":1740}
+  ],
+  "extract_root": ".",
+  "replace_required_in_ci": true
+}
