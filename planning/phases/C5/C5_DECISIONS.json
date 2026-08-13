@@ -2,7 +2,8 @@
   "artifact_id":"ART-C5-DECISIONS-001",
   "version":"0.1.0",
   "phase":"C5",
-  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "status":"DESIGN_GATE_PASS",
+  "verification":{"red_run_id":31754709249,"green_run_id":31755492253,"result":"full CI success with adversarial tests"},
   "locks":{
     "live_trading":"HARD_LOCKED",
     "profitability":"UNPROVEN",
