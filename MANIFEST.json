@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "a66c561f162c3afd012f6cd41d65b09ec93e729a083a64dba3d61c19c7febec5",
-      "bytes": 555
+      "sha256": "70ed4d85233bdc72ead5f906a5e995acce0fe775db625f0ba3f36756f090767b",
+      "bytes": 681
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -188,18 +188,23 @@
     },
     {
       "path": "phases/C1/MARKET-OS-PHASE-C1-EVIDENCE-LEDGER.md",
-      "sha256": "8db0c55a6514e967f1171c31d056e4c3f3a969146dc7470456b81b32f485208e",
-      "bytes": 1195
+      "sha256": "49164398608a215dd6eca3f4cd6cd0fccf3533450a55512995f1fdd55bf6e439",
+      "bytes": 1467
     },
     {
       "path": "phases/C1/MARKET-OS-PHASE-C1-GATE-REPORT.md",
-      "sha256": "8633e1d907147b3748fd7a2d05cd8539c66796dcbfebc2fc1b62671b1c11e921",
-      "bytes": 749
+      "sha256": "0fd86325d68401d8e435e9b014e0a3953236d9bb7b29a9f14c93f5b4ca053b34",
+      "bytes": 1298
+    },
+    {
+      "path": "phases/C1/MARKET-OS-PHASE-C1-INDEPENDENT-REVIEW.md",
+      "sha256": "942fba26873f805ac126461ca6f1c57b67f78d40898dc956f64ae94394a3f012",
+      "bytes": 1049
     },
     {
       "path": "phases/C1/MARKET-OS-PHASE-C1-QUALIFICATION.md",
-      "sha256": "d5dbd4b358b4b5a04f92e5fd0fd86483a9410b52f84ab87ddb1cdd91b75b7144",
-      "bytes": 1365
+      "sha256": "bba4d1a17f8e6ef6928d360a4ef05167b9d35c8bee92d9dfc262b05bcfb56d4e",
+      "bytes": 1529
     },
     {
       "path": "planning/C0_1_FINAL_RECONCILIATION.md",
@@ -213,18 +218,18 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "6b1102ecbbac7724117376561d406b8c6b903fb701ffef60f71b861476f5993a",
-      "bytes": 5275
+      "sha256": "2ba147aec016d9b8f068d96b7e8225bd492a3ed0f4168654e0e985acce6c5106",
+      "bytes": 5280
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
-      "sha256": "d2c35e4260b4cbc6c6995140eab391ab63e5cf97aba267f98cdb105287b0268f",
-      "bytes": 6041
+      "sha256": "64905d625bb34ee1ca0b0a5621387061158fc70f4f3a77e83ebddf23f6dbccef",
+      "bytes": 6357
     },
     {
       "path": "planning/phases/C1/C1_REQUIREMENT_CLOSURE.json",
-      "sha256": "130f40485d1e3dc280699e5181c4c3166667f6aa40aab9b59d942846dfffdf01",
-      "bytes": 1757
+      "sha256": "4afb567210c2bd8804678bb7076285a4b332bdb67cb23ec1afe699dd9b97a645",
+      "bytes": 1858
     },
     {
       "path": "planning/phases/C1/EXECUTION_CONTRACT.md",
