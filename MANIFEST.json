@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "c6e323a17e41061d79602f172384fa153edbe22772d3266f108e5c8332a1a26a",
-      "bytes": 920
+      "sha256": "74f5acbfaa95c167dcb1618186d3a47a2f33902a777647be4adba472208f62f6",
+      "bytes": 1503
     },
     {
       "path": ".gitignore",
@@ -132,6 +132,26 @@
       "bytes": 3251
     },
     {
+      "path": "docs/architecture/C3_LAKE_FORMATS.md",
+      "sha256": "3797cf66cb8d2572032ad047e6d8ff2a7d67af2c3c98b9293e4bad0e6d6e56ff",
+      "bytes": 214
+    },
+    {
+      "path": "docs/architecture/C3_RECOVERY_MIGRATION.md",
+      "sha256": "27441603d5b8ad87af4c86309df916bac08cfd1434f41cdcfb791dab9f068c1e",
+      "bytes": 1609
+    },
+    {
+      "path": "docs/architecture/C3_REFERENCE_ARCHITECTURE.md",
+      "sha256": "5588876519c4a2e7c6a928cb0dbaa2d44df703bbd8e956b44e580ce1f86d7462",
+      "bytes": 3008
+    },
+    {
+      "path": "docs/architecture/C3_TEMPORAL_TRUTH.md",
+      "sha256": "b3b15c3ed4d103c9474cec718641d321afe7177a9a129584e581259b1eaf23de",
+      "bytes": 710
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -155,6 +175,11 @@
       "path": "docs/research/C2_SOURCE_ATLAS.md",
       "sha256": "66d24dc266e547c08f517d2c1423c6e36d38724916d4c18447ddc90127638f2f",
       "bytes": 1733
+    },
+    {
+      "path": "docs/research/C3_SOURCE_LEDGER.md",
+      "sha256": "d3cfdb3c0d7319d4ed0f2f48d9b51dcf0b6cab06b1297f76a547c2918e449e8c",
+      "bytes": 1370
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -258,7 +283,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "881caa9a666c9a8526658d942a6e4d2a16a6e7202a7efc51c0ea3dc65d3d6187",
+      "sha256": "cfa3033e44030368797ac779e2b94ce525cb2d59aaf6fd48f3c692be7540bfbc",
       "bytes": 5280
     },
     {
@@ -347,9 +372,29 @@
       "bytes": 504
     },
     {
+      "path": "planning/phases/C3/C3_DECISIONS.json",
+      "sha256": "5c71fdec3347e1c6e06ef62e070c0e1ba8f9bec45ff9d65ce7a7b59af8cef303",
+      "bytes": 4340
+    },
+    {
+      "path": "planning/phases/C3/C3_REQUIREMENT_CLOSURE.json",
+      "sha256": "a712a1edd2307b058785ef1e7b456d8fd80c4ce0d93800382423d51daaec3e06",
+      "bytes": 635
+    },
+    {
+      "path": "planning/phases/C3/EXECUTION_CONTRACT.md",
+      "sha256": "86a3e471b989221477df44868963e9b3426c5d185e2662c0b228493009a6438a",
+      "bytes": 2112
+    },
+    {
       "path": "planning/phases/C3/PHASE_BRIEF.md",
       "sha256": "2e4898b999c6e8f72a6d2628cccd50bed9fdf9a7fa52c271b1d5b8f232e8fea2",
       "bytes": 1158
+    },
+    {
+      "path": "planning/phases/C3/VERIFICATION.md",
+      "sha256": "324d45267a4c5e325126408826facbdf28283d8154c332cd2f8bdceb9b912d00",
+      "bytes": 528
     },
     {
       "path": "planning/phases/C4/PHASE_BRIEF.md",

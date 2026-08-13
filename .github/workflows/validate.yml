@@ -23,6 +23,10 @@ jobs:
         run: python tools/validate_c1_design.py --root . --json
       - name: C2 design contract
         run: python tools/validate_c2_design.py --root . --json
+      - name: C3 design contract
+        run: |
+          jq -e '.phase == "C3" and (.roles | length == 10) and .locks.storage_engine_selected == false and .locks.raw_overwrite == "FORBIDDEN" and ([.candidate_matrix[] | select(.status == "ADOPTED")] | length == 0) and (.recovery_rules | index("BACKUP_IS_NOT_VERIFIED_UNTIL_RESTORE") != null)' planning/phases/C3/C3_DECISIONS.json
+          jq -e '([.requirements[].id] | sort) == (["AUD-CMP-013","AUD-DAT-004","AUD-DAT-012"] | sort) and .hard_boundary.clean_restore_executed == false' planning/phases/C3/C3_REQUIREMENT_CLOSURE.json
       - name: Repository contract
         run: python tools/validate_repository.py --root . --json
       - name: Compile Python sources

@@ -1,0 +1,17 @@
+{
+  "phase": "C3",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "requirements": [
+    {"id":"AUD-DAT-004","artifacts":["docs/architecture/C3_REFERENCE_ARCHITECTURE.md"]},
+    {"id":"AUD-DAT-012","artifacts":["docs/architecture/C3_RECOVERY_MIGRATION.md"]},
+    {"id":"AUD-CMP-013","artifacts":["docs/architecture/C3_LAKE_FORMATS.md","docs/architecture/C3_RECOVERY_MIGRATION.md"]}
+  ],
+  "hard_boundary": {
+    "storage_engine_selected": false,
+    "target_storage_qualified": false,
+    "clean_restore_executed": false,
+    "real_market_volume_tested": false,
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN"
+  }
+}

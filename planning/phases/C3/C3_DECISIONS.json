@@ -1,0 +1,50 @@
+{
+  "phase": "C3",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "single_engine_for_all_roles": "FORBIDDEN",
+    "raw_overwrite": "FORBIDDEN",
+    "silent_schema_evolution": "FORBIDDEN",
+    "unprotected_gc": "FORBIDDEN",
+    "hot_store_as_historical_truth": "FORBIDDEN",
+    "synthetic_real_namespace_merge": "FORBIDDEN",
+    "storage_engine_selected": false
+  },
+  "roles": [
+    {"id":"R0_RAW_EVIDENCE","contract":"CONTENT_ADDRESSED_IMMUTABLE_BYTES"},
+    {"id":"R1_RETRIEVAL_AUDIT","contract":"APPEND_ONLY_REQUEST_AND_RESPONSE_LEDGER"},
+    {"id":"R2_CANONICAL_LAKE","contract":"APPEND_ONLY_COLUMNAR_DATASET_VERSIONS"},
+    {"id":"R3_TEMPORAL_TRUTH","contract":"BITEMPORAL_FACT_AND_REVISION_AUTHORITY"},
+    {"id":"R4_HOT_MARKET_STORE","contract":"LOW_LATENCY_RECENT_WINDOW_DERIVATIVE"},
+    {"id":"R5_LOCAL_QUERY","contract":"REPRODUCIBLE_POINT_IN_TIME_ANALYTICS"},
+    {"id":"R6_INCREMENTAL_VIEWS","contract":"OPTIONAL_REBUILDABLE_STREAM_DERIVATIVES"},
+    {"id":"R7_DATASET_BUILDER","contract":"ATOMIC_LINEAGE_BOUND_PUBLICATION"},
+    {"id":"R8_LINEAGE_EVIDENCE","contract":"OPENLINEAGE_COMPATIBLE_RUN_DATASET_JOB_EVENTS"},
+    {"id":"R9_BACKUP_RECOVERY","contract":"CLEAN_RESTORE_AND_SEMANTIC_VERIFICATION"}
+  ],
+  "candidate_matrix": [
+    {"id":"duckdb","roles":["R5_LOCAL_QUERY","R7_DATASET_BUILDER"],"status":"LOCAL_CONFORMANCE_CANDIDATE"},
+    {"id":"polars-arrow-parquet","roles":["R2_CANONICAL_LAKE","R5_LOCAL_QUERY","R7_DATASET_BUILDER"],"status":"BINARY_AND_BAKEOFF_OPEN"},
+    {"id":"ducklake","roles":["R2_CANONICAL_LAKE"],"status":"PREFERRED_SIMPLE_LAKE_CANDIDATE"},
+    {"id":"apache-iceberg","roles":["R2_CANONICAL_LAKE"],"status":"PREFERRED_INTEROPERABLE_LAKE_CANDIDATE"},
+    {"id":"delta-lake","roles":["R2_CANONICAL_LAKE"],"status":"WATCHLIST_COMPATIBILITY"},
+    {"id":"lakefs","roles":["R0_RAW_EVIDENCE","R2_CANONICAL_LAKE"],"status":"OPTIONAL_DATA_VERSION_CONTROL"},
+    {"id":"postgres-bitemporal","roles":["R3_TEMPORAL_TRUTH"],"status":"BASELINE_CANDIDATE"},
+    {"id":"xtdb","roles":["R3_TEMPORAL_TRUTH"],"status":"NATIVE_BITEMPORAL_CANDIDATE"},
+    {"id":"questdb","roles":["R4_HOT_MARKET_STORE"],"status":"LOW_LATENCY_CANDIDATE"},
+    {"id":"clickhouse","roles":["R4_HOT_MARKET_STORE","R5_LOCAL_QUERY"],"status":"SCALE_ANALYTICS_CANDIDATE"},
+    {"id":"arcticdb","roles":["R4_HOT_MARKET_STORE","R5_LOCAL_QUERY"],"status":"WATCHLIST_LICENSE_AND_RETENTION"},
+    {"id":"materialize","roles":["R6_INCREMENTAL_VIEWS"],"status":"OPTIONAL_CANDIDATE"},
+    {"id":"risingwave","roles":["R6_INCREMENTAL_VIEWS"],"status":"OPTIONAL_CANDIDATE"},
+    {"id":"openlineage","roles":["R8_LINEAGE_EVIDENCE"],"status":"CONTRACT_ADOPTED"},
+    {"id":"marquez","roles":["R8_LINEAGE_EVIDENCE"],"status":"REFERENCE_BACKEND_CANDIDATE"}
+  ],
+  "dataset_identity_fields": ["dataset_id","schema_id","source_versions","economic_cutoff","knowledge_cutoff","code_sha256","config_sha256","dependency_lock_sha256","rights_policy_ids","quality_report_id","lineage_run_id","content_root_sha256"],
+  "publication_rules": ["STAGE_THEN_VALIDATE_THEN_ATOMIC_COMMIT","NO_PARTIAL_VISIBILITY","COMPLETE_LINEAGE_REQUIRED","RIGHTS_AND_QUALITY_PASS_REQUIRED","INPUT_AND_OUTPUT_HASHES_REQUIRED"],
+  "migration_rules": ["EXPAND_MIGRATE_CONTRACT","DUAL_READ_OR_DUAL_WRITE_WHEN_NEEDED","POINT_IN_TIME_FINGERPRINT_EQUIVALENCE","ROLLBACK_WINDOW_REQUIRED","NO_DESTRUCTIVE_CHANGE_WITHOUT_EXPORT"],
+  "retention_rules": ["EXPERIMENT_REFERENCES_PROTECT_DATA","LEGAL_OR_LICENSE_DELETION_OVERRIDES_NORMAL_RETENTION","GC_DRY_RUN_AND_REACHABILITY_REPORT","RAW_NEGATIVE_AND_INCIDENT_EVIDENCE_PROTECTED","TIME_TRAVEL_CLAIMS_REQUIRE_RETAINED_FILES"],
+  "recovery_rules": ["BACKUP_IS_NOT_VERIFIED_UNTIL_RESTORE","CLEAN_ENVIRONMENT_REQUIRED","HASH_AND_SEMANTIC_CHECKS_REQUIRED","RPO_RTO_BY_DATA_CLASS","CORRUPTION_INJECTION_REQUIRED"],
+  "unresolved": ["Final object store remains open.","DuckLake versus Iceberg requires target and interoperability bake-off.","XTDB versus Postgres temporal truth requires semantic and operational tests.","QuestDB versus ClickHouse hot-store value requires real market workloads.","Incremental-view engine may be unnecessary for the personal baseline.","Exact RPO and RTO remain open until data volumes and execution-state classes are measured."]
+}
