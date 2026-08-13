@@ -347,6 +347,11 @@
       "bytes": 504
     },
     {
+      "path": "planning/phases/C3/C3_DECISIONS.json",
+      "sha256": "5c71fdec3347e1c6e06ef62e070c0e1ba8f9bec45ff9d65ce7a7b59af8cef303",
+      "bytes": 4340
+    },
+    {
       "path": "planning/phases/C3/PHASE_BRIEF.md",
       "sha256": "2e4898b999c6e8f72a6d2628cccd50bed9fdf9a7fa52c271b1d5b8f232e8fea2",
       "bytes": 1158
