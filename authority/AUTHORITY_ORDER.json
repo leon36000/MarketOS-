@@ -1,0 +1,14 @@
+{
+  "version": "0.1.0",
+  "authority_order": [
+    "DIRECT_OWNER_DIRECTIVE",
+    "VERIFIED_CANON",
+    "APPROVED_DELTA",
+    "EVIDENCE_AND_EXECUTION_STATE",
+    "NEON_VALIDATED_MEMORY",
+    "MEMORY_VAULT",
+    "SUMMARIES",
+    "IMPLICIT_MODEL_MEMORY"
+  ],
+  "external_review_default": "QUARANTINED_NO_AUTHORITY"
+}

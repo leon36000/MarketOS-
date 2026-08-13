@@ -1,0 +1,109 @@
+id,category,requirement,coverage_status,evidence,remaining_gap,closure_phase
+AUD-GOV-001,Gouvernance,"Projet privé, personnel, non distribué, pour le portefeuille de Nathan.",LOCKED_CANON,MASTER REQ-CORE-001,Aucun.,—
+AUD-GOV-002,Gouvernance,Cible finale : gestion entièrement autonome du portefeuille personnel.,LOCKED_CANON,MASTER REQ-CORE-002,Autonomie non implémentée; gates 37–39.,C15
+AUD-GOV-003,Gouvernance,"Aucun capital réel avant historique, shadow et paper qualifiés.",LOCKED_CANON,MASTER REQ-CORE-003,Validation réelle à exécuter.,C15
+AUD-GOV-004,Gouvernance,"Aucun faux DONE; faits, hypothèses, preuves et limites séparés.",LOCKED_CANON,MASTER REQ-CORE-004; Control Plane anti-dérive,Mesurer longitudinalement l’efficacité des contrôles.,C16
+AUD-GOV-005,Gouvernance,RAG et fichier Markdown maître relus et mis à jour à chaque phase.,LOCKED_CANON,MASTER section 0; Current State/RAG,Ancrage externe encore ouvert.,C16
+AUD-GOV-006,Gouvernance,"Contre-mesures anti-dérive avant, pendant et après chaque phase.",LOCKED_CANON,MASTER REQ-CORE-019; 00-D2/00-D3,Aucun oubli critique détecté dans les domaines déjà canonisés.,C16
+AUD-GOV-007,Gouvernance,Traçabilité exigence→source→preuve→test→décision→artefact.,LOCKED_CANON,MASTER REQ-CORE-020,Doit couvrir tous les contrats finaux.,C16
+AUD-GOV-008,Gouvernance,"Toute avenue reçoit un statut : ouverte, watchlist, rejetée ou adoptée.",LOCKED_CANON,MASTER REQ-CORE-022,Plusieurs familles restent seulement SCREENED.,C1-C15
+AUD-GOV-009,Gouvernance,Conserver tous les résultats négatifs et erreurs.,LOCKED_CANON,Negative-result retention; Evidence ledgers,Vérifier la couverture finale de 100 %.,C16
+AUD-GOV-010,Gouvernance,Garder un esprit critique face aux suggestions externes et aux consensus.,LOCKED_CANON,MASTER REQ-CORE-029/031; Revue Claude/Fable,Revue finale indépendante requise.,C16
+AUD-GOV-011,Gouvernance,"Le plan, et non le logiciel, est le livrable actuel destiné à Claude Code.",PARTIAL_NEEDS_EXPLICIT_LOCK,MASTER REQ-CORE-025/031; CLAUDE.md,Séparer formellement roadmap de conception et roadmap d’exécution.,C16
+AUD-GOV-012,Gouvernance,Chaque phase d’implémentation doit avoir un Claude Code Execution Contract concret.,PARTIAL_NEEDS_CONTRACTS,9 contrats formels présents dans execution-contracts/,9 contrats présents; les autres contrats doivent être produits par C1-C15.,C1-C15
+AUD-GOV-013,Gouvernance,Le conseil premium de 10–15 modèles challenge le plan sans autorité supérieure au canon.,COVERED_DESIGN,25A Premium Model Council; REQ-CORE-029,Benchmark et consensus final non exécutés.,C16
+AUD-GOV-014,Gouvernance,"Le pack final doit être reproductible, vérifiable et sans secrets.",COVERED_DESIGN,REQ-CORE-031; CLAUDE.md,Spécification finale d’acceptation à verrouiller.,C16
+AUD-MKT-001,Connaissance marché,Connaissance boursière de A à Z avec coverage ledger mesurable.,COVERED_DESIGN,52 domaines KDOM; 02B contract,Domaines à sourcer/tester/contractualiser.,C7-C10
+AUD-MKT-002,Connaissance marché,"Comprendre courbes, prix, volumes, volatilité, liquidité et analyse technique multi-échelle.",PARTIAL_NEEDS_CONTRACT,Phase 13 roadmap,Contrat Claude Code détaillé absent.,C8
+AUD-MKT-003,Connaissance marché,Explorer toutes les familles de stratégies et leurs conditions de défaillance.,PARTIAL_NEEDS_CONTRACT,Phase 20 roadmap; Strategy Factory concepts,Contrat exhaustif et DSL manquants.,C10
+AUD-MKT-004,Connaissance marché,"Étudier l’histoire de la bourse, crises, accidents, changements structurels et régimes.",PARTIAL_NEEDS_CONTRACT,KDOM coverage; Phases 19/33,"Corpus historique, scénarios et tests à détailler.",C9/C15
+AUD-MKT-005,Connaissance marché,Comprendre les mécanismes de cause à effet et distinguer causalité/corrélation.,PARTIAL_NEEDS_CONTRACT,Phase 19; DoWhy/EconML candidates,Contrat causal complet absent.,C9
+AUD-MKT-006,Connaissance marché,"Fondamentaux, comptabilité, états financiers, qualité et gouvernance d’entreprise.",PARTIAL_NEEDS_CONTRACT,Phase 11 roadmap,Contrat détaillé absent.,C7
+AUD-MKT-007,Connaissance marché,"Valorisation par scénarios et distributions, pas un prix unique.",PARTIAL_NEEDS_CONTRACT,Phase 12 roadmap,Contrat détaillé absent.,C7
+AUD-MKT-008,Connaissance marché,"Macro, taux, crédit, FX, matières premières et cross-asset.",PARTIAL_NEEDS_CONTRACT,Phase 15 roadmap,Contrat détaillé absent.,C9
+AUD-MKT-009,Connaissance marché,"Microstructure, ordres, carnets L1/L2/L3, files, enchères, haltes et impact.",PARTIAL_NEEDS_CONTRACT,Phase 14; L1-L2-L3 protocol,Contrat opérationnel complet absent.,C8
+AUD-MKT-010,Connaissance marché,"Options, volatilité implicite, surface, greeks et positionnement.",PARTIAL_NEEDS_CONTRACT,Phase 17 roadmap,Contrat détaillé absent.,C8
+AUD-MKT-011,Connaissance marché,"Actualité mondiale temps réel; X/Grok comme capteur, jamais vérité unique.",LOCKED_CANON,REQ-CORE-006; Phase 16 roadmap,Architecture de corroboration et SLA à détailler.,C9
+AUD-MKT-012,Connaissance marché,"Alternative data, réseaux sociaux, flux, initiés, shorts et provenance.",PARTIAL_NEEDS_CONTRACT,Phase 18 roadmap,Contrat détaillé absent.,C9
+AUD-MKT-013,Connaissance marché,"Méthodes et technologies des banques, buy-side, sell-side, prop firms et HFT.",COVERED_DESIGN,Institutional deep atlas; REQ-CORE-027,Transformer les patterns en contrats d’architecture précis.,C4/C13
+AUD-MKT-014,Connaissance marché,Logiciels institutionnels et spécialisés utilisés par MARKET-OS lorsque pertinents.,COVERED_DESIGN,Bank-grade matrix; Trading Tool Gateway,Bake-off/adaptation et licences ouverts.,C4/C12
+AUD-MKT-015,Connaissance marché,"Fiscalité, comptabilité de portefeuille et contraintes courtier sans en faire le cœur du produit.",PARTIAL_NEEDS_CONTRACT,REQ-CORE-018; Phases 29/30,Contrats opérationnels et comptables manquants.,C13
+AUD-MKT-016,Connaissance marché,"Registre explicite des inconnues, variables et ruptures de régime.",LOCKED_CANON,REQ-CORE-016; Unknown registry,Doit être vérifié lors de la clôture finale.,C16
+AUD-MKT-017,Connaissance marché,"Recherche profonde arXiv, universités, laboratoires, GitHub, GitLab et grands registres.",LOCKED_CANON,REQ-CORE-011; Research universe,Poursuite thématique dans chaque phase.,C1-C15
+AUD-DAT-001,Données/simulation,Données historiques et temps réel avec simulation continue.,LOCKED_CANON,REQ-CORE-008; PAPER-CORE,Données réelles qualifiées manquantes.,C2/C15
+AUD-DAT-002,Données/simulation,"Bitemporalité, first_seen_at et available_to_strategy_at.",COVERED_LOCAL,03B/04A contracts,Capture directe et continuité 7 jours ouvertes.,C2
+AUD-DAT-003,Données/simulation,Comparer L0/L1/L2/L3 et prouver la valeur marginale.,PARTIAL_OPEN,L1-L2-L3 protocol,Échantillons alignés réels et coûts absents.,C2/C10
+AUD-DAT-004,Données/simulation,"Séparer physiquement données réelles, synthétiques, proxy et world-model.",LOCKED_CANON,Data classifications; World-model boundary,Vérifier dans chaque adaptateur final.,C3/C11
+AUD-DAT-005,Données/simulation,"Simulation avec capital, positions, gains et pertes virtuels sur données réelles.",COVERED_DESIGN,PAPER-CORE roadmap,PC-4 à PC-7 non conçus en contrats finaux.,C10/C15
+AUD-DAT-006,Données/simulation,Maintenir replay/shadow/paper même après passage au réel.,LOCKED_CANON,DEC-0003/0008; PAPER-CORE,Contrat runtime permanent à finaliser.,C15
+AUD-DAT-007,Données/simulation,"Ensemble de simulateurs : bars, trades/quotes, LOB, broker, ABM/world model.",COVERED_DESIGN,Replay Factory; World Model Lab,Fidélité/calibration non prouvées.,C10/C11
+AUD-DAT-008,Données/simulation,"Anti-overfitting : holdouts, walk-forward, purge, embargo, PBO, DSR.",PARTIAL_NEEDS_CONTRACT,PC-0; Phase 21 roadmap,Contrat complet absent.,C10
+AUD-DAT-009,Données/simulation,"TCA, slippage, spread, impact, capacité et fill uncertainty.",COVERED_DESIGN,10A TCA; Phase 22 roadmap,Implémentation/contrat complet absent.,C6/C10
+AUD-DAT-010,Données/simulation,"Data TCO/licences : stockage, dérivation, entraînement, embeddings, egress, sortie.",PARTIAL_OPEN,03C-lite; 03C-complete roadmap,Devis écrits et contrat complet absents.,C2
+AUD-DAT-011,Données/simulation,"Security Master, identifiants stables, corporate actions, delistings, survivorship.",MISSING_DETAILED_CONTRACT,Phase 05 roadmap,Phase 05 sans contrat Claude Code.,C2
+AUD-DAT-012,Données/simulation,"Sauvegardes, snapshots, retention locks, restore drills et disaster recovery.",PARTIAL_NEEDS_SYSTEM_CONTRACT,Data Fabric refs; Phase 31,Plan global de DR absent.,C3/C13
+AUD-AI-001,IA/apprentissage,"MOA avec modèles locaux/cloud petits et grands, rôles spécialisés.",LOCKED_CANON,REQ-CORE-005; Phase 25/25A,Contrat macro 25 à finaliser.,C12
+AUD-AI-002,IA/apprentissage,"Catalogue dynamique providers : direct, routeur, local OpenAI-compatible; +/− et sync.",COVERED_DESIGN,Premium cockpit; Provider catalog,Implémentation 32A ouverte.,C14
+AUD-AI-003,IA/apprentissage,Clés API dans vault; aucun readback navigateur ou pack.,COVERED_DESIGN,REQ-CORE-033; 32A,Vault/auth à sélectionner et contracter.,C13/C14
+AUD-AI-004,IA/apprentissage,"Calculs critiques déterministes; LLM propose, outils calculent, Risk Kernel veto.",LOCKED_CANON,REQ-CORE-015; Numerical Truth Kernel,Math Core et tool permissions à finaliser.,C6/C13
+AUD-AI-005,IA/apprentissage,"Mémoire sélective, temporelle, causale, exceptions, succès, erreurs et contrefactuels.",COVERED_DESIGN,REQ-CORE-037; 26A contract,Implémentation/poisoning tests ouverts.,C12
+AUD-AI-006,IA/apprentissage,Champion/challenger; aucune auto-promotion ou modification directe du moteur actif.,LOCKED_CANON,REQ-CORE-014/017; PC-7/28A,Contrat global de promotion à finaliser.,C12/C15
+AUD-AI-007,IA/apprentissage,DGM/Huxley-Gödel/HGM/HyperAgents évalués en sandbox challenger-only.,COVERED_DESIGN,REQ-CORE-038; 28A contract,Expériences et valeur marginale ouvertes.,C12
+AUD-AI-008,IA/apprentissage,World models avancés étudiés dans une hiérarchie multi-fidélité.,COVERED_DESIGN,REQ-CORE-039; 23A contract,Implémentation et fidelity gates ouvertes.,C11
+AUD-AI-009,IA/apprentissage,RL uniquement offline/safe avec politiques contraintes et aucun exploratoire réel.,PARTIAL_NEEDS_CONTRACT,Phase 24,Contrat macro 24 absent.,C11
+AUD-AI-010,IA/apprentissage,Adaptation financière LoRA/CPT seulement si benchmarks justifient.,PARTIAL_NEEDS_CONTRACT,Phase 27,Contrat macro 27 absent.,C12
+AUD-AI-011,IA/apprentissage,Consensus premium pondéré par compétence et erreurs corrélées; rapport minoritaire.,COVERED_DESIGN,25A contract,Runtime et benchmark à exécuter.,C16
+AUD-AI-012,IA/apprentissage,Logiciels boursiers exploités via API/protocole/MCP/CLI/GUI dans cet ordre.,COVERED_DESIGN,REQ-CORE-036; Tool Gateway,Inventaire détaillé et intégration à finaliser.,C4/C12
+AUD-AI-013,IA/apprentissage,Look-ahead via poids LLM/mémoire/embeddings/prompts interdit en historique promotable.,COVERED_LOCAL,PC-0 contract; LookAheadGuard,Généralisation à tous pipelines finaux.,C10/C12
+AUD-AI-014,IA/apprentissage,"Agents enrichis par outils, calcul, RAG, graphes, news et logiciels spécialisés.",COVERED_DESIGN,MOA architecture; Tool Gateway,Contrats globaux à finaliser.,C6
+AUD-CMP-001,Calcul/déploiement,"CPU exploités fortement pour math, backtests, causalité, optimisation et validation.",LOCKED_CANON,REQ-CORE-007/010; Phase 10A/10B,Golden Oracle non implémenté.,C5/C6
+AUD-CMP-002,Calcul/déploiement,"GPU dédiés possibles pour Monte-Carlo, matrices, ML, LOB et LLM.",COVERED_DESIGN,Hardware map; 08A/10B,Qualification réelle absente.,C5/C6
+AUD-CMP-003,Calcul/déploiement,"RAM, NVMe, réseau, NUMA, RDMA et cloud traités comme ressources planifiées.",LOCKED_CANON,08A/08B contracts,Inventaire cible et benchmarks absents.,C5
+AUD-CMP-004,Calcul/déploiement,FPGA/SmartNIC/DPU explorés sans achat prématuré.,LOCKED_CANON,REQ-CORE-030; FPGA report,Économie/latence workload spécifique ouverte.,C5
+AUD-CMP-005,Calcul/déploiement,"Stacks NVIDIA, AMD et Intel évaluées charge par charge.",COVERED_DESIGN,Vendor SDK matrix,Versions et benchmarks réels ouverts.,C5
+AUD-CMP-006,Calcul/déploiement,"Compute Node Pack signé : IP/user/bootstrap, mTLS, inventaire et diagnostics.",COVERED_DESIGN,REQ-CORE-034; 08B contract,Déploiement réel absent.,C5
+AUD-CMP-007,Calcul/déploiement,"Cloud compute modulable avec budget, droits data, checkpoint, egress et destruction.",COVERED_DESIGN,REQ-CORE-035; Cloud Fabric,Provider et tests réels ouverts.,C5
+AUD-CMP-008,Calcul/déploiement,"Déploiement identique sur PC, DGX Spark/GX10, serveurs et nœuds distants.",PARTIAL_NEEDS_EXPLICIT_PROFILE,08B standalone/K3s/cloud,Profils matériels connus et matrice de portabilité à canoniser.,C1/C5
+AUD-CMP-009,Calcul/déploiement,"Composants séparés et conteneurisés : trading, analyses, IA, RAG, bases, UI, notifications, simulation.",MISSING_EXPLICIT_REQUIREMENT,Podman Quadlet partiel dans 08B,Architecture de services et profils Compose/Podman/K3s absents.,C1
+AUD-CMP-010,Calcul/déploiement,Kubernetes/K3s extensible mais non obligatoire; standalone simple par défaut.,COVERED_DESIGN,08B contract,Manifests et tests de parité à produire.,C1/C5
+AUD-CMP-011,Calcul/déploiement,Privilégier l’évaluation d’applications/conteneurs complets prêts à l’emploi avant de recoder.,MISSING_EXPLICIT_REQUIREMENT,Quelques briques SCREENED seulement,Catalogue Portainer/Grafana/Langfuse/n8n/Keycloak/MinIO/Harbor/JupyterHub/Open WebUI/Dify/RAGFlow/Onyx/OpenHands/GPT Researcher/Firecrawl à auditer par rôle.,C1
+AUD-CMP-012,Calcul/déploiement,Resource Broker simple d’abord; Ray/Dask/MPI/Slurm/K3s selon preuve.,COVERED_DESIGN,08A/08B,Tournoi et complexité budget ouverts.,C5
+AUD-CMP-013,Calcul/déploiement,"Supply-chain : locks, hashes, SBOM, CVE/OSV, provenance et installation offline.",COVERED_PARTIAL,03B.3; Wheelhouse 1/5,Artefacts restants et conteneurs/images à couvrir.,C1/C3/C13
+AUD-CMP-014,Calcul/déploiement,Installation/uninstallation/rollback du pack et des services sans laisser de secrets.,PARTIAL_NEEDS_END_TO_END,08B contract,Bundle final d’installation à spécifier.,C1/C16
+AUD-UI-001,Interface/opérations,Cockpit premium local-first/PWA adapté à un seul propriétaire.,COVERED_DESIGN,REQ-CORE-032; 32A contract,Implémentation ouverte.,C14
+AUD-UI-002,Interface/opérations,"Configuration providers, modèles, secrets, nœuds, cloud, outils, broker et risques.",COVERED_DESIGN,Premium cockpit,Formulaires et validation à finaliser.,C14
+AUD-UI-003,Interface/opérations,"Boutons +/− avec dépendances, disable-before-delete et diff catalogue.",COVERED_DESIGN,Premium cockpit lines 500+,Implémentation ouverte.,C14
+AUD-UI-004,Interface/opérations,"Preuve, fraîcheur, incertitude, désaccord et live lock visibles partout.",COVERED_DESIGN,UX de vérité,Tests UX et accessibilité ouverts.,C14
+AUD-UI-005,Interface/opérations,Monitoring mobile limité aux actions non sensibles.,COVERED_DESIGN,Premium cockpit,Contrat responsive à finaliser.,C14
+AUD-UI-006,Interface/opérations,Observabilité corrélée data→modèle→décision→risque→ordre→fill.,PARTIAL_NEEDS_CONTRACT,OpenTelemetry/Prometheus/Loki SCREENED,Phase dédiée et schéma de traces manquants.,C1/C14
+AUD-UI-007,Interface/opérations,"Alertes/notifications fiables pour incidents, risque, données, jobs, modèles et coûts.",MISSING_EXPLICIT_REQUIREMENT,Aucune exigence canonique dédiée,"Canaux, sévérité, déduplication, accusé et escalade à concevoir.",C1/C14
+AUD-UI-008,Interface/opérations,"Incident response, runbooks, audit et postmortems accessibles depuis le cockpit.",PARTIAL_NEEDS_CONTRACT,Command Center incidents; Phase 31,Contrat opérabilité manquant.,C13/C14
+AUD-UI-009,Interface/opérations,"Authentification forte mono-propriétaire, WebAuthn/MFA, sessions courtes, identité machine.",PARTIAL_NEEDS_DECISION,Premium cockpit candidate; mTLS Node Pack,Choix Keycloak/OpenBao/interne à auditer sans surcomplexité.,C1/C13/C14
+AUD-RSK-001,Risque/exécution,"Risk Kernel déterministe avec veto absolu, limites et no-trade.",PARTIAL_NEEDS_CONTRACT,Architecture cible; Phase 29,Contrat Claude Code complet absent.,C13
+AUD-RSK-002,Risque/exécution,"Portfolio optimizer : cash, contraintes, exposition, liquidité, couverture.",PARTIAL_NEEDS_CONTRACT,Phase 29,Contrat complet absent.,C13
+AUD-RSK-003,Risque/exécution,"Broker adapters, OMS/EMS, idempotence, fills, rejets et réconciliation.",PARTIAL_NEEDS_CONTRACT,Phase 30,Contrat complet absent.,C13
+AUD-RSK-004,Risque/exécution,"Kill switch, cancel-all, stale data halt et divergence position halt.",PARTIAL_NEEDS_CONTRACT,Safety doctrine; Phase 30/31,Tests et interfaces à détailler.,C13
+AUD-RSK-005,Risque/exécution,"Comptabilité exacte : cash, lots, PnL, FX, frais, corporate actions et taxes.",PARTIAL_NEEDS_CONTRACT,InvestmentBook concept; Phase 29/30,Contrat ledger comptable absent.,C13
+AUD-RSK-006,Risque/exécution,"Sécurité, isolation, secrets, chaos, recovery et audit indépendant.",PARTIAL_NEEDS_CONTRACT,Phase 31; Supply chain,Contrat macro 31 absent.,C13
+AUD-RSK-007,Risque/exécution,"Shadow, paper, canary, live restreint puis autonomie progressive.",LOCKED_CANON,Phases 34–39,Contrats de promotion et critères quantifiés à finaliser.,C15
+AUD-RSK-008,Risque/exécution,"Approbation humaine initiale des nouveaux champions, puis routine autonome qualifiée.",LOCKED_CANON,Amendement personnel; PC-7,Contrat final de délégation à définir.,C12/C15
+AUD-RSK-009,Risque/exécution,"Audit append-only de toutes les données, décisions, ordres, modèles et incidents.",COVERED_DESIGN,EvidenceBook; Memory architecture,Schéma final et retention à finaliser.,C13
+AUD-FIN-001,Pack final,DAG d’exécution complet des phases Claude Code avec dépendances et chemins critiques.,PARTIAL_NEEDS_FINALIZATION,Plan finishing task matrix; CLAUDE.md,DAG complet 00–40/PC-0–7 à construire.,C16
+AUD-FIN-002,Pack final,Un contrat Claude Code complet pour chaque phase ou paquet de phases.,PARTIAL_NEEDS_CONTRACTS,10 contrats existants,Contrats restants à produire.,C1-C15
+AUD-FIN-003,Pack final,"Arborescence exacte, interfaces, TDD, commandes, preuves, rollback et handoff.",LOCKED_CANON,REQ-CORE-025,Vérification finale de couverture.,C16
+AUD-FIN-004,Pack final,"Configurations d’exemple, aucun secret, profils local/serveur/cloud.",PARTIAL_NEEDS_FINALIZATION,Templates v0.23,Profils conteneurisés et topologie utilisateur manquants.,C1/C5/C16
+AUD-FIN-005,Pack final,"Installateurs/bootstrap, manifests, checksums, SBOM et validation offline.",PARTIAL_NEEDS_FINALIZATION,08B/03B supply chain,Pack final d’installation non encore spécifié.,C1/C16
+AUD-FIN-006,Pack final,"Revue finale par conseil premium, rapport minoritaire et arbitrage humain/canon.",COVERED_DESIGN,25A/consensus handoff,Exécution finale à réaliser.,C16
+AUD-FIN-007,Pack final,"Audit de cohérence, absence de placeholders et couverture 100 % des exigences.",PARTIAL_NEEDS_FINALIZATION,Control Plane,Gate finale à créer.,C16
+AUD-FIN-008,Pack final,ZIP final unique à remettre à Claude Code pour construire MARKET-OS.,LOCKED_USER_REQUIREMENT,REQ-CORE-031,Produit uniquement après C16.,C16
+AUD-GOV-015,Gouvernance,"Le transfert à Claude Code ne commence qu’après C0.1, vérification du handoff et scellement des directives récentes.",LOCKED_DIRECT_OWNER_REQUIREMENT,C0.1 reconciliation + TAKEOVER_GATE,Aucun pour le transfert du plan; C1-C16 restent à exécuter.,C0.1
+AUD-HOLO-001,Interface/opérations,Holo3.1 ou équivalent sert de pont visuel contrôlé pour les plateformes sans API appropriée.,LOCKED_DIRECT_OWNER_REQUIREMENT,v0.24.1 Holo/Social addendum,Contrat détaillé et benchmark GUI à produire.,C4/C15
+AUD-HOLO-002,Risque/exécution,"API/SDK/protocole/DOM sont prioritaires; le computer-use reste isolé, audité et sans autorité de risque.",LOCKED_DIRECT_OWNER_REQUIREMENT,REQ-HOLO-002/003,Tests adversariaux et canary GUI séparée.,C4/C13/C15
+AUD-SOC-001,Connaissance marché,"MARKET-OS consomme des flux sociaux et nouvelles autorisés en temps réel avec first-seen, hashes, séquences et gap recovery.",LOCKED_DIRECT_OWNER_REQUIREMENT,REQ-SOCIAL-001,"Adapters, droits et replay point-in-time à contractualiser.",C9
+AUD-SOC-002,IA/apprentissage,"Les événements sociaux suivent un Fast Path et un Deep Path avec crédibilité, manipulation et corroboration.",LOCKED_DIRECT_OWNER_REQUIREMENT,REQ-SOCIAL-002/003,"Benchmarks de latence, calibration et red team.",C9/C12/C15
+AUD-SOC-003,Données/simulation,"Les droits, corrections, suppressions et replays historiques des contenus sociaux sont conservés et vérifiés.",ARCHITECTURAL_REQUIREMENT,"Holo/Social addendum sections 3.2, 3.6 et 5",Contrat de rétention/licence par source.,C2/C9
+AUD-CMP-015,Calcul/déploiement,"Auditer les écosystèmes NVIDIA, AMD et Intel pertinents pour calcul mathématique, data, IA et finance.",LOCKED_DIRECT_OWNER_REQUIREMENT,v0.24.2 Vendor Compute addendum,"Versions, compatibilités et benchmarks cibles à verrouiller.",C5/C6
+AUD-CMP-016,Calcul/déploiement,"Inclure les piles financières spécialisées ROCm Finance, Vitis Quantitative Finance et chemins NVIDIA/Intel équivalents.",LOCKED_DIRECT_OWNER_REQUIREMENT,REQ-COMPUTE-VENDOR-002,Expériences et contrats workload-specific.,C5/C6
+AUD-CMP-017,Calcul/déploiement,"Sélectionner les backends par workload, nœud, précision, coût et fiabilité après comparaison au CPU Golden Oracle.",ARCHITECTURAL_REQUIREMENT,REQ-COMPUTE-VENDOR-003,Tournoi matériel réel.,C5/C6
+AUD-CMP-018,Calcul/déploiement,"Le Node Pack distingue PRESENT, DRIVER_READY, SDK_READY, DIAGNOSTIC_PASS et BENCHMARKED_FOR_ROLE.",ARCHITECTURAL_SAFETY_REQUIREMENT,REQ-COMPUTE-VENDOR-004; 08B contract,Implémentation et qualification des nœuds.,C5
+AUD-CMP-019,Gouvernance,"Aucun benchmark vendeur ni nom de famille matérielle ne prouve compatibilité, gain ou adoption sur les machines réelles.",NO_FALSE_DONE_REQUIREMENT,REQ-COMPUTE-VENDOR-005,Validation finale dans chaque gate workload.,C5/C6/C16
