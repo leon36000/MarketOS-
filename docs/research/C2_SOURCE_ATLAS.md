@@ -36,4 +36,4 @@ News and social products remain C9 adapters, but C2 defines storage, deletion, e
 
 ## Evidence boundary
 
-Published evidence on delisting bias supports retaining failed and delisted securities. Evidence that historical databases can change supports preserving every received version and content hash.
+Published evidence on delisting bias supports retaining failed and delisted securities. Evidence that historical databases can change supports preserving every received version and content hash. Product documentation remains screening evidence until direct sample bytes, written rights and reproduced quality tests exist.
