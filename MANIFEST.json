@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "26ee0ba054091cbff5875b392457d095b6e84348683d8477c638c931b082ac11",
-      "bytes": 823
+      "sha256": "c6e323a17e41061d79602f172384fa153edbe22772d3266f108e5c8332a1a26a",
+      "bytes": 920
     },
     {
       "path": ".gitignore",
@@ -107,6 +107,31 @@
       "bytes": 3179
     },
     {
+      "path": "docs/architecture/C2_CORPORATE_ACTIONS.md",
+      "sha256": "43fa7ec2a4bf6a00e3bedea70dbecf4affd530b1e386e124963cd0e6a70ea607",
+      "bytes": 3288
+    },
+    {
+      "path": "docs/architecture/C2_DATA_QUALITY_CONTRACT.md",
+      "sha256": "59d76fc4c5f34d026505007e652219daa836685f9d625150331b9a8a3d41ad4d",
+      "bytes": 2124
+    },
+    {
+      "path": "docs/architecture/C2_DATA_RIGHTS_TCO.md",
+      "sha256": "521e28abc13cbde726d67fde35af64215fd640bc414fa54b4221f511f688b263",
+      "bytes": 2742
+    },
+    {
+      "path": "docs/architecture/C2_SECURITY_MASTER.md",
+      "sha256": "9f17d3841e8a763e5689b0be3cc684da464077fbc32271fa803be4d148c8e132",
+      "bytes": 4098
+    },
+    {
+      "path": "docs/architecture/C2_SOURCE_ADMISSION_RECONCILIATION.md",
+      "sha256": "5a7ba9eb9039d69268ea4f3e2dcc148ad56ce7080dfd2e5579be76cb21b9bc94",
+      "bytes": 3251
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -115,6 +140,21 @@
       "path": "docs/research/C1_SOURCE_LEDGER.md",
       "sha256": "582fa57a9f878d0f7623a9f972640ccb625a54439b3671ef0dd91e59cc31d776",
       "bytes": 1119
+    },
+    {
+      "path": "docs/research/C2_L0_L1_L2_L3_PROCUREMENT.md",
+      "sha256": "485ffad5ca613b9edc6e2f539765ae4e67f261b1a9da53f139334a82f50317d9",
+      "bytes": 1179
+    },
+    {
+      "path": "docs/research/C2_PROCUREMENT_QUESTIONNAIRE.md",
+      "sha256": "7a73777529218b71e6801bf249dca1a582b1572d8da2dc4691a029c1cdaa263b",
+      "bytes": 1785
+    },
+    {
+      "path": "docs/research/C2_SOURCE_ATLAS.md",
+      "sha256": "66d24dc266e547c08f517d2c1423c6e36d38724916d4c18447ddc90127638f2f",
+      "bytes": 1733
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -218,7 +258,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "2ba147aec016d9b8f068d96b7e8225bd492a3ed0f4168654e0e985acce6c5106",
+      "sha256": "881caa9a666c9a8526658d942a6e4d2a16a6e7202a7efc51c0ea3dc65d3d6187",
       "bytes": 5280
     },
     {
@@ -275,6 +315,26 @@
       "path": "planning/phases/C16/PHASE_BRIEF.md",
       "sha256": "58149279406485d15939b3a4f0d341102eab5a1ebb30302f61dcfe4e86885db5",
       "bytes": 1512
+    },
+    {
+      "path": "planning/phases/C2/C2_DECISIONS.json",
+      "sha256": "194918cedaef1b83480cb35106160c1bfb36ede44f935d93bea4e122c2302e46",
+      "bytes": 6543
+    },
+    {
+      "path": "planning/phases/C2/C2_REQUIREMENT_CLOSURE.json",
+      "sha256": "9d6f7ee8d8c914d17b608fd07baef0c3f2a9447c2c4ee6438097ad01751a31d5",
+      "bytes": 1315
+    },
+    {
+      "path": "planning/phases/C2/DESIGN_CONTRACT.md",
+      "sha256": "f33715434c4ac740be5ecf10e35a61560c5fbf7b111015421581e6b1703c0db6",
+      "bytes": 187
+    },
+    {
+      "path": "planning/phases/C2/EXECUTION_CONTRACT.md",
+      "sha256": "c08ab5f1c67eff41d863bf1fb41409a7c87badd7be96e98ef5e64cf3bb8dcda4",
+      "bytes": 3551
     },
     {
       "path": "planning/phases/C2/PHASE_BRIEF.md",
@@ -353,8 +413,8 @@
     },
     {
       "path": "tests/test_repository_contract.py",
-      "sha256": "618d7157796d6991c006e9dbb75708173f2eafdcf8e1505fc9616a3ebe776864",
-      "bytes": 6781
+      "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
+      "bytes": 6935
     },
     {
       "path": "tools/__init__.py",
@@ -375,6 +435,11 @@
       "path": "tools/validate_c1_design.py",
       "sha256": "4ca4305387e1518f90178fc1c58c8f7d5b268e629404e54c5092976089c6d332",
       "bytes": 8665
+    },
+    {
+      "path": "tools/validate_c2_design.py",
+      "sha256": "e0693d606b62d77749e957dd13a68e1a8786d2b2cf57c4ac5b667b85f133583a",
+      "bytes": 2971
     },
     {
       "path": "tools/validate_repository.py",
