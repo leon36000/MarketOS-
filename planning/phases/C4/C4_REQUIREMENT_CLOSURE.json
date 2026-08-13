@@ -1,0 +1,11 @@
+{
+  "phase":"C4","status":"CANDIDATE_PENDING_VERIFICATION",
+  "requirements":[
+    {"id":"AUD-MKT-013","state":"PARTIAL_C4_ENGINE_AND_EXECUTION","artifacts":["docs/architecture/C4_TIME_ENGINE_EXECUTION.md"]},
+    {"id":"AUD-MKT-014","state":"PARTIAL_C4_SPECIALIZED_SOFTWARE","artifacts":["docs/architecture/C4_TIME_ENGINE_EXECUTION.md","docs/architecture/C4_VISUAL_WORKFLOW_BOUNDARY.md"]},
+    {"id":"AUD-AI-012","state":"PARTIAL_C4_TOOL_GATEWAY","artifacts":["docs/architecture/C4_VISUAL_WORKFLOW_BOUNDARY.md"]},
+    {"id":"AUD-RSK-003","state":"PARTIAL_C4_OMS_EXECUTION","artifacts":["docs/architecture/C4_TIME_ENGINE_EXECUTION.md"]},
+    {"id":"AUD-RSK-004","state":"PARTIAL_C4_SAFETY_CONTROLS","artifacts":["docs/architecture/C4_TIME_ENGINE_EXECUTION.md"]}
+  ],
+  "hard_boundary":{"trading_engine_selected":false,"event_bus_selected":false,"broker_adapter_selected":false,"fix_certification_completed":false,"visual_bridge_qualified":false,"live_trading":"HARD_LOCKED","profitability":"UNPROVEN"}
+}
