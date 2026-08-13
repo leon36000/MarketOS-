@@ -117,6 +117,11 @@
       "bytes": 1119
     },
     {
+      "path": "docs/research/C2_L0_L1_L2_L3_PROCUREMENT.md",
+      "sha256": "485ffad5ca613b9edc6e2f539765ae4e67f261b1a9da53f139334a82f50317d9",
+      "bytes": 1179
+    },
+    {
       "path": "docs/research/C2_PROCUREMENT_QUESTIONNAIRE.md",
       "sha256": "b3d0d342e65e6d98ef139aefa9448f208e598ddf32a7613a42786448096d027d",
       "bytes": 256
