@@ -367,6 +367,11 @@
       "bytes": 4340
     },
     {
+      "path": "planning/phases/C3/C3_REQUIREMENT_CLOSURE.json",
+      "sha256": "a712a1edd2307b058785ef1e7b456d8fd80c4ce0d93800382423d51daaec3e06",
+      "bytes": 635
+    },
+    {
       "path": "planning/phases/C3/PHASE_BRIEF.md",
       "sha256": "2e4898b999c6e8f72a6d2628cccd50bed9fdf9a7fa52c271b1d5b8f232e8fea2",
       "bytes": 1158
