@@ -26,4 +26,6 @@ Deliver samples directly with hashes and schema documentation. Include active, i
 
 Define export formats, deletion obligations, audit evidence, reproducibility rights and treatment of derived datasets, embeddings and trained models.
 
-Unknown, ambiguous or verbal-only answers remain `BLOCKED`.
+## Evidence boundary
+
+Only written terms, directly delivered sample bytes and reproduced technical tests can close procurement gates. Unknown, ambiguous, verbal-only or expired answers remain `BLOCKED`.
