@@ -17,6 +17,7 @@ C1 defines deployment profiles, complete-application evaluation, secrets, observ
 notifications and runbooks. It does not implement financial trading.
 
 ```bash
+python tools/materialize_c1_bundle.py . --replace
 python -m pip install -e ".[dev]"
 python -m pytest -q
 python tools/validate_c1.py .
