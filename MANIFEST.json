@@ -142,6 +142,11 @@
       "bytes": 3008
     },
     {
+      "path": "docs/architecture/C3_TEMPORAL_TRUTH.md",
+      "sha256": "b3b15c3ed4d103c9474cec718641d321afe7177a9a129584e581259b1eaf23de",
+      "bytes": 710
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
