@@ -1,0 +1,5 @@
+{
+  "phase": "C2",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "requirement_ids": ["AUD-DAT-001","AUD-DAT-002","AUD-DAT-003","AUD-DAT-010","AUD-DAT-011","AUD-SOC-003"]
+}
