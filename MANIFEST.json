@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "files": [
-    {"path":".github/workflows/validate.yml","sha256":"63b7494f22add3f82a0388f0b11a922c265ac46f5096b0c43116758828b61026","bytes":525},
+    {"path":".github/workflows/validate.yml","sha256":"5a0530da239b18caa5f0c4bca1ab027618302f44dd05c07aa34ed8e53e17d275","bytes":698},
     {"path":".gitignore","sha256":"fdc0e03aa724bfc21f8c8b8f05169a5819d1da7b38f584f88001acbbc73a9ef6","bytes":94},
     {"path":"AGENTS.md","sha256":"4cf570de062809cd6e665c240789bf16654d742dd610053dc3b62c86831fd5e0","bytes":537},
     {"path":"CLAUDE.md","sha256":"f98497339703815e4cb3472fdd60109c36dade891e28ffa8637e39dc94397ed3","bytes":1225},
@@ -39,10 +39,10 @@
     {"path":"planning/phases/C8/PHASE_BRIEF.md","sha256":"b753bc7d830b8f3cbafe8af032af72cd1a04f459f07de531f4a69f8c1e473a6b","bytes":1180},
     {"path":"planning/phases/C9/PHASE_BRIEF.md","sha256":"6cc300dec380aa272c916a06e1b3e236247ed013a292e6dd4307e0f8362e2cd3","bytes":1515},
     {"path":"requirements/README.md","sha256":"6c1efeac8792ef0a7a9e033b9048c17d91c4937412ede710c4c7eaff5080af45","bytes":331},
-    {"path":"requirements/REQUIREMENTS_INDEX.json","sha256":"df56d0c8e5d1cf31d4f701536414fa734ade0fdf934fb1b89a729c257cf66364","bytes":11873},
-    {"path":"requirements/REQUIREMENT_CROSSWALK.csv","sha256":"4745f9b3d40975f8ccd2a06c5f0c190534538de6d0bc2931ec81348d2ec4c4a6","bytes":22392},
+    {"path":"requirements/REQUIREMENTS_INDEX.json","sha256":"b1b31f2c300377713c7eda6bce8aef368bfea8ab6d02ec368081b16ffa819874","bytes":11873},
+    {"path":"requirements/REQUIREMENT_CROSSWALK.csv","sha256":"db56ef91932ece2d6369ca84ff08c2995d572fcd70e4cce5f4060180808c1123","bytes":22392},
     {"path":"requirements-neon.txt","sha256":"bfaaa83e718f1e325d7e34ab54f7ff4b4827373de39b3e26f82e1224ff518c05","bytes":24},
-    {"path":"tests/test_repository_contract.py","sha256":"046e5e708deda57767f17447e77b80ed723b863a33d40db5a1c25f7aabdaf5cd","bytes":3597},
+    {"path":"tests/test_repository_contract.py","sha256":"6b7b9d7c75b5b9c521eef2c9b3459fd1c6b97e750ed16dac0121879756fdecf9","bytes":3597},
     {"path":"tools/__init__.py","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","bytes":0},
     {"path":"tools/ingest_requirements.py","sha256":"e48f315f3389a2f1ac292e05e624816087d176a8b21af6f4812724220631a535","bytes":2251},
     {"path":"tools/validate_repository.py","sha256":"066167337d627677480a61767a24579692fa4dc5ea8e4789e5599dae69596de5","bytes":6812},
