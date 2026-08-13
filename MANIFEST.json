@@ -107,6 +107,11 @@
       "bytes": 3179
     },
     {
+      "path": "docs/architecture/C2_SECURITY_MASTER.md",
+      "sha256": "49bf7f254764262e80588c88c09ad52c5c6b9f2aa87f1b1466f96ca7dc1a3439",
+      "bytes": 110
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
