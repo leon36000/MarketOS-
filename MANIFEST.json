@@ -132,6 +132,11 @@
       "bytes": 3251
     },
     {
+      "path": "docs/architecture/C3_LAKE_FORMATS.md",
+      "sha256": "3797cf66cb8d2572032ad047e6d8ff2a7d67af2c3c98b9293e4bad0e6d6e56ff",
+      "bytes": 214
+    },
+    {
       "path": "docs/architecture/C3_REFERENCE_ARCHITECTURE.md",
       "sha256": "5588876519c4a2e7c6a928cb0dbaa2d44df703bbd8e956b44e580ce1f86d7462",
       "bytes": 3008
