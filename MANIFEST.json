@@ -292,6 +292,11 @@
       "bytes": 1512
     },
     {
+      "path": "planning/phases/C2/C2_DECISIONS.json",
+      "sha256": "8c06650188b32d4dedaa625873ff08ff2e9c36200a042f735584892e433f2ea5",
+      "bytes": 809
+    },
+    {
       "path": "planning/phases/C2/PHASE_BRIEF.md",
       "sha256": "0aae4af5d17f8759fa68b9801e428f332d6189e90965977c6fa4b716accbf1d8",
       "bytes": 1158
