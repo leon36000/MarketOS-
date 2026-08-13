@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "70ed4d85233bdc72ead5f906a5e995acce0fe775db625f0ba3f36756f090767b",
-      "bytes": 681
+      "sha256": "3bc644b37b826ac02cae81626fb9cca0731d854f6517623c7d24a3f7362fc824",
+      "bytes": 917
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
