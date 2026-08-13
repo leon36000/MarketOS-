@@ -302,6 +302,11 @@
       "bytes": 174
     },
     {
+      "path": "planning/phases/C2/DESIGN_CONTRACT.md",
+      "sha256": "f33715434c4ac740be5ecf10e35a61560c5fbf7b111015421581e6b1703c0db6",
+      "bytes": 187
+    },
+    {
       "path": "planning/phases/C2/PHASE_BRIEF.md",
       "sha256": "0aae4af5d17f8759fa68b9801e428f332d6189e90965977c6fa4b716accbf1d8",
       "bytes": 1158
