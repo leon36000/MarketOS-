@@ -1,0 +1,170 @@
+{
+  "artifact_id": "ART-C4-DECISIONS-001",
+  "version": "0.1.0",
+  "phase": "C4",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "as_of": "2026-08-13",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "trading_engine_selected": false,
+    "event_bus_selected": false,
+    "broker_adapter_selected": false,
+    "llm_direct_order_route": "FORBIDDEN",
+    "gui_direct_risk_authority": "FORBIDDEN",
+    "exactly_once_marketing_claim": "FORBIDDEN",
+    "wall_clock_for_elapsed_time": "FORBIDDEN"
+  },
+  "engine_contracts": {
+    "domain_interfaces_owned_by_marketos": true,
+    "replay_and_live_semantics_must_match": true,
+    "engine_specific_types_at_boundary": "FORBIDDEN",
+    "deterministic_replay_required": true,
+    "checkpoint_and_resume_required": true,
+    "candidate_engines": [
+      {"id":"nautilus-trader","status":"PREFERRED_EVENT_DRIVEN_CANDIDATE"},
+      {"id":"quantconnect-lean","status":"REFERENCE_COMPARISON_CANDIDATE"},
+      {"id":"minimal-marketos-core","status":"FALLBACK_ONLY_AFTER_GAP_PROOF"}
+    ]
+  },
+  "event_time_contract": {
+    "required_times": [
+      "source_event_time",
+      "exchange_time",
+      "receive_wall_time",
+      "receive_monotonic_time",
+      "persisted_at",
+      "available_to_strategy_at"
+    ],
+    "required_order_fields": [
+      "source_priority",
+      "source_sequence",
+      "event_type_priority",
+      "stable_event_id"
+    ],
+    "canonical_order": [
+      "available_to_strategy_at",
+      "source_priority",
+      "source_sequence",
+      "source_event_time",
+      "event_type_priority",
+      "stable_event_id"
+    ],
+    "elapsed_time_source": "MONOTONIC_CLOCK",
+    "financial_time_source": "UTC_WALL_CLOCK_WITH_QUALITY_ENVELOPE",
+    "clock_uncertainty_action": "QUARANTINE_OR_SAFE_HALT"
+  },
+  "clock_quality_fields": [
+    "clock_source",
+    "synchronization_method",
+    "last_sync_at",
+    "estimated_error_ns",
+    "max_error_ns",
+    "offset_ns",
+    "frequency_error_ppm",
+    "leap_status",
+    "hardware_timestamping",
+    "quality_state"
+  ],
+  "clock_stack_candidates": [
+    {"id":"chrony","role":"NTP_BASELINE","status":"PREFERRED_CANDIDATE"},
+    {"id":"linuxptp","role":"PTP_AND_HARDWARE_TIMESTAMPING","status":"CONDITIONAL_CANDIDATE"},
+    {"id":"phc2sys","role":"PHC_SYSTEM_CLOCK_BRIDGE","status":"CONDITIONAL_CANDIDATE"}
+  ],
+  "bus_roles": [
+    {"id":"IN_PROCESS_DETERMINISTIC_BUS","authority":"REPLAY_AND_HOT_PATH"},
+    {"id":"DURABLE_EVENT_DISTRIBUTION","authority":"CONTROL_DATA_AND_RECOVERY"},
+    {"id":"WORKFLOW_ORCHESTRATION","authority":"LONG_RUNNING_EXTERNAL_SIDE_EFFECTS"}
+  ],
+  "bus_candidates": [
+    {"id":"nats-jetstream","role":"DURABLE_EVENT_DISTRIBUTION","status":"PREFERRED_CANDIDATE"},
+    {"id":"apache-kafka","role":"HIGH_VOLUME_DURABLE_LOG","status":"SCALE_CANDIDATE"},
+    {"id":"redpanda","role":"KAFKA_PROTOCOL_ALTERNATIVE","status":"WATCHLIST"},
+    {"id":"temporal","role":"WORKFLOW_ORCHESTRATION","status":"PREFERRED_NON_HOT_PATH_CANDIDATE"}
+  ],
+  "delivery_rules": [
+    "AT_LEAST_ONCE_IS_DEFAULT",
+    "IDEMPOTENCY_KEY_REQUIRED_FOR_SIDE_EFFECTS",
+    "DUPLICATES_MUST_BE_SAFE",
+    "ACK_AFTER_DURABLE_COMMIT",
+    "CONSUMER_POSITION_VERSIONED",
+    "BUS_DEDUPLICATION_IS_NOT_END_TO_END_EXACTLY_ONCE",
+    "REPLAY_MUST_PRESERVE_ORIGINAL_EVENT_IDENTITY"
+  ],
+  "order_state_machine": [
+    "PROPOSED",
+    "RISK_APPROVED",
+    "INTENT_SIGNED",
+    "SUBMIT_PENDING",
+    "SUBMITTED",
+    "ACKNOWLEDGED",
+    "PARTIALLY_FILLED",
+    "FILLED",
+    "CANCEL_PENDING",
+    "CANCELLED",
+    "REJECTED",
+    "EXPIRED",
+    "RECONCILIATION_REQUIRED",
+    "QUARANTINED"
+  ],
+  "order_contract_fields": [
+    "proposal_id",
+    "risk_decision_id",
+    "order_intent_id",
+    "client_order_id",
+    "strategy_version",
+    "instrument_id",
+    "venue_scope",
+    "side",
+    "quantity",
+    "order_type",
+    "limit_or_stop_values",
+    "time_in_force",
+    "valid_from",
+    "expires_at",
+    "idempotency_key",
+    "risk_signature",
+    "configuration_hash"
+  ],
+  "fix_session_rules": [
+    "SESSION_AND_APPLICATION_VERSIONS_PINNED",
+    "MSGSEQNUM_STATE_DURABLE",
+    "RESEND_REQUEST_AND_GAP_FILL_TESTED",
+    "POSSDUP_AND_ORIGSENDINGTIME_HANDLED",
+    "DUPLICATE_APPLICATION_MESSAGES_IDEMPOTENT",
+    "RESET_POLICY_BROKER_SPECIFIC_AND_AUDITED",
+    "SESSION_RECOVERY_BEFORE_NEW_ORDER_FLOW"
+  ],
+  "temporal_workflow_roles": [
+    "PROVIDER_ONBOARDING",
+    "BACKFILL_AND_REPAIR",
+    "CORPORATE_ACTION_REVIEW",
+    "BROKER_RECONCILIATION",
+    "SETTLEMENT_AND_POST_TRADE",
+    "MODEL_EVALUATION_AND_PROMOTION",
+    "INCIDENT_RESPONSE_AND_RECOVERY"
+  ],
+  "temporal_forbidden_roles": [
+    "TICK_BY_TICK_MARKET_DATA_HOT_PATH",
+    "PRE_TRADE_RISK_DECISION_HOT_PATH",
+    "ORDER_WIRE_ENCODING_HOT_PATH",
+    "LOW_LATENCY_EXECUTION_ROUTING"
+  ],
+  "visual_bridge": {
+    "integration_order": ["API","FIX","SDK","TYPED_TOOL_OR_MCP","FILE_EXPORT","DOM_ACCESSIBILITY_PLAYWRIGHT","HOLO_VISUAL"],
+    "permission_levels": ["V0_OBSERVE","V1_NAVIGATE_READ","V2_EXPORT_DOWNLOAD","V3_PAPER_ACTIONS","V4_SENSITIVE_NON_TRADING_WRITE","V5_LIVE_GUI_CANARY"],
+    "v5_state": "HARD_BLOCKED",
+    "isolation": "DISPOSABLE_BROWSER_OR_VM",
+    "pre_and_post_verification": true,
+    "video_dom_screenshot_audit": true,
+    "broker_secret_visible_to_model": false
+  },
+  "unresolved": [
+    "NautilusTrader versus LEAN semantic and performance bake-off remains open.",
+    "NATS JetStream versus Kafka-class durable log requires representative event-volume tests.",
+    "Chrony-only versus PTP/hardware timestamping requires measured economic latency value.",
+    "FIX dialects and certification requirements are broker-specific and remain open.",
+    "Temporal deployment is optional until durable workflow value exceeds operational complexity.",
+    "No GUI automation path has been qualified beyond read-only design."
+  ]
+}
