@@ -21,6 +21,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: C1 design contract
         run: python tools/validate_c1_design.py --root . --json
+      - name: C2 design contract
+        run: python tools/validate_c2_design.py --root . --json
       - name: Repository contract
         run: python tools/validate_repository.py --root . --json
       - name: Compile Python sources
