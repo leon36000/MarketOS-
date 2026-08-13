@@ -177,6 +177,11 @@
       "bytes": 1733
     },
     {
+      "path": "docs/research/C3_SOURCE_LEDGER.md",
+      "sha256": "d3cfdb3c0d7319d4ed0f2f48d9b51dcf0b6cab06b1297f76a547c2918e449e8c",
+      "bytes": 1370
+    },
+    {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
       "sha256": "68d9aa7759beebd701693ba0d9796358829c052836c4ab3efa9e464f4aa6caeb",
       "bytes": 3826
