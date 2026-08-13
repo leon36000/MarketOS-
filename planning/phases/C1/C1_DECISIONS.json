@@ -1,0 +1,95 @@
+{
+  "artifact_id": "ART-C1-DECISIONS-001",
+  "version": "0.1.0",
+  "phase": "C1",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "as_of": "2026-08-13",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "public_ingress_default": "FORBIDDEN",
+    "plaintext_secrets": "FORBIDDEN",
+    "mutable_image_tags": "FORBIDDEN",
+    "kubernetes_required": false
+  },
+  "architecture_contracts": {
+    "standalone_runtime": "ROOTLESS_PODMAN_QUADLET",
+    "compose_role": "COMPATIBILITY_AND_TEST_EXPORT_ONLY",
+    "cluster_runtime": "K3S_OPTIONAL_AFTER_PARITY_GATE",
+    "telemetry_protocol": "OPENTELEMETRY_OTLP",
+    "alert_router": "PROMETHEUS_ALERTMANAGER",
+    "remote_access": "PRIVATE_OVERLAY_PREFERRED",
+    "backup_authority": "RESTORE_DRILL_RECEIPT",
+    "deployment_truth": "VERSIONED_DECLARATIVE_FILES_AND_MANIFESTS",
+    "service_images": "OCI_DIGEST_PLUS_SIGNATURE_AND_SBOM"
+  },
+  "deployment_profiles": [
+    {"profile_id":"standalone-core","mandatory":true,"runtime":"rootless-podman-quadlet","system_manager":"systemd-user","kubernetes":false,"public_ingress":false,"target":"single-linux-host"},
+    {"profile_id":"standalone-accelerated","mandatory":false,"runtime":"rootless-podman-quadlet","system_manager":"systemd-user","kubernetes":false,"public_ingress":false,"target":"single-linux-host-with-qualified-accelerators"},
+    {"profile_id":"cluster-k3s","mandatory":false,"runtime":"k3s-kubernetes","admission":"STANDALONE_PARITY_AND_MULTI_NODE_VALUE_REQUIRED","public_ingress":false,"target":"multi-node-or-ha"},
+    {"profile_id":"batch-slurm","mandatory":false,"runtime":"existing-slurm-integration","admission":"EXISTING_CLUSTER_AND_WORKLOAD_VALUE_REQUIRED","public_ingress":false,"target":"hpc-batch"},
+    {"profile_id":"cloud-burst","mandatory":false,"runtime":"declarative-cloud-plus-workload-contract","admission":"DATA_RIGHTS_BUDGET_CHECKPOINT_AND_DESTROY_RECEIPT_REQUIRED","public_ingress":false,"target":"temporary-cloud-capacity"}
+  ],
+  "secret_tiers": [
+    {"tier":"S0_BOOTSTRAP","candidate":"SOPS_AGE_OUTSIDE_PUBLIC_REPOSITORY","purpose":"initial-encrypted-configuration","browser_readback":false},
+    {"tier":"S1_STANDALONE_RUNTIME","candidate":"SYSTEMD_CREDENTIALS","purpose":"per-service-runtime-injection","browser_readback":false},
+    {"tier":"S2_DISTRIBUTED","candidate":"OPENBAO_OPTIONAL","purpose":"versioned-secrets-machine-identity-transit","browser_readback":false}
+  ],
+  "application_candidates": [
+    {"id":"podman-quadlet","role":"standalone-runtime","status":"PREFERRED_CANDIDATE"},
+    {"id":"docker-compose","role":"compatibility-export","status":"ALTERNATIVE_CANDIDATE"},
+    {"id":"k3s","role":"optional-cluster-runtime","status":"OPTIONAL_CANDIDATE"},
+    {"id":"opentelemetry","role":"telemetry-contract","status":"CONTRACT_ADOPTED"},
+    {"id":"grafana-alloy","role":"edge-telemetry-collector","status":"PREFERRED_CANDIDATE"},
+    {"id":"otel-collector-contrib","role":"neutral-collector-gateway","status":"ALTERNATIVE_CANDIDATE"},
+    {"id":"prometheus","role":"metrics-and-rules","status":"PREFERRED_CANDIDATE"},
+    {"id":"loki","role":"logs","status":"PREFERRED_CANDIDATE"},
+    {"id":"tempo","role":"traces","status":"PREFERRED_CANDIDATE"},
+    {"id":"alertmanager","role":"alert-routing","status":"PREFERRED_CANDIDATE"},
+    {"id":"ntfy","role":"personal-mobile-notification","status":"PREFERRED_CANDIDATE"},
+    {"id":"gotify","role":"personal-mobile-notification","status":"ALTERNATIVE_CANDIDATE"},
+    {"id":"apprise","role":"notification-fanout","status":"WATCHLIST"},
+    {"id":"sops-age","role":"bootstrap-secrets","status":"PREFERRED_CANDIDATE"},
+    {"id":"openbao","role":"distributed-secrets","status":"OPTIONAL_CANDIDATE"},
+    {"id":"restic","role":"encrypted-backup","status":"PREFERRED_CANDIDATE"},
+    {"id":"tailscale","role":"private-overlay-access","status":"PREFERRED_CANDIDATE"},
+    {"id":"caddy","role":"private-reverse-proxy","status":"PREFERRED_CANDIDATE"},
+    {"id":"portainer","role":"container-admin-ui","status":"REJECTED_FOR_ROOTLESS_BASELINE"},
+    {"id":"harbor","role":"private-registry-policy","status":"WATCHLIST_HEAVY"},
+    {"id":"distribution-registry","role":"lightweight-private-registry","status":"ALTERNATIVE_CANDIDATE"},
+    {"id":"minio","role":"object-storage","status":"DEFERRED_TO_C3"},
+    {"id":"keycloak","role":"identity-provider","status":"WATCHLIST_HEAVY_SINGLE_USER"},
+    {"id":"pocket-id","role":"lightweight-oidc-passkeys","status":"SCREENED_CANDIDATE"}
+  ],
+  "observability_rules": {
+    "correlation_chain":["source_data","dataset","feature","model","decision","risk","order","fill","reconciliation","outcome"],
+    "full_sampling_required":["risk","execution","security","configuration-change"],
+    "bounded_sampling_allowed":["research","simulation","model-exploration"],
+    "secret_redaction":true,
+    "bounded_cardinality":true,
+    "alloy_otel_engine":"FORBIDDEN_EXPERIMENTAL_BASELINE"
+  },
+  "alerting_rules": {
+    "delivery_semantics":"AT_LEAST_ONCE",
+    "receiver_idempotency_required":true,
+    "deduplication_required":true,
+    "acknowledgement_required_for":["S0_CRITICAL","S1_HIGH"],
+    "runbook_required":true,
+    "mobile_sensitive_actions":"FORBIDDEN"
+  },
+  "backup_rules": {
+    "encrypted":true,
+    "append_only_writer_separate_from_prune_admin":true,
+    "repository_check_required":true,
+    "clean_host_restore_required":true,
+    "hash_comparison_required":true,
+    "backup_without_restore_status":"UNVERIFIED"
+  },
+  "unresolved": [
+    "Exact component versions, image digests, licences and signatures must be locked during implementation.",
+    "Compact observability alternatives must be benchmarked against the proposed Grafana stack.",
+    "Identity provider selection is deferred to C14 after single-user complexity and WebAuthn tests.",
+    "Object storage selection is deferred to C3 after licence, durability and recovery bake-off.",
+    "RPO and RTO targets remain provisional until C3 and C13 quantify data classes and execution state."
+  ]
+}
