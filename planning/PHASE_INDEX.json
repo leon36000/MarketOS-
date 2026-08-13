@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "count": 16,
   "bootstrap": "C0-BOOTSTRAP_NOT_COUNTED",
   "phases": [
@@ -11,7 +11,7 @@
         "C2",
         "C5"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C1/PHASE_BRIEF.md"
     },
     {
@@ -26,7 +26,7 @@
         "C8",
         "C9"
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "brief_path": "planning/phases/C2/PHASE_BRIEF.md"
     },
     {

@@ -1,15 +1,15 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "files": [
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "c58b52ebc570a3c88c7f5d3d5da95e6a3559abf0c440ad625a681caf0f36fe62",
-      "bytes": 3820
+      "sha256": "b53d9b63087727da1b24031813cf19a477cf0eeb8fd7d9d72cd6a4277b0fbd26",
+      "bytes": 1910
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "f8adf2fa1b3d5e24ce3d8a9ac2de85c6626839118b90d4249e427c45360bf192",
-      "bytes": 2002
+      "sha256": "26ee0ba054091cbff5875b392457d095b6e84348683d8477c638c931b082ac11",
+      "bytes": 823
     },
     {
       "path": ".gitignore",
@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "a66c561f162c3afd012f6cd41d65b09ec93e729a083a64dba3d61c19c7febec5",
-      "bytes": 555
+      "sha256": "70ed4d85233bdc72ead5f906a5e995acce0fe775db625f0ba3f36756f090767b",
+      "bytes": 681
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -72,14 +72,44 @@
       "bytes": 742
     },
     {
+      "path": "docs/architecture/C1_ALERTING_NOTIFICATIONS.md",
+      "sha256": "10f6fca44c30aff4d29207ad4393e5162f7f50755a4d56b7845b1cd443419ec4",
+      "bytes": 1875
+    },
+    {
+      "path": "docs/architecture/C1_BACKUP_RESTORE_DR.md",
+      "sha256": "9d9f1137ab219a6e0d0dc91d578c390fa07ec33f90ba683d43d0066068c1c911",
+      "bytes": 2036
+    },
+    {
       "path": "docs/architecture/C1_DEPLOYMENT_ARCHITECTURE.md",
       "sha256": "1897e90dd445d4b9c08ce4977506233430b525c7ac218c33f0c9f43638b44b36",
       "bytes": 2095
     },
     {
+      "path": "docs/architecture/C1_DEPLOYMENT_PROFILES.md",
+      "sha256": "dee37c50dede07aa467e3d0c1822533aa91b5a5085673372fbee5b9fee5536ff",
+      "bytes": 2011
+    },
+    {
       "path": "docs/architecture/C1_OBSERVABILITY_CONTRACT.md",
-      "sha256": "4bcbfb7087726622444ecc148498e12b338694af0932ae69102a359550b301bd",
-      "bytes": 967
+      "sha256": "b9c55afd39b917503a0bc72d352c5523228ffb6fc6fd7a8489cedb68825a6436",
+      "bytes": 2265
+    },
+    {
+      "path": "docs/architecture/C1_SECRETS_IDENTITY.md",
+      "sha256": "69f45c970e21482ca13af8378a40aedc5d25f986fab59e035f464c1f2593c1a9",
+      "bytes": 2090
+    },
+    {
+      "path": "docs/architecture/C1_SERVICE_TOPOLOGY.md",
+      "sha256": "d38f41d8161f5d9c0c5493ac1045c093357e09040b9ebf52c75628b91ba628d2",
+      "bytes": 3179
+    },
+    {
+      "path": "docs/research/C1_APP_MATRIX.md",
+      "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
+      "bytes": 744
     },
     {
       "path": "docs/research/C1_SOURCE_LEDGER.md",
@@ -157,6 +187,26 @@
       "bytes": 374
     },
     {
+      "path": "phases/C1/MARKET-OS-PHASE-C1-EVIDENCE-LEDGER.md",
+      "sha256": "49164398608a215dd6eca3f4cd6cd0fccf3533450a55512995f1fdd55bf6e439",
+      "bytes": 1467
+    },
+    {
+      "path": "phases/C1/MARKET-OS-PHASE-C1-GATE-REPORT.md",
+      "sha256": "0fd86325d68401d8e435e9b014e0a3953236d9bb7b29a9f14c93f5b4ca053b34",
+      "bytes": 1298
+    },
+    {
+      "path": "phases/C1/MARKET-OS-PHASE-C1-INDEPENDENT-REVIEW.md",
+      "sha256": "942fba26873f805ac126461ca6f1c57b67f78d40898dc956f64ae94394a3f012",
+      "bytes": 1049
+    },
+    {
+      "path": "phases/C1/MARKET-OS-PHASE-C1-QUALIFICATION.md",
+      "sha256": "bba4d1a17f8e6ef6928d360a4ef05167b9d35c8bee92d9dfc262b05bcfb56d4e",
+      "bytes": 1529
+    },
+    {
       "path": "planning/C0_1_FINAL_RECONCILIATION.md",
       "sha256": "d38b5ad7cedc1296061f47158436083c12d05a14699660865f04bb74f1a075ff",
       "bytes": 1182
@@ -168,8 +218,18 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "6b1102ecbbac7724117376561d406b8c6b903fb701ffef60f71b861476f5993a",
-      "bytes": 5275
+      "sha256": "2ba147aec016d9b8f068d96b7e8225bd492a3ed0f4168654e0e985acce6c5106",
+      "bytes": 5280
+    },
+    {
+      "path": "planning/phases/C1/C1_DECISIONS.json",
+      "sha256": "64905d625bb34ee1ca0b0a5621387061158fc70f4f3a77e83ebddf23f6dbccef",
+      "bytes": 6357
+    },
+    {
+      "path": "planning/phases/C1/C1_REQUIREMENT_CLOSURE.json",
+      "sha256": "4afb567210c2bd8804678bb7076285a4b332bdb67cb23ec1afe699dd9b97a645",
+      "bytes": 1858
     },
     {
       "path": "planning/phases/C1/EXECUTION_CONTRACT.md",
@@ -282,6 +342,16 @@
       "bytes": 8213
     },
     {
+      "path": "tests/test_c1_design.py",
+      "sha256": "f761e1346fca8877ca56744fce2a6cc7f7fdcf40402b2facb8e17dcf6a386dea",
+      "bytes": 4020
+    },
+    {
+      "path": "tests/test_regenerate_derived.py",
+      "sha256": "7fef99e93c30e823216d8c8ff421fb71fecca893c5e3aabddd385a2cca9f3ab2",
+      "bytes": 2027
+    },
+    {
       "path": "tests/test_repository_contract.py",
       "sha256": "618d7157796d6991c006e9dbb75708173f2eafdcf8e1505fc9616a3ebe776864",
       "bytes": 6781
@@ -295,6 +365,16 @@
       "path": "tools/ingest_requirements.py",
       "sha256": "3d21fc6d03ffdd380dc72308d4bc4f9e0360cafeafac22779235733687d149de",
       "bytes": 2476
+    },
+    {
+      "path": "tools/regenerate_derived.py",
+      "sha256": "d44a2eb62b3f32380a3eb8d4bf38766c1bc845b0b18e0e03d85336dc5eb613d9",
+      "bytes": 3809
+    },
+    {
+      "path": "tools/validate_c1_design.py",
+      "sha256": "4ca4305387e1518f90178fc1c58c8f7d5b268e629404e54c5092976089c6d332",
+      "bytes": 8665
     },
     {
       "path": "tools/validate_repository.py",
