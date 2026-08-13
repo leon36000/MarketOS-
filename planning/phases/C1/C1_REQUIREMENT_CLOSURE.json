@@ -8,7 +8,7 @@
     {"id":"AUD-CMP-008","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_DEPLOYMENT_PROFILES.md"]},
     {"id":"AUD-CMP-009","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_SERVICE_TOPOLOGY.md"]},
     {"id":"AUD-CMP-010","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_DEPLOYMENT_PROFILES.md"]},
-    {"id":"AUD-CMP-011","state":"DESIGN_SPECIFIED","artifacts":["docs/research/C1_APPLICATION_CANDIDATE_MATRIX.md"]},
+    {"id":"AUD-CMP-011","state":"DESIGN_SPECIFIED","artifacts":["docs/research/C1_APP_MATRIX.md"]},
     {"id":"AUD-CMP-013","state":"PARTIAL_C1_SUPPLY_CHAIN_CONTRACT","artifacts":["docs/architecture/C1_DEPLOYMENT_PROFILES.md"]},
     {"id":"AUD-CMP-014","state":"DESIGN_SPECIFIED","artifacts":["planning/phases/C1/EXECUTION_CONTRACT.md","docs/architecture/C1_BACKUP_RESTORE_DR.md"]},
     {"id":"AUD-UI-006","state":"DESIGN_SPECIFIED","artifacts":["docs/architecture/C1_OBSERVABILITY_CONTRACT.md"]},
