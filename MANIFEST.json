@@ -278,7 +278,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "881caa9a666c9a8526658d942a6e4d2a16a6e7202a7efc51c0ea3dc65d3d6187",
+      "sha256": "cfa3033e44030368797ac779e2b94ce525cb2d59aaf6fd48f3c692be7540bfbc",
       "bytes": 5280
     },
     {
@@ -375,6 +375,11 @@
       "path": "planning/phases/C3/C3_REQUIREMENT_CLOSURE.json",
       "sha256": "a712a1edd2307b058785ef1e7b456d8fd80c4ce0d93800382423d51daaec3e06",
       "bytes": 635
+    },
+    {
+      "path": "planning/phases/C3/EXECUTION_CONTRACT.md",
+      "sha256": "86a3e471b989221477df44868963e9b3426c5d185e2662c0b228493009a6438a",
+      "bytes": 2112
     },
     {
       "path": "planning/phases/C3/PHASE_BRIEF.md",
