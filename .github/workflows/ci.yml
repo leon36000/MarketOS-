@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: python tools/materialize_c1_bundle.py . --replace
       - run: python -m pip install -e ".[dev]"
       - run: python -m pytest -q
       - run: python tools/validate_c1.py .
