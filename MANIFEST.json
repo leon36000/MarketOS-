@@ -132,6 +132,11 @@
       "bytes": 3251
     },
     {
+      "path": "docs/architecture/C3_REFERENCE_ARCHITECTURE.md",
+      "sha256": "5588876519c4a2e7c6a928cb0dbaa2d44df703bbd8e956b44e580ce1f86d7462",
+      "bytes": 3008
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
