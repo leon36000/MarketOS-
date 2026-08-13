@@ -1,0 +1,25 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Diagnostic content hashes
+        run: sha256sum requirements/REQUIREMENTS_INDEX.json requirements/REQUIREMENT_CROSSWALK.csv tests/test_repository_contract.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Repository contract
+        run: python tools/validate_repository.py --root . --json
+      - name: Compile Python sources
+        run: python -m compileall -q tools tests
