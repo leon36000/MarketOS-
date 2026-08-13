@@ -11,12 +11,41 @@ jobs:
   repository-contract:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Diagnostic content hashes
-        run: sha256sum requirements/REQUIREMENTS_INDEX.json requirements/REQUIREMENT_CROSSWALK.csv tests/test_repository_contract.py
+      - name: Generate exact checkout manifest candidate
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          root = Path('.')
+          ignored_dirs = {'.git', '.pytest_cache', '__pycache__', '.venv', 'htmlcov'}
+          ignored_files = {'MANIFEST.json', '.coverage', 'coverage.xml', '.DS_Store'}
+          entries = []
+          for path in sorted(root.rglob('*')):
+              if not path.is_file():
+                  continue
+              rel = path.relative_to(root)
+              if path.name in ignored_files or path.suffix == '.pyc' or any(part in ignored_dirs for part in rel.parts):
+                  continue
+              content = path.read_bytes()
+              entries.append({
+                  'path': rel.as_posix(),
+                  'sha256': hashlib.sha256(content).hexdigest(),
+                  'bytes': len(content),
+              })
+          Path('/tmp/MANIFEST.json').write_text(json.dumps({'version': '0.3.0', 'files': entries}, indent=2) + '\n')
+          print(f'generated {len(entries)} entries')
+          PY
+      - name: Upload exact manifest candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: exact-checkout-manifest
+          path: /tmp/MANIFEST.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Unit tests
         run: python -m unittest discover -s tests -v
       - name: Repository contract

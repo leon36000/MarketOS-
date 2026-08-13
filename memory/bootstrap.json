@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "project_id": "frosty-boat-02108163",
+  "database": "neondb",
+  "schema": "marketos_memory",
+  "connection_policy": "SECRET_REFERENCE_OR_ENVIRONMENT_ONLY",
+  "required_bootstrap_queries": [
+    "latest checkpoint",
+    "active requirements",
+    "non-superseded decisions",
+    "open loops for current phase",
+    "phase-scoped evidence"
+  ]
+}
