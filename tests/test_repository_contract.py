@@ -132,7 +132,8 @@ class RepositoryContractTests(unittest.TestCase):
     def test_execution_contract_count_matches_repository(self) -> None:
         report = validate_repository(FIXTURE_ROOT)
         self.assertTrue(report["ok"], report["errors"])
-        self.assertEqual(report["execution_contract_count"], 10)
+        phase_index = json.loads((FIXTURE_ROOT / "planning/PHASE_INDEX.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["execution_contract_count"], phase_index["formal_execution_contracts_present"])
 
 
 if __name__ == "__main__":
