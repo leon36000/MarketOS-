@@ -152,6 +152,46 @@
       "bytes": 710
     },
     {
+      "path": "docs/architecture/C4_TIME_ENGINE_EXECUTION.md",
+      "sha256": "3c04710cc9e54d77447a38489f3b333463e77a9d14e8c87838f61fd7b12f5574",
+      "bytes": 1375
+    },
+    {
+      "path": "docs/architecture/C4_VISUAL_WORKFLOW_BOUNDARY.md",
+      "sha256": "60d9df9d042bbe51324cb3bd72ff577d9276ef32c73fbd5840f9346b34429e71",
+      "bytes": 907
+    },
+    {
+      "path": "docs/architecture/C5_COMPUTE_FABRIC.md",
+      "sha256": "ac8380b08c67b1ab275e5aa7a52d542832fccad800f4e960e592c5c3029eb0bf",
+      "bytes": 709
+    },
+    {
+      "path": "docs/architecture/C5_NODE_CLOUD_FPGA.md",
+      "sha256": "6def7023c525e4ca6c83cd56d9e7b9d8a9113665da64c0f50156fd9d1eb1fc45",
+      "bytes": 1018
+    },
+    {
+      "path": "docs/architecture/C5_VENDOR_STACKS.md",
+      "sha256": "d98d746f8a386c60a4c8a32deac143c64d9037e8bee9a43c7257ae87a8e5d3da",
+      "bytes": 395
+    },
+    {
+      "path": "docs/architecture/C6_NUMERICAL_TRUTH.md",
+      "sha256": "8d7d3d76907ad8d2edb78c0464fe826378dea10d7ac0f1dc8da17626803cad27",
+      "bytes": 1017
+    },
+    {
+      "path": "docs/architecture/C6_OPTIMIZATION_CAUSAL_TCA.md",
+      "sha256": "649ac9ef7849b472b4db0e5029ca64439ebf2b71999bcf5494cce7013a407e65",
+      "bytes": 976
+    },
+    {
+      "path": "docs/architecture/C6_PROBABILITY_CALIBRATION.md",
+      "sha256": "07ec2531ea78d50c838e1268e1d8398610309e3f2b9285a13c0c74f260ac8477",
+      "bytes": 836
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -180,6 +220,21 @@
       "path": "docs/research/C3_SOURCE_LEDGER.md",
       "sha256": "d3cfdb3c0d7319d4ed0f2f48d9b51dcf0b6cab06b1297f76a547c2918e449e8c",
       "bytes": 1370
+    },
+    {
+      "path": "docs/research/C4_SOURCE_LEDGER.md",
+      "sha256": "9e2374180a840c5aa6aaf81b2a949c892e6ad62c40b55cc1d32f3f1c51278c88",
+      "bytes": 928
+    },
+    {
+      "path": "docs/research/C5_SOURCE_LEDGER.md",
+      "sha256": "2cee7c2f81a00f98d845a130a434ce7f344997282cede218da9f75e8b84e942d",
+      "bytes": 1036
+    },
+    {
+      "path": "docs/research/C6_SOURCE_LEDGER.md",
+      "sha256": "f97cf608e6bdd80d113e926666755d49d89607d3e5e3f4dd5b4c28415c59a157",
+      "bytes": 704
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -283,7 +338,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "cfa3033e44030368797ac779e2b94ce525cb2d59aaf6fd48f3c692be7540bfbc",
+      "sha256": "2a64d94b33a34de7962921341fd0efba6359702914ac14f72793f700ba23f807",
       "bytes": 5280
     },
     {
@@ -397,14 +452,64 @@
       "bytes": 528
     },
     {
+      "path": "planning/phases/C4/C4_DECISIONS.json",
+      "sha256": "4735ced5eca127a37e79cb51d3cfba49db6bf924af8fdc7390c374c8027c310f",
+      "bytes": 2634
+    },
+    {
+      "path": "planning/phases/C4/C4_REQUIREMENT_CLOSURE.json",
+      "sha256": "08c74bd82eb2c963198be6a0b339a9afbffdf77758ae1b65bbdf65f001ebb05c",
+      "bytes": 1003
+    },
+    {
+      "path": "planning/phases/C4/EXECUTION_CONTRACT.md",
+      "sha256": "9f3992bc60a0df4189501fda086185b939f0eee5b95bc6eaaa9374bdb7303d13",
+      "bytes": 1191
+    },
+    {
       "path": "planning/phases/C4/PHASE_BRIEF.md",
       "sha256": "ada486fea735c90e8048626329c0f45eb39befa545699bf471fd4b4593ec7fd7",
       "bytes": 1380
     },
     {
+      "path": "planning/phases/C5/C5_CAPABILITY_REGISTRY.json",
+      "sha256": "6de3f888343dabe2db445fdf5973d378ec115b0ab4e78774101e131bfd198561",
+      "bytes": 1476
+    },
+    {
+      "path": "planning/phases/C5/C5_DECISIONS.json",
+      "sha256": "a42b3d41678d7625e3bd13e063c34d5b74d00255ed00265d71776bc752d93b7c",
+      "bytes": 1189
+    },
+    {
+      "path": "planning/phases/C5/C5_REQUIREMENT_CLOSURE.json",
+      "sha256": "73ddf0ad76be29e473b1de05f2b0bf6a8603cfbade56c7fb2825783ab68b8366",
+      "bytes": 695
+    },
+    {
+      "path": "planning/phases/C5/EXECUTION_CONTRACT.md",
+      "sha256": "dcea48728192b7a3317464ca46279064212f8489d14c6e267fc68838e91bcdbd",
+      "bytes": 1323
+    },
+    {
       "path": "planning/phases/C5/PHASE_BRIEF.md",
       "sha256": "b25dc9f08753c4b8d19c65ce31c7e4c22ec994d41c543cacd49927b059a66fca",
       "bytes": 1480
+    },
+    {
+      "path": "planning/phases/C6/C6_DECISIONS.json",
+      "sha256": "41d4c6a8e14ae4abc28031934f34d949a657e742546ccde06d9b6efe48c49e09",
+      "bytes": 2212
+    },
+    {
+      "path": "planning/phases/C6/C6_REQUIREMENT_CLOSURE.json",
+      "sha256": "7dc141f8d3ab58e74abafac80f6638643f547b7f13c47473eae954771b240d36",
+      "bytes": 627
+    },
+    {
+      "path": "planning/phases/C6/EXECUTION_CONTRACT.md",
+      "sha256": "305bd8499722d295b4e25b5eed87846380ac1c09844af916958f18eaee4f1b81",
+      "bytes": 600
     },
     {
       "path": "planning/phases/C6/PHASE_BRIEF.md",
@@ -455,6 +560,11 @@
       "path": "tests/test_c1_design.py",
       "sha256": "f761e1346fca8877ca56744fce2a6cc7f7fdcf40402b2facb8e17dcf6a386dea",
       "bytes": 4020
+    },
+    {
+      "path": "tests/test_c4_c6_design.py",
+      "sha256": "1c0890e137e903b9546fa042cb97a37b77d795c0cc88107578d78f19ab87913c",
+      "bytes": 4931
     },
     {
       "path": "tests/test_regenerate_derived.py",
