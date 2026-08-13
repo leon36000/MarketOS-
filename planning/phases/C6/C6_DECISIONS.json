@@ -1,0 +1,18 @@
+{
+  "artifact_id":"ART-C6-DECISIONS-001",
+  "version":"0.1.0",
+  "phase":"C6",
+  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "locks":{"live_trading":"HARD_LOCKED","profitability":"UNPROVEN","numerical_library_selected":false,"solver_selected":false,"sampler_selected":false,"accelerator_equivalence_proven":false,"silent_numerical_repair":"FORBIDDEN","llm_as_numeric_authority":"FORBIDDEN","decision_equivalence_required":true,"cpu_fallback_required":true,"no_trade_supported":true},
+  "truth_tiers":["T0_EXACT_INTEGER_DECIMAL","T1_CPU_FP64_GOLDEN_ORACLE","T2_PARALLEL_CPU","T3_ACCELERATOR_CANDIDATE"],
+  "exact_domains":["CASH","QUANTITY","PRICE_TICKS","FEES","ACCOUNTING","LIMITS","IDENTIFIERS"],
+  "cpu_oracles":["STABLE_SUMS","MERGEABLE_MOMENTS","COVARIANCE","CONDITIONING","VAR","EXPECTED_SHORTFALL","MONTE_CARLO","BOOTSTRAP","OPTIMIZATION_FEASIBILITY","CALIBRATION","TCA_ATTRIBUTION"],
+  "error_budget_fields":["absolute","relative","ulp","distribution_distance","tail_quantile_error","decision_changed","determinism_changed"],
+  "candidate_states":["PASS","QUARANTINE","FALLBACK_CPU","NOT_RUN"],
+  "covariance_rules":["ORIGINAL_SPECTRUM_REPORTED","CONDITION_NUMBER_REPORTED","RANK_REPORTED","REPAIR_EXPLICIT_AND_VERSIONED","ORIGINAL_AND_REPAIRED_RETAINED"],
+  "monte_carlo_rules":["ALGORITHM_VERSION_PINNED","SEED_PINNED","CHUNK_IDS_STABLE","PER_CHUNK_RNG_STREAM","REDUCTION_ORDER_STABLE","CHECKPOINT_RESUME_IDENTITY","NO_GLOBAL_RNG_STATE"],
+  "probabilistic_fields":["predictive_distribution","epistemic_uncertainty","aleatoric_uncertainty","calibration_error","regime_probability","execution_cost_distribution","tail_risk","liquidity_risk","capacity_limit","probability_net_edge_positive","abstention_reason"],
+  "optimization_rules":["FEASIBILITY_FIRST","UNITS_EXPLICIT","CONSTRAINT_VIOLATION_REPORTED","SENSITIVITY_REPORTED","INFEASIBLE_MEANS_NO_TRADE","NO_SILENT_RELAXATION"],
+  "causal_rules":["DAG_AND_ASSUMPTIONS_DECLARED","TEMPORAL_ORDER_ENFORCED","NEGATIVE_CONTROLS","PLACEBO_TESTS","UNOBSERVED_CONFOUNDING_SENSITIVITY","NO_CAUSAL_LANGUAGE_WHEN_UNIDENTIFIED"],
+  "tca_layers":["PRE_TRADE_COST_DISTRIBUTION","IN_FLIGHT_MONITORING","POST_TRADE_ATTRIBUTION","CHAMPION_CHALLENGER_RECALIBRATION"]
+}
