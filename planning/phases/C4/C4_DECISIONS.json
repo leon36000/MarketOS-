@@ -1,0 +1,15 @@
+{
+  "artifact_id": "ART-C4-DECISIONS-001",
+  "version": "0.1.0",
+  "phase": "C4",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {"live_trading":"HARD_LOCKED","profitability":"UNPROVEN","trading_engine_selected":false,"event_bus_selected":false,"broker_adapter_selected":false,"llm_direct_order_route":"FORBIDDEN","gui_direct_risk_authority":"FORBIDDEN","exactly_once_marketing_claim":"FORBIDDEN","wall_clock_for_elapsed_time":"FORBIDDEN"},
+  "event_time": {"required_times":["source_event_time","exchange_time","receive_wall_time","receive_monotonic_time","persisted_at","available_to_strategy_at"],"canonical_order":["available_to_strategy_at","source_priority","source_sequence","source_event_time","event_type_priority","stable_event_id"],"elapsed_time_source":"MONOTONIC_CLOCK","financial_time_source":"UTC_WALL_CLOCK_WITH_QUALITY_ENVELOPE","uncertainty_action":"QUARANTINE_OR_SAFE_HALT"},
+  "engine_candidates":[{"id":"nautilus-trader","status":"PREFERRED_EVENT_DRIVEN_CANDIDATE"},{"id":"quantconnect-lean","status":"REFERENCE_COMPARISON_CANDIDATE"},{"id":"minimal-marketos-core","status":"FALLBACK_ONLY_AFTER_GAP_PROOF"}],
+  "bus_roles":["IN_PROCESS_DETERMINISTIC","DURABLE_DISTRIBUTION","LONG_RUNNING_WORKFLOW"],
+  "bus_candidates":[{"id":"nats-jetstream","role":"DURABLE_DISTRIBUTION","status":"PREFERRED_CANDIDATE"},{"id":"apache-kafka","role":"HIGH_VOLUME_LOG","status":"SCALE_CANDIDATE"},{"id":"redpanda","role":"KAFKA_PROTOCOL_ALTERNATIVE","status":"WATCHLIST"},{"id":"temporal","role":"LONG_RUNNING_WORKFLOW","status":"PREFERRED_NON_HOT_PATH_CANDIDATE"}],
+  "delivery_rules":["AT_LEAST_ONCE_DEFAULT","STABLE_EVENT_ID_REQUIRED","IDEMPOTENT_SIDE_EFFECTS_REQUIRED","ACK_AFTER_DURABLE_COMMIT","CONSUMER_POSITION_VERSIONED","RECONCILIATION_REQUIRED"],
+  "order_states":["PROPOSED","RISK_APPROVED","INTENT_SIGNED","SUBMIT_PENDING","SUBMITTED","ACKNOWLEDGED","PARTIALLY_FILLED","FILLED","CANCEL_PENDING","CANCELLED","REJECTED","EXPIRED","RECONCILIATION_REQUIRED","QUARANTINED"],
+  "fix_rules":["VERSIONS_PINNED","SEQUENCE_STATE_DURABLE","RESEND_AND_GAP_FILL_TESTED","POSSDUP_HANDLED","DUPLICATE_APPLICATION_MESSAGES_IDEMPOTENT","SESSION_RECOVERY_BEFORE_NEW_ORDER_FLOW"],
+  "visual_bridge":{"integration_order":["API","FIX","OFFICIAL_SDK","TYPED_TOOL_OR_MCP","SIGNED_FILE_EXCHANGE","DOM_ACCESSIBILITY_PLAYWRIGHT","HOLO_VISUAL"],"permission_levels":["V0_OBSERVE","V1_NAVIGATE_READ","V2_EXPORT_QUARANTINE","V3_PAPER_ACTIONS","V4_SENSITIVE_NON_TRADING_WRITE","V5_LIVE_GUI_CANARY"],"v5_state":"HARD_BLOCKED","isolation":"DISPOSABLE_BROWSER_OR_VM","pre_and_post_verification":true,"broker_secret_visible_to_model":false}
+}
