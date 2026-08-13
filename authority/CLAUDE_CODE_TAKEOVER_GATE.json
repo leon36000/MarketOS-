@@ -1,0 +1,24 @@
+{
+  "artifact_id": "ART-C0.1-TAKEOVER-GATE-001",
+  "version": "1.2.0",
+  "status": "PASS_REPOSITORY_BOOTSTRAP",
+  "claude_code_may_start": true,
+  "start_phase": "C1",
+  "finish_phase": "C16",
+  "verify_command": "python tools/validate_repository.py --root . --json",
+  "required_exit_code": 0,
+  "must_read": [
+    "README.md",
+    "PROJECT_INSTRUCTIONS.md",
+    "CLAUDE.md",
+    "authority/CURRENT_STATE.json",
+    "planning/C0_1_FINAL_RECONCILIATION.md",
+    "planning/PHASE_INDEX.json",
+    "planning/phases/C1/EXECUTION_CONTRACT.md"
+  ],
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN"
+  },
+  "secondary_verify_command": "python -m unittest discover -s tests -v"
+}

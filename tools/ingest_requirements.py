@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ingest reconciled requirements into Neon; read the URL only from the environment."""
+"""Ingest reconciled requirements into Neon without import-time side effects."""
 from __future__ import annotations
 
 import csv
@@ -7,12 +7,10 @@ import hashlib
 import json
 import os
 from pathlib import Path
-
-import psycopg
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-CSV_PATH = Path(os.getenv("MARKETOS_REQUIREMENTS_CSV", ROOT / "requirements" / "REQUIREMENT_CROSSWALK.csv"))
-DATABASE_URL = os.environ["NEON_DATABASE_URL"]
+DEFAULT_CSV_PATH = ROOT / "requirements" / "REQUIREMENT_CROSSWALK.csv"
 
 
 def authority(status: str) -> str:
@@ -23,13 +21,36 @@ def authority(status: str) -> str:
     return "AUDIT_RECONCILED"
 
 
+def requirement_record(row: dict[str, str]) -> tuple[Any, ...]:
+    text = row["requirement"]
+    phase = row["closure_phase"].strip()
+    phases = [] if phase in ("", "—") else [phase]
+    return (
+        row["id"], text, authority(row["coverage_status"]),
+        row["coverage_status"], "MARKET-OS", phases,
+        hashlib.sha256(text.encode()).hexdigest(),
+        json.dumps({
+            "category": row["category"],
+            "evidence": row["evidence"],
+            "remaining_gap": row["remaining_gap"],
+        }),
+    )
+
+
 def main() -> None:
-    with psycopg.connect(DATABASE_URL) as conn:
-        with conn.cursor() as cur, CSV_PATH.open(newline="", encoding="utf-8") as handle:
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise SystemExit("Install requirements-neon.txt before running ingestion") from exc
+
+    database_url = os.environ.get("NEON_DATABASE_URL")
+    if not database_url:
+        raise SystemExit("NEON_DATABASE_URL must be injected at runtime")
+    csv_path = Path(os.getenv("MARKETOS_REQUIREMENTS_CSV", DEFAULT_CSV_PATH))
+
+    with psycopg.connect(database_url) as conn:
+        with conn.cursor() as cur, csv_path.open(newline="", encoding="utf-8") as handle:
             for row in csv.DictReader(handle):
-                text = row["requirement"]
-                phase = row["closure_phase"].strip()
-                phases = [] if phase in ("", "—") else [phase]
                 cur.execute(
                     """
                     INSERT INTO marketos_memory.requirements
@@ -40,16 +61,7 @@ def main() -> None:
                       status=EXCLUDED.status, phase_targets=EXCLUDED.phase_targets,
                       sha256=EXCLUDED.sha256, metadata=EXCLUDED.metadata
                     """,
-                    (
-                        row["id"], text, authority(row["coverage_status"]),
-                        row["coverage_status"], "MARKET-OS", phases,
-                        hashlib.sha256(text.encode()).hexdigest(),
-                        json.dumps({
-                            "category": row["category"],
-                            "evidence": row["evidence"],
-                            "remaining_gap": row["remaining_gap"],
-                        }),
-                    ),
+                    requirement_record(row),
                 )
         conn.commit()
     print("requirements ingested")

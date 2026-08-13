@@ -1,6 +1,6 @@
 # MARKET-OS — Claude Code Orchestrator
 
-1. Exécuter `python tools/verify_handoff.py .` avant toute action.
+1. Exécuter `python tools/validate_repository.py --root . --json` puis `python -m unittest discover -s tests -v` avant toute action.
 2. Le canon v0.23 reste autoritatif jusqu'à un delta validé; les directives directes de Nathan ont priorité et doivent être fusionnées explicitement.
 3. Lire seulement un Context Pack borné par phase; les preuves complètes restent externes.
 4. Utiliser BMAD pour analyse/PRD/architecture/UX et Superpowers pour worktrees, plans, TDD, subagents, reviews et vérification.

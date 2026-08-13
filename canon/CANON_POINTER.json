@@ -1,0 +1,18 @@
+{
+  "version": "0.23.0",
+  "status": "EXTERNAL_VERIFIED_CANON_POINTER",
+  "canonical_pack": {
+    "filename": "MARKET-OS-CANONICAL-PACK-v0.23.0.zip",
+    "sha256": "d78058399018f4e9a8853eb1f98432f51cc2ce1aed960a64725948f8de15e669"
+  },
+  "master_markdown": {
+    "filename": "MARKET-OS-PLAN-MAITRE-VIVANT-v0.23.0.md",
+    "sha256": "b4e605e586d03c0c9da1c10690709a8600cdef98a1e36c810482367b5ae7efe9"
+  },
+  "current_state": {
+    "filename": "MARKET-OS-CURRENT-STATE-v0.23.0.json",
+    "sha256": "4636d73f2ee3e52de9b8da9cde63c66e9eee59dd48802e00f59cbbea7f495658"
+  },
+  "repository_copy_policy": "POINTER_ONLY_UNTIL_CANON_IMPORT_IS_REVIEWED",
+  "authority_note": "The pointer does not replace verification of the referenced artifact bytes."
+}
