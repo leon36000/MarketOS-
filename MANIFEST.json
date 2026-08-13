@@ -117,6 +117,11 @@
       "bytes": 1119
     },
     {
+      "path": "docs/research/C2_SOURCE_ATLAS.md",
+      "sha256": "992cedc0a4a15c7514dbae7da94abd12dae0c1cc7fa694f6d2ea7ef6e0a6aab7",
+      "bytes": 110
+    },
+    {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
       "sha256": "68d9aa7759beebd701693ba0d9796358829c052836c4ab3efa9e464f4aa6caeb",
       "bytes": 3826
