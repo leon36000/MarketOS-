@@ -1,0 +1,201 @@
+{
+  "artifact_id": "ART-C2-DECISIONS-001",
+  "version": "0.1.0",
+  "phase": "C2",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "as_of": "2026-08-13",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "provider_adopted": false,
+    "purchase_authorized": false,
+    "real_data_qualified": false,
+    "unknown_rights_default": "DENY",
+    "symbol_as_primary_key": "FORBIDDEN",
+    "delisted_record_deletion": "FORBIDDEN",
+    "silent_history_rewrite": "FORBIDDEN"
+  },
+  "entity_model": [
+    "LegalEntity",
+    "Issuer",
+    "Instrument",
+    "ShareClass",
+    "Listing",
+    "Venue",
+    "IdentifierAssignment",
+    "TradingStatusEvent",
+    "CorporateActionEvent",
+    "UniverseMembership"
+  ],
+  "identity_rules": {
+    "primary_identity": "MARKETOS_INTERNAL_UUID",
+    "external_identifiers": "VERSIONED_ALIASES",
+    "ticker_semantics": "LISTING_PLUS_VENUE_PLUS_VALIDITY_INTERVAL",
+    "cross_listings": "DISTINCT_LISTINGS_LINKED_TO_COMMON_INSTRUMENT",
+    "inactive_and_delisted": "RETAIN_FOREVER_IN_HISTORICAL_NAMESPACE",
+    "current_and_historical_universe_queries": "SEPARATE",
+    "all_entities_bitemporal": true,
+    "required_times": [
+      "valid_from",
+      "valid_to",
+      "first_seen_at",
+      "available_to_strategy_at",
+      "revision_time"
+    ]
+  },
+  "identifier_types": [
+    "MARKETOS_ID",
+    "FIGI",
+    "COMPOSITE_FIGI",
+    "SHARE_CLASS_FIGI",
+    "ISIN",
+    "CUSIP",
+    "SEDOL",
+    "CIK",
+    "LEI",
+    "CFI",
+    "FISN",
+    "MIC",
+    "LOCAL_SYMBOL",
+    "VENDOR_SYMBOL"
+  ],
+  "corporate_action_rules": {
+    "raw_events_append_only": true,
+    "adjusted_prices_are_raw_truth": false,
+    "adjustment_factors_versioned": true,
+    "future_event_visibility": "FORBIDDEN",
+    "corrections_and_cancellations": "APPEND_ONLY_NEW_VERSION",
+    "conflicts": "QUARANTINE_UNTIL_RESOLVED",
+    "event_dates": [
+      "announcement_date",
+      "ex_date",
+      "record_date",
+      "effective_date",
+      "payable_date",
+      "expiration_date"
+    ],
+    "event_families": [
+      "CASH_DIVIDEND",
+      "STOCK_DIVIDEND",
+      "SPLIT",
+      "REVERSE_SPLIT",
+      "MERGER",
+      "ACQUISITION",
+      "SPIN_OFF",
+      "RIGHTS_ISSUE",
+      "TENDER_OFFER",
+      "REDEMPTION",
+      "NAME_CHANGE",
+      "SYMBOL_CHANGE",
+      "NEW_LISTING",
+      "DELISTING",
+      "BANKRUPTCY",
+      "REORGANIZATION"
+    ]
+  },
+  "source_tiers": [
+    {
+      "tier": "T0_PRIMARY",
+      "examples": ["issuer", "regulator", "exchange", "depository", "statistics_agency", "central_bank"],
+      "default_authority_rank": 0
+    },
+    {
+      "tier": "T1_MARKET_AUTHORITY",
+      "examples": ["SIP", "direct_exchange_feed", "licensed_reference_vendor"],
+      "default_authority_rank": 10
+    },
+    {
+      "tier": "T2_NORMALIZED",
+      "examples": ["broker", "normalized_vendor", "aggregator"],
+      "default_authority_rank": 20
+    },
+    {
+      "tier": "T3_DISCOVERY",
+      "examples": ["web", "social", "unverified_third_party"],
+      "default_authority_rank": 30
+    }
+  ],
+  "rights_fields": [
+    "display",
+    "non_display",
+    "professional_status",
+    "users",
+    "devices",
+    "servers",
+    "sites",
+    "applications",
+    "storage",
+    "retention_period",
+    "historical_replay",
+    "derived_data",
+    "cloud_processing",
+    "cloud_regions",
+    "redistribution",
+    "model_training",
+    "embeddings",
+    "model_output_use",
+    "audit_reporting",
+    "termination_deletion",
+    "exit_export"
+  ],
+  "tco_fields": [
+    "subscription",
+    "exchange_pass_through",
+    "minimum_commitment",
+    "usage_or_record_fee",
+    "connectivity",
+    "storage",
+    "egress",
+    "compute",
+    "normalization",
+    "quality_monitoring",
+    "support",
+    "compliance_reporting",
+    "migration_and_exit",
+    "contingency_reserve"
+  ],
+  "market_depth_policy": {
+    "L0": "BROAD_BASELINES_AND_SLOW_HORIZONS",
+    "L1": "BROAD_PRIMARY_RESEARCH_AND_SHADOW",
+    "L2": "SELECTIVE_LIQUIDITY_AND_EXECUTION_RESEARCH",
+    "L3": "SELECTIVE_QUEUE_AND_MICROSTRUCTURE_RESEARCH",
+    "promotion_rule": "MARGINAL_OOS_VALUE_AFTER_TCO_AND_COMPLEXITY"
+  },
+  "admission_gates": [
+    "SOURCE_IDENTITY_AND_OWNER",
+    "EXACT_SCHEMA_AND_VERSION",
+    "POINT_IN_TIME_SEMANTICS",
+    "CORRECTION_AND_RETRACTION_POLICY",
+    "COVERAGE_AND_SURVIVORSHIP",
+    "QUALITY_AND_GAP_TESTS",
+    "RIGHTS_OBJECT_COMPLETE",
+    "TCO_OBJECT_COMPLETE",
+    "SECURITY_AND_SUPPLY_CHAIN",
+    "EXIT_AND_DELETION_PLAN",
+    "REAL_SAMPLE_REPRODUCED",
+    "CROSS_SOURCE_RECONCILIATION"
+  ],
+  "candidate_sources": [
+    {"id":"sec-edgar","role":"US_filings_and_fundamentals","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"sedar-plus","role":"Canada_filings","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"gleif","role":"legal_entity_and_ownership","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"openfigi","role":"identifier_mapping","tier":"T1_MARKET_AUTHORITY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"iso-mic","role":"venue_identity","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"fred-alfred","role":"US_macro_vintages","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"bank-of-canada-valet","role":"Canada_macro_and_rates","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"statistics-canada-wds","role":"Canada_statistics","tier":"T0_PRIMARY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"utp-cta-sip","role":"US_consolidated_equities","tier":"T1_MARKET_AUTHORITY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"opra","role":"US_options","tier":"T1_MARKET_AUTHORITY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"tmx-datalinx","role":"Canada_market_reference_and_history","tier":"T1_MARKET_AUTHORITY","status":"EVIDENCED_CANDIDATE"},
+    {"id":"databento","role":"normalized_market_reference_and_corporate_actions","tier":"T1_MARKET_AUTHORITY","status":"SCREENED_CANDIDATE"}
+  ],
+  "unresolved": [
+    "Written vendor licences and quotes are not yet obtained.",
+    "CUSIP and SEDOL redistribution and storage terms require written confirmation.",
+    "AI training and embedding rights are unknown for most market-data vendors.",
+    "TMX, SIP and OPRA professional/non-professional status must be confirmed for the actual account and use.",
+    "A real aligned L0/L1/L2/L3 sample has not been qualified.",
+    "Delisting-return source and fallback policy require empirical comparison.",
+    "Corporate-action adjustment conventions require differential testing against at least two sources."
+  ]
+}
