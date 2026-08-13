@@ -342,6 +342,11 @@
       "bytes": 1158
     },
     {
+      "path": "planning/phases/C2/VERIFICATION.md",
+      "sha256": "589eed0c2611c0ae3d78a8c26de522ca6012dc9650ea866434520c5f18432608",
+      "bytes": 504
+    },
+    {
       "path": "planning/phases/C3/PHASE_BRIEF.md",
       "sha256": "2e4898b999c6e8f72a6d2628cccd50bed9fdf9a7fa52c271b1d5b8f232e8fea2",
       "bytes": 1158
