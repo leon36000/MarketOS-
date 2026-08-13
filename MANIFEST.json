@@ -137,6 +137,11 @@
       "bytes": 214
     },
     {
+      "path": "docs/architecture/C3_RECOVERY_MIGRATION.md",
+      "sha256": "27441603d5b8ad87af4c86309df916bac08cfd1434f41cdcfb791dab9f068c1e",
+      "bytes": 1609
+    },
+    {
       "path": "docs/architecture/C3_REFERENCE_ARCHITECTURE.md",
       "sha256": "5588876519c4a2e7c6a928cb0dbaa2d44df703bbd8e956b44e580ce1f86d7462",
       "bytes": 3008
