@@ -503,8 +503,8 @@
     },
     {
       "path": "planning/phases/C6/C6_REQUIREMENT_CLOSURE.json",
-      "sha256": "d7c3341d682b9521a12b2ba953c855992a8315bea290f1a93f8ed0ba99cffaf4",
-      "bytes": 253
+      "sha256": "adfe114e5f236902cc1f888484db3007b590c4022b965d8a61981da9511fa345",
+      "bytes": 412
     },
     {
       "path": "planning/phases/C6/EXECUTION_CONTRACT.md",
