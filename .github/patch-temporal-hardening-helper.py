@@ -34,14 +34,12 @@ patch_path.write_text(
     encoding="utf-8",
 )
 
-# Keep the tampered dataset member the same byte length as the original.  This
-# isolates content-hash verification from the separate byte-count diagnostic.
+# Keep the tampered member the same byte length as the original so this test
+# isolates SHA-256 verification from the separate byte-count diagnostic.
 test_path = Path("tests/test_data_foundation_temporal_semantics.py")
 test_text = test_path.read_text(encoding="utf-8")
 test_old = '(result.commit_path.parent / "part-000.jsonl").write_bytes(b"tampered")'
-test_new = '''(result.commit_path.parent / "part-000.jsonl").write_bytes(
-            b'{"id":2}\n'
-        )'''
+test_new = '(result.commit_path.parent / "part-000.jsonl").write_bytes(b\'{"id":2}\\n\')'
 if test_text.count(test_old) != 1:
     raise SystemExit(
         f"could not locate dataset corruption fixture: {test_text.count(test_old)}"
