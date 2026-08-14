@@ -389,6 +389,12 @@ class MarketDataStore:
     @classmethod
     def _observation_from_row(cls, row: sqlite3.Row) -> MarketObservation:
         kind = ObservationKind(str(row["kind"]))
+        try:
+            payload = cls._payload_from_json(kind, str(row["payload_json"]))
+        except (InvariantViolation, KeyError, TypeError, ValueError) as exc:
+            raise InvariantViolation(
+                f"MARKET_OBSERVATION_HASH_MISMATCH:{row['observation_id']}:{row['version']}"
+            ) from exc
         observation = MarketObservation(
             observation_id=str(row["observation_id"]),
             version=int(row["version"]),
@@ -407,7 +413,7 @@ class MarketDataStore:
             ),
             raw_content_sha256=str(row["raw_content_sha256"]),
             schema_version=str(row["schema_version"]),
-            payload=cls._payload_from_json(kind, str(row["payload_json"])),
+            payload=payload,
         )
         if observation.sha256() != str(row["observation_sha256"]):
             raise InvariantViolation(
