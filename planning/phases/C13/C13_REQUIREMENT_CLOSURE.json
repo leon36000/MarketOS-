@@ -1,0 +1,7 @@
+{
+  "phase": "C13",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "requirement_ids": ["AUD-MKT-013", "AUD-MKT-015", "AUD-AI-003", "AUD-AI-004", "AUD-DAT-012", "AUD-CMP-013", "AUD-UI-008", "AUD-UI-009", "AUD-RSK-001", "AUD-RSK-002", "AUD-RSK-003", "AUD-RSK-004", "AUD-RSK-005", "AUD-RSK-006", "AUD-RSK-009", "AUD-HOLO-002"],
+  "artifacts": ["docs/architecture/C13_AUTHORITY_BOOKS.md", "docs/architecture/C13_RISK_KERNEL.md", "docs/architecture/C13_BROKER_ACCOUNTING.md", "docs/architecture/C13_SECURITY_RESILIENCE.md", "docs/research/C13_SOURCE_LEDGER.md"],
+  "hard_boundary": {"risk_kernel_production_qualified": false, "broker_selected": false, "portfolio_solver_selected": false, "secret_manager_selected": false, "live_order_route": false, "live_trading": "HARD_LOCKED", "profitability": "UNPROVEN"}
+}

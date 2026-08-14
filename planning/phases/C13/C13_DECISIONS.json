@@ -1,0 +1,27 @@
+{
+  "phase": "C13",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "risk_kernel_production_qualified": false,
+    "broker_selected": false,
+    "portfolio_solver_selected": false,
+    "secret_manager_selected": false,
+    "live_order_route": false,
+    "model_can_override_risk_veto": "FORBIDDEN",
+    "unreconciled_books_allow_risk_increase": false,
+    "unknown_broker_capability_default": "DENY",
+    "mutable_accounting_balances": "FORBIDDEN",
+    "kill_switch_model_dependent": false,
+    "secret_readback": "FORBIDDEN",
+    "silent_reconciliation": "FORBIDDEN"
+  },
+  "authoritative_books": ["MarketDataBook", "ReferenceBook", "InvestmentBook", "DecisionBook", "OrderExecutionBook", "RiskBook", "ModelBook", "ExperimentBook", "EvidenceBook"],
+  "risk_inputs": ["RECONCILED_CASH_POSITIONS", "DATA_AND_CLOCK_FRESHNESS", "EFFECTIVE_LIMITS", "MARKET_AND_LIQUIDITY_STATE", "STRESS_AND_TAIL_RISK", "CAPACITY", "SIGNED_ORDER_INTENT", "BROKER_CAPABILITY"],
+  "risk_outputs": ["ALLOW", "RESIZE", "HEDGE_REQUIRED", "NO_TRADE", "CANCEL_ALL", "TRADING_HALT", "QUARANTINE"],
+  "optimizer_rules": ["FEASIBLE_BEFORE_OPTIMAL", "EXACT_CASH", "TURNOVER_AND_COSTS", "LIQUIDITY_AND_CAPACITY", "CONCENTRATION_AND_FACTOR_LIMITS", "ROBUSTNESS_AND_UNCERTAINTY", "NO_SILENT_RELAXATION"],
+  "accounting_rules": ["DOUBLE_ENTRY_APPEND_ONLY", "INTEGER_OR_DECIMAL_MONEY", "LOT_AND_TAX_BASIS_VERSIONED", "FX_SOURCE_EXPLICIT", "FEES_AND_FINANCING_EXPLICIT", "CORPORATE_ACTION_ENTITLEMENTS", "BROKER_RECONCILIATION", "CORRECTIONS_APPEND_ONLY"],
+  "broker_capability_fields": ["broker_id", "account_id", "instrument_scope", "venue_scope", "order_types", "time_in_force", "shorting", "fractional", "options_level", "margin", "market_data_rights", "paper_fidelity", "effective_from", "effective_to", "evidence_hash", "status"],
+  "security_rules": ["OPAQUE_SECRET_REFERENCES", "LEAST_PRIVILEGE", "SIGNED_CONFIG", "SUPPLY_CHAIN_LOCKS", "SBOM_AND_PROVENANCE", "AUDIT_APPEND_ONLY", "INCIDENT_RESPONSE_NIST_800_61R3", "RECOVERY_DRILLS", "INDEPENDENT_REVIEW"]
+}
