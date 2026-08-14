@@ -1,0 +1,11 @@
+{
+  "currency": "USD",
+  "allowed_instruments": ["AAPL"],
+  "max_order_notional": "100000.00",
+  "max_gross_notional": "100000.00",
+  "max_position_quantity": "1000",
+  "max_data_age_ns": 1000,
+  "max_clock_sync_age_ns": 1000,
+  "max_clock_error_ns": 10,
+  "allow_short": false
+}

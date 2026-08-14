@@ -2,6 +2,11 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/workflows/materialize-foundation.yml",
+      "sha256": "d2131aa2d4031eccc4b6b363c386a14edc30e9d61245c49ddca554d91bbadc9f",
+      "bytes": 4409
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "b53d9b63087727da1b24031813cf19a477cf0eeb8fd7d9d72cd6a4277b0fbd26",
       "bytes": 1910
@@ -70,6 +75,11 @@
       "path": "canon/CANON_POINTER.json",
       "sha256": "5356076da173908fd7748c640bf9e23f968a985aa69f3cec5771ea1dda17b326",
       "bytes": 742
+    },
+    {
+      "path": "config/paper-risk.json",
+      "sha256": "0462d9a9bd0c1d4c3d030725eacb28582d50c82d33ad5ba5aefcce9113d4cc69",
+      "bytes": 280
     },
     {
       "path": "docs/architecture/C10_EXECUTION_SIMULATION.md",
@@ -292,6 +302,11 @@
       "bytes": 1076
     },
     {
+      "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
+      "sha256": "b0f6f836bcd61f868d9fd042a7818f70e5d008e1c90d1cb0162c8e57febfc673",
+      "bytes": 2035
+    },
+    {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
       "sha256": "693d4fba9a920cf860794e6b85d3dfabc73854f80bf58bddffbf94252c908a1c",
       "bytes": 675
@@ -365,6 +380,16 @@
       "path": "docs/research/C9_EVIDENCE_SOURCES.md",
       "sha256": "fc67b3ed5ddb74eadfd88339c4e204b81726de3ac8a819921a2e6025bb0248c1",
       "bytes": 485
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-14-foundation-paper-core.md",
+      "sha256": "70b26ed77ebc01adae84c760fe45cd29f5ebde000e36a487aacecb48b0b1ce04",
+      "bytes": 9247
+    },
+    {
+      "path": "examples/paper_scenario.jsonl",
+      "sha256": "5c91680060b7f2c2162f79fa8a18419dbfa57f01f4c288abfb55783442ca1b70",
+      "bytes": 1901
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -762,6 +787,11 @@
       "bytes": 1515
     },
     {
+      "path": "pyproject.toml",
+      "sha256": "777f049aeb5748a536b9bf33e12e190e5a29c5b8838b966c7c0d4329b8b9e884",
+      "bytes": 409
+    },
+    {
       "path": "requirements/README.md",
       "sha256": "e25a6d90e3e2c0745fbcd9b33aab0633824881e4692eecdedcbbc7aafa2ab51a",
       "bytes": 819
@@ -787,6 +817,91 @@
       "bytes": 8213
     },
     {
+      "path": "src/marketos/__init__.py",
+      "sha256": "62fe659c50ef4be64f35d8fb4c54619c9efbfaf98658922ad02dc570ad596856",
+      "bytes": 380
+    },
+    {
+      "path": "src/marketos/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "bytes": 48
+    },
+    {
+      "path": "src/marketos/canonical.py",
+      "sha256": "71fec5fa4b00b6373b92a72adedb9669c03b96b17d0be196e2e776245f04c233",
+      "bytes": 3015
+    },
+    {
+      "path": "src/marketos/cli.py",
+      "sha256": "bbf61f615376d13ad0dd0a1affd206822ecc97c767b46545c90975ce7f8f7978",
+      "bytes": 4851
+    },
+    {
+      "path": "src/marketos/config.py",
+      "sha256": "6aa05002276a9d0b8a47dbb9cb2766ca7a9e260eff746d298beee77d2f87f8da",
+      "bytes": 5291
+    },
+    {
+      "path": "src/marketos/errors.py",
+      "sha256": "ed20f5bba132dad43957e4bf286b3dac012cf8e5cb98478d764b7506377abfed",
+      "bytes": 352
+    },
+    {
+      "path": "src/marketos/events.py",
+      "sha256": "2be433a2dd82cc0f15d0a4c1645b26c54b166c0e3d4a11c1bb2489353da41d5b",
+      "bytes": 3732
+    },
+    {
+      "path": "src/marketos/ledger.py",
+      "sha256": "35eefbba3119573169ad491f92e0e4f22666504f5d3b4c9a74e3c79ec37c20a5",
+      "bytes": 6068
+    },
+    {
+      "path": "src/marketos/money.py",
+      "sha256": "54e7d5a1b3b5cbdfdba5f6438582a735829031a2368a5af76c0d21fd0a9bc0ca",
+      "bytes": 8129
+    },
+    {
+      "path": "src/marketos/orders.py",
+      "sha256": "0f5430b63a9f2bf10a12a9bf42c8200c5ab6c766ba5af445bb99b2379b20571a",
+      "bytes": 4671
+    },
+    {
+      "path": "src/marketos/paper.py",
+      "sha256": "c214ab9e1cafd380c098e040d86a30aa585d6af08bc6fa2bf9e471b20c50cdfa",
+      "bytes": 13707
+    },
+    {
+      "path": "src/marketos/portfolio.py",
+      "sha256": "4b0dffa93de3a04cf965d90ce547dfa027298cb76352ce7ccbbb718b3ab8330d",
+      "bytes": 8196
+    },
+    {
+      "path": "src/marketos/replay.py",
+      "sha256": "f8c09204c57da1ae4b859d75f872762a4121f6ec5d038e6e9602ef25c45c8a81",
+      "bytes": 13448
+    },
+    {
+      "path": "src/marketos/risk.py",
+      "sha256": "48e9565bfde963fe8c7b943f53e367b73098f17cc13a8db80f7aa418dc5c3972",
+      "bytes": 8505
+    },
+    {
+      "path": "src/marketos/store.py",
+      "sha256": "417dc30b195c5dcfa8403b04e8aeabe98ae48d933f1376021e855e13e888e18f",
+      "bytes": 11082
+    },
+    {
+      "path": "src/marketos/time.py",
+      "sha256": "41711bb078c6f9ec3f80807a37424a1c78c030f960d710f8d7475e881a9604be",
+      "bytes": 3172
+    },
+    {
+      "path": "tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
       "path": "tests/test_c10_c12_design.py",
       "sha256": "f87a39f945f46771ec740614d39650329048f131571e8ff858694f9411f74695",
       "bytes": 6390
@@ -807,14 +922,69 @@
       "bytes": 5562
     },
     {
+      "path": "tests/test_canonical.py",
+      "sha256": "2e572d189ca7257aa2e1f038a076e32beddb8a235a854b8476d3be53844f37ff",
+      "bytes": 1333
+    },
+    {
+      "path": "tests/test_cli.py",
+      "sha256": "183cf08b6318cd7676ffafa60026e5531d19b0d91fab40a8c8202014c0188192",
+      "bytes": 3058
+    },
+    {
+      "path": "tests/test_events.py",
+      "sha256": "2b8be64b0890e3244999ca535a11add5d6e65bb2bda55785e605d82fb511eb6c",
+      "bytes": 2966
+    },
+    {
+      "path": "tests/test_foundation_acceptance.py",
+      "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
+      "bytes": 2019
+    },
+    {
+      "path": "tests/test_ledger.py",
+      "sha256": "ee1eb8d7fe8466e57c9e88d5c2d1103cb3504b578db8a62e8104b04b88f8d048",
+      "bytes": 2677
+    },
+    {
+      "path": "tests/test_money.py",
+      "sha256": "6609141608874ac944bd6ad6fc546486e7e3b9f867e0ffb93c261e22a1e70bee",
+      "bytes": 2533
+    },
+    {
+      "path": "tests/test_paper.py",
+      "sha256": "25024db20d86d0289168ddd2eba8c5bb0f06e7ef0ffc78bcd203d6749189baba",
+      "bytes": 6127
+    },
+    {
+      "path": "tests/test_portfolio.py",
+      "sha256": "11a0ca95032e25979fb855f7b623145b388b751c4582c21ddf0f81a2eea36b51",
+      "bytes": 3302
+    },
+    {
       "path": "tests/test_regenerate_derived.py",
       "sha256": "7fef99e93c30e823216d8c8ff421fb71fecca893c5e3aabddd385a2cca9f3ab2",
       "bytes": 2027
     },
     {
+      "path": "tests/test_replay.py",
+      "sha256": "4ccef612cc660274421aab800f6c62b7d1c77cc697e0b909bf48076874b800c4",
+      "bytes": 5361
+    },
+    {
       "path": "tests/test_repository_contract.py",
       "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
       "bytes": 6935
+    },
+    {
+      "path": "tests/test_risk.py",
+      "sha256": "eabfb152a526a4ab850bb9d5080378cc4990e41339cf1640154596ed70acbbc0",
+      "bytes": 5094
+    },
+    {
+      "path": "tests/test_store.py",
+      "sha256": "f033da5c07fdb88d61587d51d100674aeb238e1d32a3c00af756c25f08fa5019",
+      "bytes": 3896
     },
     {
       "path": "tools/__init__.py",
@@ -845,6 +1015,11 @@
       "path": "tools/validate_repository.py",
       "sha256": "7140c9de8c2b4ba3eba81dbce7c247f4429e5c7c7df8c0739ea0c667b68e3899",
       "bytes": 12139
+    },
+    {
+      "path": "tools/verify_foundation.py",
+      "sha256": "bd08ba931d039e06e88cf59895fd165aaae5d0bd8cd944757e6b078e28a924af",
+      "bytes": 10102
     },
     {
       "path": "tools/verify_neon_memory.py",
