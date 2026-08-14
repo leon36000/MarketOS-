@@ -12,6 +12,11 @@
       "bytes": 1783
     },
     {
+      "path": ".github/workflows/materialize-data-foundation-temporal-hardening.yml",
+      "sha256": "2efbf92dc82b1a4f8d80caa894b717f2d066ae1bf73d3903bc8ef240d5b25428",
+      "bytes": 3293
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "5941da9028517565d10b54963c95a32360b9ed256832c04c04b187198d96b12c",
       "bytes": 2579
@@ -313,8 +318,8 @@
     },
     {
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
-      "sha256": "b95664361fcc4f12dfe8ffa4d5fdabab67f96cf2a9df5acb26eb870c58976d6b",
-      "bytes": 1635
+      "sha256": "ab683fa4d06ba2b12a46004cac6bbc72b0f55261dca9efa2ae98669193bc3b1f",
+      "bytes": 1695
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -853,13 +858,13 @@
     },
     {
       "path": "src/marketos/corporate_actions.py",
-      "sha256": "ff62ec196bdcdfea3036824542900c65aac1772b509b66f60f881ce479cd115f",
-      "bytes": 12473
+      "sha256": "5d44c9792eed26fecb08f58e946d97d5eb2dc4740b3c371792f5c46080e025eb",
+      "bytes": 12589
     },
     {
       "path": "src/marketos/datafabric.py",
-      "sha256": "6f442f4281943d49d469f8eefe426f489ffbd7aaa2ca6db468d7b462cb90f41e",
-      "bytes": 26766
+      "sha256": "6d706b3673c73a4f73022cacbf0e5e7a3e03bab9fc7fe4e31a18cb4753a96a0d",
+      "bytes": 29189
     },
     {
       "path": "src/marketos/errors.py",
@@ -873,8 +878,8 @@
     },
     {
       "path": "src/marketos/identity.py",
-      "sha256": "5b4779af5e1f683a8c9e23d0d9bdabaf01d496fe38b1042269f0d8b708f98fa1",
-      "bytes": 16062
+      "sha256": "00c7946c29209add8a9aefeb6b364e6d3b741b91f12c4cdeb6b8cdc909b2e059",
+      "bytes": 16377
     },
     {
       "path": "src/marketos/ledger.py",
@@ -975,6 +980,11 @@
       "path": "tests/test_data_foundation_adversarial.py",
       "sha256": "66385f920611c4e4bb163b35b428c339942a258e7f959a629fc5a6007d87d7b8",
       "bytes": 6295
+    },
+    {
+      "path": "tests/test_data_foundation_temporal_semantics.py",
+      "sha256": "1ebce2391796b83cb19a57623d3935af5ea3c3f514370df9063d98180c198cf1",
+      "bytes": 7267
     },
     {
       "path": "tests/test_datafabric.py",

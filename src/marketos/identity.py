@@ -348,15 +348,19 @@ class SecurityMaster:
         return True
 
     @staticmethod
-    def _latest_visible(records: Iterable[ListingVersion | IdentifierAssignment], *, economic_time_ns: int, knowledge_time_ns: int):
-        visible = [
+    def _latest_known(
+        records: Iterable[ListingVersion | IdentifierAssignment],
+        *,
+        knowledge_time_ns: int,
+    ) -> ListingVersion | IdentifierAssignment | None:
+        known = [
             record
             for record in records
-            if record.visible(economic_time_ns=economic_time_ns, knowledge_time_ns=knowledge_time_ns)
+            if record.available_to_strategy_at_ns <= knowledge_time_ns
         ]
-        if not visible:
+        if not known:
             return None
-        return max(visible, key=lambda record: (record.revision_time_ns, record.version))
+        return max(known, key=lambda record: (record.revision_time_ns, record.version))
 
     def resolve_symbol(
         self,
@@ -374,12 +378,16 @@ class SecurityMaster:
         normalized_symbol = symbol.strip().upper()
         candidates: list[ListingVersion] = []
         for history in self._listings.values():
-            latest = self._latest_visible(
-                history,
-                economic_time_ns=economic_time_ns,
-                knowledge_time_ns=knowledge_time_ns,
-            )
-            if latest is not None and latest.venue_id == venue_id and latest.symbol == normalized_symbol:
+            latest = self._latest_known(history, knowledge_time_ns=knowledge_time_ns)
+            if (
+                isinstance(latest, ListingVersion)
+                and latest.visible(
+                    economic_time_ns=economic_time_ns,
+                    knowledge_time_ns=knowledge_time_ns,
+                )
+                and latest.venue_id == venue_id
+                and latest.symbol == normalized_symbol
+            ):
                 candidates.append(latest)
         if len(candidates) > 1:
             raise AmbiguousIdentity(
@@ -400,12 +408,16 @@ class SecurityMaster:
         normalized = value.strip().upper()
         candidates: list[IdentifierAssignment] = []
         for history in self._identifiers.values():
-            latest = self._latest_visible(
-                history,
-                economic_time_ns=economic_time_ns,
-                knowledge_time_ns=knowledge_time_ns,
-            )
-            if latest is not None and latest.identifier_type is identifier_type and latest.value == normalized:
+            latest = self._latest_known(history, knowledge_time_ns=knowledge_time_ns)
+            if (
+                isinstance(latest, IdentifierAssignment)
+                and latest.visible(
+                    economic_time_ns=economic_time_ns,
+                    knowledge_time_ns=knowledge_time_ns,
+                )
+                and latest.identifier_type is identifier_type
+                and latest.value == normalized
+            ):
                 candidates.append(latest)
         entity_ids = {candidate.entity_id for candidate in candidates}
         if len(entity_ids) > 1:

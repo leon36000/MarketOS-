@@ -301,7 +301,7 @@ class TemporalFactStore:
     @staticmethod
     def _from_row(row: sqlite3.Row) -> TemporalFact:
         payload = _canonical_decode(json.loads(row["payload_json"]))
-        return TemporalFact(
+        fact = TemporalFact(
             fact_id=str(row["fact_id"]),
             fact_key=str(row["fact_key"]),
             version=int(row["version"]),
@@ -312,6 +312,11 @@ class TemporalFactStore:
             source_id=str(row["source_id"]),
             payload=payload,
         )
+        if fact.sha256() != str(row["fact_sha256"]):
+            raise InvariantViolation(
+                f"TEMPORAL_FACT_HASH_MISMATCH:{fact.fact_id}:{fact.version}"
+            )
+        return fact
 
     def append(self, fact: TemporalFact) -> bool:
         self._connection.execute("BEGIN IMMEDIATE")
@@ -382,23 +387,27 @@ class TemporalFactStore:
             """
             SELECT * FROM temporal_facts
             WHERE fact_key = ?
-              AND valid_from_ns <= ?
-              AND (valid_to_ns IS NULL OR ? < valid_to_ns)
               AND available_to_strategy_at_ns <= ?
             ORDER BY fact_id, revision_time_ns DESC, version DESC
             """,
-            (fact_key, economic_time_ns, economic_time_ns, knowledge_time_ns),
+            (fact_key, knowledge_time_ns),
         ).fetchall()
-        latest_by_fact_id: dict[str, sqlite3.Row] = {}
+        latest_by_fact_id: dict[str, TemporalFact] = {}
         for row in rows:
-            latest_by_fact_id.setdefault(str(row["fact_id"]), row)
-        if len(latest_by_fact_id) > 1:
+            fact_id = str(row["fact_id"])
+            if fact_id not in latest_by_fact_id:
+                latest_by_fact_id[fact_id] = self._from_row(row)
+        effective = [
+            fact
+            for fact in latest_by_fact_id.values()
+            if fact.valid_from_ns <= economic_time_ns
+            and (fact.valid_to_ns is None or economic_time_ns < fact.valid_to_ns)
+        ]
+        if len(effective) > 1:
             raise AmbiguousTemporalFact(
                 f"AMBIGUOUS_TEMPORAL_FACT:{fact_key}:{economic_time_ns}:{knowledge_time_ns}"
             )
-        if not latest_by_fact_id:
-            return None
-        return self._from_row(next(iter(latest_by_fact_id.values())))
+        return effective[0] if effective else None
 
     def history(self, fact_id: str) -> tuple[TemporalFact, ...]:
         rows = self._connection.execute(
@@ -448,8 +457,12 @@ class DatasetSpec:
         for digest in (self.code_sha256, self.config_sha256, self.dependency_lock_sha256):
             if not _HEX64.fullmatch(digest):
                 raise InvariantViolation("INVALID_DATASET_DEPENDENCY_SHA256")
-        object.__setattr__(self, "source_versions", tuple(sorted(set(self.source_versions))))
-        object.__setattr__(self, "rights_policy_ids", tuple(sorted(set(self.rights_policy_ids))))
+        if len(self.source_versions) != len(set(self.source_versions)):
+            raise InvariantViolation("DUPLICATE_SOURCE_VERSION")
+        if len(self.rights_policy_ids) != len(set(self.rights_policy_ids)):
+            raise InvariantViolation("DUPLICATE_RIGHTS_POLICY_ID")
+        object.__setattr__(self, "source_versions", tuple(sorted(self.source_versions)))
+        object.__setattr__(self, "rights_policy_ids", tuple(sorted(self.rights_policy_ids)))
 
     def canonical_dict(self) -> dict[str, object]:
         return {
@@ -539,6 +552,38 @@ class DatasetPublisher:
             raise InvariantViolation("DUPLICATE_DATASET_PATH")
         return tuple(sorted(records, key=lambda record: str(record["path"])))
 
+    @staticmethod
+    def _verify_committed_files(final_dir: Path, manifest: Mapping[str, Any]) -> None:
+        records = manifest.get("files")
+        if not isinstance(records, (list, tuple)):
+            raise InvariantViolation("INVALID_DATASET_COMMIT_MANIFEST")
+        expected_paths = {"COMMIT.json"}
+        for record in records:
+            if not isinstance(record, Mapping):
+                raise InvariantViolation("INVALID_DATASET_COMMIT_RECORD")
+            relative = _safe_relative(str(record.get("path", "")))
+            expected_paths.add(relative.as_posix())
+            path = final_dir.joinpath(*relative.parts)
+            if not path.is_file():
+                raise InvariantViolation(f"DATASET_FILE_MISSING:{relative.as_posix()}")
+            data = path.read_bytes()
+            if len(data) != record.get("bytes"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_BYTE_COUNT_MISMATCH:{relative.as_posix()}"
+                )
+            if _sha256_bytes(data) != record.get("sha256"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_HASH_MISMATCH:{relative.as_posix()}"
+                )
+        actual_paths = {
+            path.relative_to(final_dir).as_posix()
+            for path in final_dir.rglob("*")
+            if path.is_file()
+        }
+        unexpected = sorted(actual_paths - expected_paths)
+        if unexpected:
+            raise InvariantViolation(f"DATASET_UNEXPECTED_FILE:{unexpected[0]}")
+
     def publish(
         self,
         spec: DatasetSpec,
@@ -579,6 +624,11 @@ class DatasetPublisher:
                 raise DuplicateConflict(
                     f"DATASET_VERSION_CONFLICT:{spec.dataset_id}:{spec.version}"
                 )
+            try:
+                committed_manifest = json.loads(existing)
+            except json.JSONDecodeError as exc:
+                raise InvariantViolation("INVALID_DATASET_COMMIT_MANIFEST") from exc
+            self._verify_committed_files(final_dir, committed_manifest)
             return PublicationResult(
                 spec.dataset_id,
                 spec.version,
@@ -599,6 +649,7 @@ class DatasetPublisher:
             _atomic_write(stage / "COMMIT.json", manifest_bytes)
             final_dir.parent.mkdir(parents=True, exist_ok=True)
             os.replace(stage, final_dir)
+            self._verify_committed_files(final_dir, manifest)
         except Exception:
             shutil.rmtree(stage, ignore_errors=True)
             raise

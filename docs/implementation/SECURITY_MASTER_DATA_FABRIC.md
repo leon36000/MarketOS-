@@ -11,8 +11,8 @@ This slice extends the deterministic paper core with a standard-library local co
 - adjustment factors as a derived view, never raw-price mutation;
 - complete fail-closed data-rights policies;
 - content-addressed immutable raw bytes with append-only retrieval receipts;
-- SQLite bitemporal facts with explicit knowledge cutoffs and conflict quarantine;
-- staged, rights/quality/lineage-gated atomic dataset publication;
+- SQLite bitemporal facts with latest-known revision semantics, hash verification and conflict quarantine;
+- staged, rights/quality/lineage-gated atomic dataset publication with committed-byte re-verification;
 - deterministic content roots, immutable versions and idempotent retries;
 - backup manifests and semantic corruption detection.
 

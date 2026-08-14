@@ -280,15 +280,19 @@ class AdjustmentSeries:
     ) -> tuple[AdjustmentFactor, ...]:
         selected: list[AdjustmentFactor] = []
         for history in self._history.values():
-            visible = [
+            known = [
                 factor
                 for factor in history
-                if factor.instrument_id == instrument_id
-                and raw_time_ns < factor.applies_before_ns
-                and factor.available_to_strategy_at_ns <= knowledge_time_ns
+                if factor.available_to_strategy_at_ns <= knowledge_time_ns
             ]
-            if visible:
-                selected.append(max(visible, key=lambda factor: factor.version))
+            if not known:
+                continue
+            latest = max(
+                known,
+                key=lambda factor: (factor.available_to_strategy_at_ns, factor.version),
+            )
+            if latest.instrument_id == instrument_id and raw_time_ns < latest.applies_before_ns:
+                selected.append(latest)
         return tuple(sorted(selected, key=lambda factor: (factor.applies_before_ns, str(factor.factor_id))))
 
     def adjust(

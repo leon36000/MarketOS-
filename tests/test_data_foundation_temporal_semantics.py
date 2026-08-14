@@ -171,7 +171,7 @@ class TemporalSemanticsTests(unittest.TestCase):
             quality_pass=True,
             lineage_complete=True,
         )
-        (result.commit_path.parent / "part-000.jsonl").write_bytes(b"tampered")
+        (result.commit_path.parent / "part-000.jsonl").write_bytes(b'{"id":2}\n')
         with self.assertRaisesRegex(InvariantViolation, "DATASET_FILE_HASH_MISMATCH"):
             publisher.publish(
                 spec,
