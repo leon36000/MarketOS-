@@ -22,6 +22,11 @@
       "bytes": 2241
     },
     {
+      "path": ".github/workflows/materialize-validation-evidence.yml",
+      "sha256": "0ef6d355a175dcdb63cb0fda247d99e2b9ef75fe2dfc8f764a291cedff7c182f",
+      "bytes": 2952
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
       "bytes": 2889
@@ -993,8 +998,8 @@
     },
     {
       "path": "src/marketos/validation.py",
-      "sha256": "0dd3e7787619ece217416f603a5706933428186db5c5300709832328f239a100",
-      "bytes": 13427
+      "sha256": "256c6a7f53b19c3eda2805ad5d831baea9429b2c9b2361f6ba4e0073ecbdf205",
+      "bytes": 26055
     },
     {
       "path": "tests/__init__.py",
@@ -1175,6 +1180,11 @@
       "path": "tests/test_validation.py",
       "sha256": "1bbbb8f49c365825f9f0fb7f5b344ab50fcc0a52bfaa8f42b5ab63133d56d895",
       "bytes": 9297
+    },
+    {
+      "path": "tests/test_validation_evidence.py",
+      "sha256": "80b90aaa0539c9553b1dc71174c702c80ac6edceb1eb131c10bdbfa9b5fe74f8",
+      "bytes": 10663
     },
     {
       "path": "tools/__init__.py",
