@@ -578,8 +578,8 @@
     },
     {
       "path": "planning/phases/C7/C7_DECISIONS.json",
-      "sha256": "b852cb7193bf96de86458206a26b65c32a29bae03b3571827f273d144b975b55",
-      "bytes": 1695
+      "sha256": "b2af63df8d45ef210b9b5cfebe2fe0e6eeff3696d8875558a31664bba38339fc",
+      "bytes": 2432
     },
     {
       "path": "planning/phases/C7/C7_REQUIREMENT_CLOSURE.json",
