@@ -842,6 +842,16 @@
       "bytes": 5291
     },
     {
+      "path": "src/marketos/corporate_actions.py",
+      "sha256": "ace4efdd55cfd37c402f0e31f47c6e9b878afa17f750c1bce7120e3274c1c758",
+      "bytes": 12445
+    },
+    {
+      "path": "src/marketos/datafabric.py",
+      "sha256": "df86c456a64bcf58a0003b0cd29bdc42daef06176a5523e2ea74582f96396330",
+      "bytes": 25982
+    },
+    {
       "path": "src/marketos/errors.py",
       "sha256": "ed20f5bba132dad43957e4bf286b3dac012cf8e5cb98478d764b7506377abfed",
       "bytes": 352
@@ -850,6 +860,11 @@
       "path": "src/marketos/events.py",
       "sha256": "2be433a2dd82cc0f15d0a4c1645b26c54b166c0e3d4a11c1bb2489353da41d5b",
       "bytes": 3732
+    },
+    {
+      "path": "src/marketos/identity.py",
+      "sha256": "41725b7c412949a086f4c57dfbbd4a9b04a7068f78a6899561126709483c7456",
+      "bytes": 15967
     },
     {
       "path": "src/marketos/ledger.py",
@@ -880,6 +895,11 @@
       "path": "src/marketos/replay.py",
       "sha256": "f8c09204c57da1ae4b859d75f872762a4121f6ec5d038e6e9602ef25c45c8a81",
       "bytes": 13448
+    },
+    {
+      "path": "src/marketos/rights.py",
+      "sha256": "e0f5773b2ce6aecc0761547d80cb1aff8ad6c8060af289340679093bf1575b33",
+      "bytes": 2724
     },
     {
       "path": "src/marketos/risk.py",
@@ -932,6 +952,16 @@
       "bytes": 3058
     },
     {
+      "path": "tests/test_corporate_actions.py",
+      "sha256": "6654221a7cebf57251dfc3948a4d82d67ef5b41776365e68097e5edcafefc787",
+      "bytes": 4317
+    },
+    {
+      "path": "tests/test_datafabric.py",
+      "sha256": "593b784467a251725f93d70f57d0a3dda58e3398141be98edf4e96b2a495efc3",
+      "bytes": 7742
+    },
+    {
       "path": "tests/test_events.py",
       "sha256": "2b8be64b0890e3244999ca535a11add5d6e65bb2bda55785e605d82fb511eb6c",
       "bytes": 2966
@@ -940,6 +970,11 @@
       "path": "tests/test_foundation_acceptance.py",
       "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
       "bytes": 2019
+    },
+    {
+      "path": "tests/test_identity.py",
+      "sha256": "85f584f18396f8b255b24b4384da8cba9e23e2da170abfab9b0d2564819ec3ed",
+      "bytes": 7458
     },
     {
       "path": "tests/test_ledger.py",
@@ -975,6 +1010,11 @@
       "path": "tests/test_repository_contract.py",
       "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
       "bytes": 6935
+    },
+    {
+      "path": "tests/test_rights.py",
+      "sha256": "3c80835a161a9ec5639024113eb9cfc5ec7eca7f13ed3233db58029d0fd71564",
+      "bytes": 1943
     },
     {
       "path": "tests/test_risk.py",
