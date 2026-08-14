@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
+  "version": "1.12.0",
   "count": 16,
   "bootstrap": "C0-BOOTSTRAP_NOT_COUNTED",
   "phases": [
@@ -143,7 +143,7 @@
         "C12",
         "C13"
       ],
-      "status": "IN_PROGRESS",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C10/PHASE_BRIEF.md"
     },
     {
@@ -156,7 +156,7 @@
       "unlocks": [
         "C13"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C11/PHASE_BRIEF.md"
     },
     {
@@ -169,7 +169,7 @@
       "unlocks": [
         "C13"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C12/PHASE_BRIEF.md"
     },
     {
@@ -186,7 +186,7 @@
         "C14",
         "C15"
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "brief_path": "planning/phases/C13/PHASE_BRIEF.md"
     },
     {
@@ -246,6 +246,6 @@
     "counted": false,
     "artifact": "planning/C0_1_FINAL_RECONCILIATION.md"
   },
-  "formal_execution_contracts_present": 18,
+  "formal_execution_contracts_present": 21,
   "takeover_gate": "authority/CLAUDE_CODE_TAKEOVER_GATE.json"
 }

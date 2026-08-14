@@ -1,0 +1,22 @@
+{
+  "phase": "C11",
+  "status": "DESIGN_GATE_PASS",
+  "verification": {"red_run_id": 31759258039, "green_run_id": 31759425574, "result": "full CI success after contracts"},
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "historical_replay_authority": true,
+    "world_model_selected": false,
+    "world_model_reality_proven": false,
+    "synthetic_promotes_strategy": false,
+    "synthetic_real_namespace_merge": "FORBIDDEN",
+    "online_rl_exploration": "FORBIDDEN",
+    "rl_policy_selected": false,
+    "rl_policy_value_proven": false,
+    "hidden_holdout_access": "FORBIDDEN",
+    "simulator_self_certification": "FORBIDDEN"
+  },
+  "worlds": ["W0_HISTORICAL_REPLAY", "W1_BOOTSTRAP_SCENARIOS", "W2_AGENT_BASED_LOB", "W3_GENERATIVE_LOB", "W4_MACRO_EVENT_SCENARIOS", "W5_OFFLINE_RL_ENVIRONMENT"],
+  "reality_gap_families": ["RETURNS", "VOLATILITY", "TAILS", "SPREAD", "DEPTH", "ORDER_FLOW", "CANCELLATIONS", "QUEUE", "IMPACT", "LATENCY", "CROSS_ASSET", "INTERVENTION_RESPONSE"],
+  "offline_rl_gates": ["BEHAVIOR_SUPPORT", "NO_FUTURE_DATA", "MULTIPLE_OPE_ESTIMATORS", "UNCERTAINTY_BOUND", "CONSTRAINT_SATISFACTION", "HELD_OUT_TIME", "BASELINE_COMPARISON", "SHADOW_AND_PAPER_REQUIRED"]
+}

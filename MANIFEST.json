@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "cfdbe83afa299f218479f6bf83da8b774576304955390743570b432769d9220a",
-      "bytes": 3590
+      "sha256": "52be5674e952551c45fb9b963543b914630ece1be452a66d0f085b4570b72762",
+      "bytes": 837
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -70,6 +70,61 @@
       "path": "canon/CANON_POINTER.json",
       "sha256": "5356076da173908fd7748c640bf9e23f968a985aa69f3cec5771ea1dda17b326",
       "bytes": 742
+    },
+    {
+      "path": "docs/architecture/C10_EXECUTION_SIMULATION.md",
+      "sha256": "6587944efab932d4aff1ee97bc8592ed40afd059cad0724b96cba4e5a9073354",
+      "bytes": 938
+    },
+    {
+      "path": "docs/architecture/C10_EXPERIMENT_PROMOTION.md",
+      "sha256": "3ccc70b9e65627721bd5b08ca4c0cd32a6e75c89dbe1379a4837343398ac15b8",
+      "bytes": 888
+    },
+    {
+      "path": "docs/architecture/C10_STRATEGY_FACTORY.md",
+      "sha256": "e3dc2e5af2dad11ff7c73d33a3376754691bc18bc9e429a6c8beffd0a33a0b9c",
+      "bytes": 949
+    },
+    {
+      "path": "docs/architecture/C10_VALIDATION_OVERFITTING.md",
+      "sha256": "294660597b17983d9e3663fe7cd935ebe4dd09567c5340126bc9312fc479653b",
+      "bytes": 990
+    },
+    {
+      "path": "docs/architecture/C11_OFFLINE_RL.md",
+      "sha256": "6c8be3932352a736c14059791f91839774e2b6b8c21b3bb94aafca1f92c97c51",
+      "bytes": 855
+    },
+    {
+      "path": "docs/architecture/C11_REALITY_GAP.md",
+      "sha256": "d4735a28bb0a58ad0495e533374a0cd88bc9fb1bbd7906e75234e24cb6bb2f9a",
+      "bytes": 924
+    },
+    {
+      "path": "docs/architecture/C11_WORLD_MODEL_LAB.md",
+      "sha256": "fdc28b7873f1e4dcf6310f72c331bdd161ad4694221b419a69f5c9bbb8996ab4",
+      "bytes": 985
+    },
+    {
+      "path": "docs/architecture/C12_MODEL_ADAPTATION_TOOLS.md",
+      "sha256": "49e22dd5e23930ac062ec2beee1dabae726677f3b9379abefed8df3c88026d39",
+      "bytes": 782
+    },
+    {
+      "path": "docs/architecture/C12_PROVIDER_COUNCIL.md",
+      "sha256": "8afad2d40b923c9d4ad994abbb56a62335bfcf6c1edd565a5b5ff49ff58a481d",
+      "bytes": 974
+    },
+    {
+      "path": "docs/architecture/C12_RECURSIVE_IMPROVEMENT.md",
+      "sha256": "240fbb88a90234c4674529d9d8b9acf87f7880e9ffe0e92d4dfdb192d095c061",
+      "bytes": 959
+    },
+    {
+      "path": "docs/architecture/C12_SELECTIVE_MEMORY.md",
+      "sha256": "ae1d13bad4d8c61943f70320683ab47673e1d6f3dfa1d4315ce1bf477997a3ef",
+      "bytes": 936
     },
     {
       "path": "docs/architecture/C1_ALERTING_NOTIFICATIONS.md",
@@ -237,6 +292,21 @@
       "bytes": 1076
     },
     {
+      "path": "docs/research/C10_SOURCE_LEDGER.md",
+      "sha256": "693d4fba9a920cf860794e6b85d3dfabc73854f80bf58bddffbf94252c908a1c",
+      "bytes": 675
+    },
+    {
+      "path": "docs/research/C11_SOURCE_LEDGER.md",
+      "sha256": "baf93c6abd724ab1167f3937e7d6096d9999b1fcdac05c4bffe569a0e2f140e6",
+      "bytes": 592
+    },
+    {
+      "path": "docs/research/C12_SOURCE_LEDGER.md",
+      "sha256": "090fed857b7ca21b1402059ec22177af862fb4af52a242eed7313a85051854bf",
+      "bytes": 763
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -387,6 +457,11 @@
       "bytes": 1529
     },
     {
+      "path": "phases/C10-C12/INDEPENDENT_REVIEW.md",
+      "sha256": "0935ab606d7e8c290112816dd91e1f3643df2ca13369aea4cd151256d5b1d5f8",
+      "bytes": 1292
+    },
+    {
       "path": "phases/C4-C6/INDEPENDENT_REVIEW.md",
       "sha256": "256290a5717cd8e32047af96e596a2c7d0b46645e3805d32ccc0614d36cb21bc",
       "bytes": 755
@@ -403,8 +478,8 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "8fc37d6894ac7bbd05a327599d90e8af9f98e875bad128819417b2a8c923ff0e",
-      "bytes": 5320
+      "sha256": "54b489d5e01a982c749af49e5f3988f0da445c604ba13682fceee817fd1e5bcf",
+      "bytes": 5336
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -427,14 +502,59 @@
       "bytes": 1248
     },
     {
+      "path": "planning/phases/C10/C10_DECISIONS.json",
+      "sha256": "826cfc63e62ccf7bb82921b7733c9fcb408b09e111820884ba5bd2f83183a096",
+      "bytes": 1390
+    },
+    {
+      "path": "planning/phases/C10/C10_REQUIREMENT_CLOSURE.json",
+      "sha256": "9e7fae1f4e1df4af03b343d254703d423cb7375a461b7ffdbcc978ffc88f2759",
+      "bytes": 691
+    },
+    {
+      "path": "planning/phases/C10/EXECUTION_CONTRACT.md",
+      "sha256": "91bc014394b246aebeb6562a18517b2c3d299a9a3fad614f99db1b2fe1d44d74",
+      "bytes": 1257
+    },
+    {
       "path": "planning/phases/C10/PHASE_BRIEF.md",
       "sha256": "8006c163d936fce717f479955a56b4be87f69c6a514da322fc813f136e628ba8",
       "bytes": 1167
     },
     {
+      "path": "planning/phases/C11/C11_DECISIONS.json",
+      "sha256": "6947c4d0d9c19b2ae1f551a7b4e060006237e66aa6686f26b3997c454a61726a",
+      "bytes": 1224
+    },
+    {
+      "path": "planning/phases/C11/C11_REQUIREMENT_CLOSURE.json",
+      "sha256": "13cd4784bf093879e037755bbaaf4fc29c963860ced5b67738a514cc4c6d7ea9",
+      "bytes": 554
+    },
+    {
+      "path": "planning/phases/C11/EXECUTION_CONTRACT.md",
+      "sha256": "a89825b4ac8bddee823797b5fc45ffbf16b83e5190da0d14769088d43f0bc29d",
+      "bytes": 1344
+    },
+    {
       "path": "planning/phases/C11/PHASE_BRIEF.md",
       "sha256": "f8b62966ea62fbf48eb8680d574c9215729e2a963af6a23489fa0601e16c3f84",
       "bytes": 1117
+    },
+    {
+      "path": "planning/phases/C12/C12_DECISIONS.json",
+      "sha256": "4ad0ce1c57b4e18a30e329424e4e25961c240720ad6b092637e1fc0d8a761ef5",
+      "bytes": 1662
+    },
+    {
+      "path": "planning/phases/C12/C12_REQUIREMENT_CLOSURE.json",
+      "sha256": "a96b47af79ddff4f75870d340348cd623b3aa5c3ab945b8a8c16a2750a08de33",
+      "bytes": 720
+    },
+    {
+      "path": "planning/phases/C12/EXECUTION_CONTRACT.md",
+      "sha256": "683cd33bafe4bab5735851558a265e11e3801d9635c3fafb58967162646daf26",
+      "bytes": 1572
     },
     {
       "path": "planning/phases/C12/PHASE_BRIEF.md",
@@ -665,6 +785,11 @@
       "path": "research/MARKET-OS-VENDOR-COMPUTE-AND-QUANT-FINANCE-ADDENDUM-v0.24.2-CANDIDATE.md",
       "sha256": "6c9025ec7f476f9d6d56ccfec82b9b9fcb6a5878ffc8c8775815a6ed371c7194",
       "bytes": 8213
+    },
+    {
+      "path": "tests/test_c10_c12_design.py",
+      "sha256": "f87a39f945f46771ec740614d39650329048f131571e8ff858694f9411f74695",
+      "bytes": 6390
     },
     {
       "path": "tests/test_c1_design.py",

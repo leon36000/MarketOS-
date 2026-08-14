@@ -1,0 +1,28 @@
+{
+  "phase": "C12",
+  "status": "DESIGN_GATE_PASS",
+  "verification": {"red_run_id": 31759258039, "green_run_id": 31759425574, "result": "full CI success after contracts"},
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "provider_selected": false,
+    "model_selected": false,
+    "memory_backend_selected": false,
+    "recursive_method_selected": false,
+    "model_direct_financial_authority": "FORBIDDEN",
+    "equal_vote_consensus": "FORBIDDEN",
+    "secret_readback": "FORBIDDEN",
+    "model_self_validation": "FORBIDDEN",
+    "memory_future_visibility": "FORBIDDEN",
+    "unvalidated_memory_becomes_fact": "FORBIDDEN",
+    "self_promotion": "FORBIDDEN",
+    "hidden_holdout_access": "FORBIDDEN",
+    "champion_and_evaluator_immutable": true,
+    "human_approval_initially_required": true
+  },
+  "provider_record_fields": ["provider_id", "adapter_type", "base_url", "secret_ref", "catalog_hash", "model_id", "capabilities", "context", "pricing", "retention", "privacy", "health", "task_benchmarks", "status"],
+  "council_stages": ["EVIDENCE_PACKET", "BLIND_INDEPENDENT_ROUND", "CROSS_CRITIQUE", "DETERMINISTIC_TESTS", "TASK_WEIGHTING", "ERROR_CORRELATION_PENALTY", "MINORITY_REPORT", "INDEPENDENT_VERIFICATION"],
+  "memory_classes": ["RAW_EPISODE", "TEMPORAL_FACT", "PROCEDURAL_LESSON", "NEGATIVE_RESULT", "INCIDENT", "OPEN_LOOP"],
+  "memory_lifecycle": ["CANDIDATE", "QUARANTINED", "VALIDATED", "MATURE", "SUPERSEDED", "RETRACTED"],
+  "improvement_stages": ["IMMUTABLE_SNAPSHOT", "ISOLATED_WORKTREE", "CANDIDATE_GENERATION", "TEST_AND_BENCHMARK", "HIDDEN_EVALUATION", "PROMOTION_PROPOSAL", "HUMAN_AND_GATE_APPROVAL"]
+}
