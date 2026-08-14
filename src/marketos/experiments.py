@@ -1001,6 +1001,35 @@ class ExperimentLedger:
                 plan.strategy_version,
             ):
                 raise InvariantViolation("TRIAL_STRATEGY_MISMATCH")
+            if trial.ordinal > plan.max_trials:
+                raise InvariantViolation(
+                    f"TRIAL_EXCEEDS_SEARCH_BUDGET:{trial.search_id}:"
+                    f"ordinal={trial.ordinal}:max_trials={plan.max_trials}"
+                )
+            if trial.seed not in plan.seeds:
+                raise InvariantViolation(
+                    f"TRIAL_SEED_OUTSIDE_SEARCH_PLAN:{trial.search_id}:{trial.seed}"
+                )
+            if set(trial.parameters) != set(plan.parameter_space):
+                raise InvariantViolation(
+                    f"TRIAL_PARAMETER_SET_MISMATCH:{trial.search_id}:{trial.trial_id}"
+                )
+            for parameter_name, parameter_value in trial.parameters.items():
+                allowed_values = plan.parameter_space[parameter_name]
+                if not isinstance(allowed_values, tuple) or not allowed_values:
+                    raise InvariantViolation(
+                        f"INVALID_SEARCH_PARAMETER_DOMAIN:{plan.search_id}:"
+                        f"{parameter_name}"
+                    )
+                allowed_json = {
+                    canonical_json(allowed_value)
+                    for allowed_value in allowed_values
+                }
+                if canonical_json(parameter_value) not in allowed_json:
+                    raise InvariantViolation(
+                        f"TRIAL_PARAMETER_OUTSIDE_SEARCH_PLAN:{trial.search_id}:"
+                        f"{parameter_name}"
+                    )
             ordinal_row = self._connection.execute(
                 "SELECT trial_id FROM experiment_trials WHERE search_id = ? AND ordinal = ?",
                 (trial.search_id, trial.ordinal),

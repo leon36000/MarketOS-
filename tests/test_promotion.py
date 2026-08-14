@@ -121,8 +121,14 @@ class PromotionGateTests(unittest.TestCase):
             strategy_id="reversal-liquidity",
             strategy_version=1,
             ordinal=ordinal,
-            parameters={"threshold": Decimal("1.5") + Decimal(ordinal) / 10},
-            seed=ordinal,
+            parameters={
+                "threshold": (
+                    Decimal("1.5"),
+                    Decimal("2.0"),
+                    Decimal("1.5"),
+                )[ordinal - 1]
+            },
+            seed=(7, 11, 19)[ordinal - 1],
             status=status,
             started_at_ns=2_000 + ordinal * 10,
             completed_at_ns=2_005 + ordinal * 10,

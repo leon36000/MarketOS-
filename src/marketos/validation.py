@@ -278,12 +278,12 @@ def build_purged_walk_forward_plan(
             ),
         )
     )
-    anchored_train_start = config.first_test_start_ns - config.train_window_ns
     previous_embargoes: list[tuple[int, int]] = []
     folds: list[TemporalFold] = []
 
     for index in range(config.fold_count):
         test_start = config.first_test_start_ns + index * config.step_ns
+        train_start = test_start - config.train_window_ns
         test_end = test_start + config.test_window_ns
         embargo_end = test_end + config.embargo_ns
         train: list[str] = []
@@ -300,7 +300,7 @@ def build_purged_walk_forward_plan(
                 future.append(sample.sample_id)
             elif any(start <= decision < end for start, end in previous_embargoes):
                 embargoed.append(sample.sample_id)
-            elif decision < anchored_train_start:
+            elif decision < train_start:
                 purged.append(sample.sample_id)
             elif _overlaps(
                 sample.label_start_ns,
@@ -324,7 +324,7 @@ def build_purged_walk_forward_plan(
             )
         fold = TemporalFold(
             fold_id=f"fold-{index + 1:04d}",
-            train_start_ns=anchored_train_start,
+            train_start_ns=train_start,
             train_end_ns=test_start,
             test_start_ns=test_start,
             test_end_ns=test_end,
@@ -655,6 +655,58 @@ class ValidationEvidence:
 
     def sha256(self) -> str:
         return canonical_sha256(self.canonical_dict())
+
+    def assert_integrity(self) -> None:
+        multiple_testing = MultipleTestingEvidence(
+            tried_trial_ids=self.multiple_testing.tried_trial_ids,
+            pbo_trial_ids=self.multiple_testing.pbo_trial_ids,
+            deflated_sharpe_trial_ids=(
+                self.multiple_testing.deflated_sharpe_trial_ids
+            ),
+            cscv_fold_count=self.multiple_testing.cscv_fold_count,
+            pbo_probability=self.multiple_testing.pbo_probability,
+            deflated_sharpe=self.multiple_testing.deflated_sharpe,
+        )
+
+        def rebuild_distribution(
+            value: MetricDistribution | None,
+        ) -> MetricDistribution | None:
+            if value is None:
+                return None
+            return MetricDistribution(
+                unit=value.unit,
+                p05=value.p05,
+                p50=value.p50,
+                p95=value.p95,
+                sample_count=value.sample_count,
+            )
+
+        ValidationEvidence(
+            evidence_id=self.evidence_id,
+            search_id=self.search_id,
+            strategy_id=self.strategy_id,
+            strategy_version=self.strategy_version,
+            split_plan_sha256=self.split_plan_sha256,
+            fold_ids=self.fold_ids,
+            purging_applied=self.purging_applied,
+            embargo_ns=self.embargo_ns,
+            baseline_kinds=self.baseline_kinds,
+            multiple_testing=multiple_testing,
+            cost_distribution=rebuild_distribution(self.cost_distribution),
+            capacity_distribution=rebuild_distribution(
+                self.capacity_distribution
+            ),
+            fill_uncertainty_distribution=rebuild_distribution(
+                self.fill_uncertainty_distribution
+            ),
+            completed_fidelity_stages=self.completed_fidelity_stages,
+            claimed_fidelity_stage=self.claimed_fidelity_stage,
+            synthetic_only=self.synthetic_only,
+            created_at_ns=self.created_at_ns,
+            live_trading_state=self.live_trading_state,
+            profitability_state=self.profitability_state,
+            strategy_edge_proven=self.strategy_edge_proven,
+        )
 
     def validate_against_trials(
         self,

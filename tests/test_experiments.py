@@ -93,10 +93,14 @@ class ExperimentLedgerTests(unittest.TestCase):
             strategy_version=1,
             ordinal=ordinal,
             parameters={
-                "spread_z": Decimal("2.0") + Decimal(ordinal) / Decimal("10"),
+                "spread_z": (
+                    Decimal("1.5"),
+                    Decimal("2.0"),
+                    Decimal("2.5"),
+                )[ordinal - 1],
                 "max_holding_bars": 2,
             },
-            seed=ordinal if seed is None else seed,
+            seed=(7, 11, 19)[ordinal - 1] if seed is None else seed,
             status=status,
             started_at_ns=2_000 + ordinal * 10,
             completed_at_ns=2_005 + ordinal * 10,

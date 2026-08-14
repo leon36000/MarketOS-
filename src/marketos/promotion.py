@@ -135,6 +135,20 @@ class IndependentReview:
     def sha256(self) -> str:
         return canonical_sha256(self.canonical_dict())
 
+    def assert_integrity(self) -> None:
+        IndependentReview(
+            review_id=self.review_id,
+            reviewer_id=self.reviewer_id,
+            reviewer_role=self.reviewer_role,
+            evidence_sha256=self.evidence_sha256,
+            approved=self.approved,
+            human_approval_id=self.human_approval_id,
+            minority_findings=self.minority_findings,
+            unresolved_findings=self.unresolved_findings,
+            reviewed_at_ns=self.reviewed_at_ns,
+            live_trading_state=self.live_trading_state,
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class PromotionRequest:
@@ -206,6 +220,28 @@ class PromotionRequest:
 
     def sha256(self) -> str:
         return canonical_sha256(self.canonical_dict())
+
+    def assert_integrity(self) -> None:
+        self.independent_review.assert_integrity()
+        PromotionRequest(
+            request_id=self.request_id,
+            candidate_trial_id=self.candidate_trial_id,
+            search_id=self.search_id,
+            strategy_id=self.strategy_id,
+            strategy_version=self.strategy_version,
+            requested_by_id=self.requested_by_id,
+            requested_by_role=self.requested_by_role,
+            validation_evidence_sha256=(
+                self.validation_evidence_sha256
+            ),
+            independent_review=self.independent_review,
+            rollback_plan=self.rollback_plan,
+            unresolved_assumption_breaks=(
+                self.unresolved_assumption_breaks
+            ),
+            requested_at_ns=self.requested_at_ns,
+            live_trading_state=self.live_trading_state,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -309,8 +345,17 @@ class PromotionGate:
         ledger: ExperimentLedger,
     ) -> PromotionDecision:
         reasons: list[str] = []
-        evidence_sha256 = evidence.sha256()
         review = request.independent_review
+        for integrity_check in (
+            request.assert_integrity,
+            review.assert_integrity,
+            evidence.assert_integrity,
+        ):
+            try:
+                integrity_check()
+            except InvariantViolation as exc:
+                self._append_reason(reasons, _reason_code(exc))
+        evidence_sha256 = evidence.sha256()
         trials = ledger.trials(search_id=request.search_id)
         trial_population_sha256 = canonical_sha256(
             tuple(trial.sha256() for trial in trials)

@@ -22,6 +22,11 @@
       "bytes": 2241
     },
     {
+      "path": ".github/workflows/materialize-research-governance-adversarial.yml",
+      "sha256": "6d344be393acb082f565882be3f246842c25deb34c795a4e619a67e8a940f90b",
+      "bytes": 3547
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
       "bytes": 2889
@@ -918,8 +923,8 @@
     },
     {
       "path": "src/marketos/experiments.py",
-      "sha256": "e1e531761a7bfdd423b03985b5c7783ecf751b8c948aa96fd8ea6efd74ae2a8d",
-      "bytes": 43657
+      "sha256": "dff39021d2fbec8ff42254e96ab191dd017ccf190180b3ed92117a6d00ec4ec3",
+      "bytes": 45154
     },
     {
       "path": "src/marketos/features.py",
@@ -963,8 +968,8 @@
     },
     {
       "path": "src/marketos/promotion.py",
-      "sha256": "4760632522995dbb1fe873d2f6c8603b4d91b7133b396c8aac51b712f360be39",
-      "bytes": 17153
+      "sha256": "17c46b64dd1989913e5dfa5342c0b8362f7692ee02be389028c557aa84629e22",
+      "bytes": 18912
     },
     {
       "path": "src/marketos/replay.py",
@@ -998,8 +1003,8 @@
     },
     {
       "path": "src/marketos/validation.py",
-      "sha256": "256c6a7f53b19c3eda2805ad5d831baea9429b2c9b2361f6ba4e0073ecbdf205",
-      "bytes": 26055
+      "sha256": "16afb20d6adfd5b5be260d924ac1ffc31fb5a42a59497f4cd4a18b927d0e2cba",
+      "bytes": 28186
     },
     {
       "path": "tests/__init__.py",
@@ -1073,8 +1078,8 @@
     },
     {
       "path": "tests/test_experiments.py",
-      "sha256": "4c8a0463d1f3caefa0956bd510c60b6a02023cbcbaab46f88d5d7f07255fd4ed",
-      "bytes": 11239
+      "sha256": "cbcc01f413e9d48a2a85d563ed9f2c5316023a4c1bbe5d64010da0baf12d9165",
+      "bytes": 11347
     },
     {
       "path": "tests/test_feature_acceptance.py",
@@ -1143,8 +1148,8 @@
     },
     {
       "path": "tests/test_promotion.py",
-      "sha256": "f95d0ff596a3ee66c8170cffba97c31e97de61fb60adeccfcc20d1f929ead8b5",
-      "bytes": 16149
+      "sha256": "d7a037ad3450853bba8cd8461b53f23b45efb43f7503996634d033e660737dd7",
+      "bytes": 16298
     },
     {
       "path": "tests/test_regenerate_derived.py",
@@ -1165,6 +1170,11 @@
       "path": "tests/test_research_governance_acceptance.py",
       "sha256": "15c0c140162cc8c5732d6dcdc218a21fdd53b4174a5dca324124e247a73335e4",
       "bytes": 973
+    },
+    {
+      "path": "tests/test_research_governance_adversarial.py",
+      "sha256": "6367b1295aa91723cca8e86350b3896d4f50ab163b8e766be769210a6f5e66a1",
+      "bytes": 11266
     },
     {
       "path": "tests/test_rights.py",
@@ -1253,8 +1263,8 @@
     },
     {
       "path": "tools/verify_research_governance.py",
-      "sha256": "5cbdddbb0303c1d177db964438de8ec0d32422a663df861246608689b1454e76",
-      "bytes": 20100
+      "sha256": "738f6c27a030e2242271d76836d3b8e77ac83c749180ed90fb19fc7782c6df7d",
+      "bytes": 20225
     }
   ]
 }
