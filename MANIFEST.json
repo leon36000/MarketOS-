@@ -17,6 +17,11 @@
       "bytes": 1981
     },
     {
+      "path": ".github/workflows/materialize-market-data-authority-hardening.yml",
+      "sha256": "ccbaa23ea8ab59e18b6b80ee5f202b25822cd02a01da74245a475020f593b91c",
+      "bytes": 2946
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "f5426ed77be834c8f7cc75ad43fed8eac6035ef9449889b493df7eaf8030760d",
       "bytes": 2779
@@ -313,13 +318,13 @@
     },
     {
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
-      "sha256": "fd84a24b874b6fc66df0090553845acf559a6f5199abc3b0af410319466dfb0e",
-      "bytes": 2033
+      "sha256": "ecc37f2f827cf8bc6ef914a7ea7577528fbdd41e9fd3239a5c4f3f66ebd3a37f",
+      "bytes": 2156
     },
     {
       "path": "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md",
-      "sha256": "78005941c3050b241275ea0c4ab984a8bf8e1e2d3a69a98a20ef004ce3ccac50",
-      "bytes": 2228
+      "sha256": "0e9578b11ef0fb477bae5dd8d3c17cdacd9b657d705db7f8c546e383e0c3618d",
+      "bytes": 2546
     },
     {
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
@@ -858,8 +863,8 @@
     },
     {
       "path": "src/marketos/bars.py",
-      "sha256": "cdb04a23bd0f932f6fa3faf4bf5f529b0da4a1fd5ec6b8b0f7554ce0dbca6133",
-      "bytes": 8149
+      "sha256": "b1cbacb8ff4027732f76a542cf721fd7bee0ca0895066456f2c93006831396da",
+      "bytes": 9566
     },
     {
       "path": "src/marketos/canonical.py",
@@ -908,8 +913,8 @@
     },
     {
       "path": "src/marketos/marketdata.py",
-      "sha256": "f4db4bdf268eddd8d1136a0e3593669adec90220aa39b2b106e18219e95d01f4",
-      "bytes": 29345
+      "sha256": "fe833c6fe45f544a6885cd7c87e8c696a9ab8fe0d6024a6d5a2ddabd1a38ab0d",
+      "bytes": 31783
     },
     {
       "path": "src/marketos/money.py",
@@ -963,8 +968,8 @@
     },
     {
       "path": "tests/test_bars.py",
-      "sha256": "b7d3157fb4e4115881c063499753c73d17386b0c8d62b03098f08f2a0f135528",
-      "bytes": 3693
+      "sha256": "0976a50768d425ca12a3691fd635026315852447280271ab42ca1a171feeac2e",
+      "bytes": 4687
     },
     {
       "path": "tests/test_c10_c12_design.py",
@@ -1050,6 +1055,11 @@
       "path": "tests/test_marketdata_acceptance.py",
       "sha256": "95e2e5ba63f16d4bdf66aab5867207bde32ddb8bd6c8cb6af95e6d261fddcb73",
       "bytes": 676
+    },
+    {
+      "path": "tests/test_marketdata_authority.py",
+      "sha256": "73f2868c41ade14036f5ac6d613e5f6bb64b0ad7f7c48e94c8d1d32c1b572fb8",
+      "bytes": 8187
     },
     {
       "path": "tests/test_money.py",
@@ -1138,8 +1148,8 @@
     },
     {
       "path": "tools/verify_market_data.py",
-      "sha256": "92eacaf367056dd52d5c1d5c4f77a07ea118b59d556b1a006dac3ed69afd7414",
-      "bytes": 13238
+      "sha256": "e6af2129778c8323511d3cca885f5316a8eaf3775ce09f0949a98409abe78ae2",
+      "bytes": 13574
     },
     {
       "path": "tools/verify_neon_memory.py",

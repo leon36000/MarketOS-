@@ -12,9 +12,10 @@ This slice extends the local Security Master/Data Fabric with provider-neutral c
 - deterministic idempotency and conflicting-version rejection;
 - sequence-gap, sequence-regression and sequence-collision quarantine;
 - crossed/empty quote, zero trade, future-skew and excessive-latency quality gates;
-- stored observation and quality-decision hash verification on read;
+- stored observation, raw-source and quality-decision hash verification on read;
+- exact quality-policy and rights-policy hashes preserved in every admission decision;
 - accepted and quarantined streams kept distinct;
-- exact deterministic OHLCV bars with complete-bucket and no-look-ahead rules;
+- exact deterministic OHLCV bars with complete-bucket, no-look-ahead and explicit derived-data rights;
 - late arrivals affect only later point-in-time bar rebuilds;
 - independent eight-check acceptance verification and dedicated CI.
 

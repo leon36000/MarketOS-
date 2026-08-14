@@ -222,6 +222,8 @@ class IngestionResult:
     quality_state: QualityState
     reasons: tuple[str, ...]
     observation_sha256: str
+    quality_policy_sha256: str
+    rights_policy_sha256: str
     quality_decision_sha256: str
     inserted: bool
     live_trading_state: str = "HARD_LOCKED"
@@ -234,6 +236,8 @@ class IngestionResult:
             "quality_state": self.quality_state,
             "reasons": self.reasons,
             "observation_sha256": self.observation_sha256,
+            "quality_policy_sha256": self.quality_policy_sha256,
+            "rights_policy_sha256": self.rights_policy_sha256,
             "quality_decision_sha256": self.quality_decision_sha256,
             "inserted": self.inserted,
             "live_trading_state": self.live_trading_state,
@@ -283,6 +287,8 @@ class MarketDataStore:
                 schema_version TEXT NOT NULL,
                 payload_json TEXT NOT NULL,
                 observation_sha256 TEXT NOT NULL,
+                quality_policy_sha256 TEXT NOT NULL,
+                rights_policy_sha256 TEXT NOT NULL,
                 quality_state TEXT NOT NULL,
                 reasons_json TEXT NOT NULL,
                 quality_decision_sha256 TEXT NOT NULL,
@@ -386,11 +392,10 @@ class MarketDataStore:
             condition_codes=tuple(str(code) for code in codes),
         )
 
-    @classmethod
-    def _observation_from_row(cls, row: sqlite3.Row) -> MarketObservation:
+    def _observation_from_row(self, row: sqlite3.Row) -> MarketObservation:
         kind = ObservationKind(str(row["kind"]))
         try:
-            payload = cls._payload_from_json(kind, str(row["payload_json"]))
+            payload = self._payload_from_json(kind, str(row["payload_json"]))
         except (InvariantViolation, KeyError, TypeError, ValueError) as exc:
             raise InvariantViolation(
                 f"MARKET_OBSERVATION_HASH_MISMATCH:{row['observation_id']}:{row['version']}"
@@ -419,10 +424,34 @@ class MarketDataStore:
             raise InvariantViolation(
                 f"MARKET_OBSERVATION_HASH_MISMATCH:{observation.observation_id}:{observation.version}"
             )
+        if not self.raw_evidence_store.verify(observation.raw_content_sha256):
+            raise InvariantViolation(
+                f"MARKET_RAW_EVIDENCE_MISMATCH:{observation.observation_id}:{observation.version}"
+            )
+        try:
+            quality_state = QualityState(str(row["quality_state"]))
+            reasons_value = json.loads(row["reasons_json"])
+            if not isinstance(reasons_value, list) or any(
+                not isinstance(reason, str) for reason in reasons_value
+            ):
+                raise ValueError("invalid reasons")
+            reasons = tuple(reasons_value)
+            quality_policy_sha256 = str(row["quality_policy_sha256"])
+            rights_policy_sha256 = str(row["rights_policy_sha256"])
+            if not _HEX64.fullmatch(quality_policy_sha256) or not _HEX64.fullmatch(
+                rights_policy_sha256
+            ):
+                raise ValueError("invalid policy hash")
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            raise InvariantViolation(
+                f"MARKET_QUALITY_DECISION_HASH_MISMATCH:{observation.observation_id}:{observation.version}"
+            ) from exc
         decision_payload = {
             "observation_sha256": observation.sha256(),
-            "quality_state": QualityState(str(row["quality_state"])),
-            "reasons": tuple(json.loads(row["reasons_json"])),
+            "quality_policy_sha256": quality_policy_sha256,
+            "rights_policy_sha256": rights_policy_sha256,
+            "quality_state": quality_state,
+            "reasons": reasons,
         }
         if canonical_sha256(decision_payload) != str(row["quality_decision_sha256"]):
             raise InvariantViolation(
@@ -448,6 +477,8 @@ class MarketDataStore:
             quality_state=state,
             reasons=tuple(json.loads(row["reasons_json"])),
             observation_sha256=str(row["observation_sha256"]),
+            quality_policy_sha256=str(row["quality_policy_sha256"]),
+            rights_policy_sha256=str(row["rights_policy_sha256"]),
             quality_decision_sha256=str(row["quality_decision_sha256"]),
             inserted=not duplicate,
         )
@@ -461,6 +492,8 @@ class MarketDataStore:
     ) -> IngestionResult:
         self._require_rights(rights_policy)
         observation_sha = observation.sha256()
+        quality_policy_sha256 = quality_policy.sha256()
+        rights_policy_sha256 = rights_policy.sha256()
         self._connection.execute("BEGIN IMMEDIATE")
         try:
             existing = self._connection.execute(
@@ -471,6 +504,13 @@ class MarketDataStore:
                 if str(existing["observation_sha256"]) != observation_sha:
                     raise DuplicateConflict(
                         f"MARKET_OBSERVATION_VERSION_CONFLICT:{observation.observation_id}:{observation.version}"
+                    )
+                if (
+                    str(existing["quality_policy_sha256"]) != quality_policy_sha256
+                    or str(existing["rights_policy_sha256"]) != rights_policy_sha256
+                ):
+                    raise DuplicateConflict(
+                        f"INGESTION_POLICY_CONFLICT:{observation.observation_id}:{observation.version}"
                     )
                 self._observation_from_row(existing)
                 result = self._result_from_row(existing, duplicate=True)
@@ -548,6 +588,8 @@ class MarketDataStore:
             )
             decision_payload = {
                 "observation_sha256": observation_sha,
+                "quality_policy_sha256": quality_policy_sha256,
+                "rights_policy_sha256": rights_policy_sha256,
                 "quality_state": quality_state,
                 "reasons": reasons_tuple,
             }
@@ -559,9 +601,10 @@ class MarketDataStore:
                     source_id, channel_id, source_sequence, event_time_ns,
                     available_at_ns, received_wall_ns, received_monotonic_ns,
                     raw_content_sha256, schema_version, payload_json,
-                    observation_sha256, quality_state, reasons_json,
+                    observation_sha256, quality_policy_sha256,
+                    rights_policy_sha256, quality_state, reasons_json,
                     quality_decision_sha256
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     observation.observation_id,
@@ -581,6 +624,8 @@ class MarketDataStore:
                     observation.schema_version,
                     canonical_json(observation.payload),
                     observation_sha,
+                    quality_policy_sha256,
+                    rights_policy_sha256,
                     quality_state.value,
                     json.dumps(reasons_tuple, separators=(",", ":")),
                     decision_sha,

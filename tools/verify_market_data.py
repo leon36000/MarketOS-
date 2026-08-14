@@ -186,6 +186,8 @@ def verify_market_data() -> dict[str, object]:
                     rights_policy=_rights(),
                 )
                 _require(first.quality_state is QualityState.ACCEPTED, "FIRST_SEQUENCE_REJECTED")
+                _require(first.quality_policy_sha256 == _quality().sha256(), "QUALITY_POLICY_HASH_MISSING")
+                _require(first.rights_policy_sha256 == _rights().sha256(), "RIGHTS_POLICY_HASH_MISSING")
                 _require(any(reason.startswith("SEQUENCE_GAP") for reason in gap.reasons), "GAP_NOT_FOUND")
                 _require("SEQUENCE_COLLISION" in collision.reasons, "COLLISION_NOT_FOUND")
                 _require(len(store.stream(LISTING_ID, 0, 200, knowledge_time_ns=200)) == 1, "QUARANTINE_LEAK")
@@ -302,11 +304,13 @@ def verify_market_data() -> dict[str, object]:
                 (close, late, early, middle),
                 interval_ns=100,
                 knowledge_time_ns=100,
+                rights_policy=_rights(),
             )
             second = build_trade_bars(
                 (middle, early, close, late),
                 interval_ns=100,
                 knowledge_time_ns=100,
+                rights_policy=_rights(),
             )
             _require(first == second, "BAR_NONDETERMINISTIC")
             _require(first[0].high.value == 105, "LATE_TRADE_LOOKAHEAD")
@@ -314,6 +318,7 @@ def verify_market_data() -> dict[str, object]:
                 (early, middle, close, late),
                 interval_ns=100,
                 knowledge_time_ns=130,
+                rights_policy=_rights(),
             )
             _require(revised[0].high.value == 110, "LATE_TRADE_NOT_APPLIED_AFTER_CUTOFF")
             _require(revised[0].input_root_sha256 != first[0].input_root_sha256, "BAR_LINEAGE_NOT_UPDATED")

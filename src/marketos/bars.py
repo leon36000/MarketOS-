@@ -8,11 +8,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+import re
 from typing import Iterable
 from uuid import UUID
 
 from .canonical import canonical_sha256
-from .errors import InvariantViolation
+from .errors import DomainError, InvariantViolation
 from .marketdata import (
     MarketObservation,
     ObservationKind,
@@ -20,6 +21,14 @@ from .marketdata import (
     TradePayload,
 )
 from .money import Price, Quantity
+from .rights import RightsPolicy
+
+
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+
+
+class BarDerivationDenied(DomainError):
+    """Raised when data rights do not permit the requested derived view."""
 
 
 def _nonnegative_int(value: int, code: str) -> int:
@@ -42,6 +51,7 @@ class TradeBar:
     trade_count: int
     available_to_strategy_at_ns: int
     input_root_sha256: str
+    rights_policy_sha256: str
     live_trading_state: str = "HARD_LOCKED"
 
     def __post_init__(self) -> None:
@@ -69,8 +79,10 @@ class TradeBar:
             raise InvariantViolation("INVALID_BAR_HIGH")
         if self.low.value > min(self.open.value, self.close.value, self.high.value):
             raise InvariantViolation("INVALID_BAR_LOW")
-        if len(self.input_root_sha256) != 64:
+        if not _HEX64.fullmatch(self.input_root_sha256):
             raise InvariantViolation("INVALID_BAR_INPUT_ROOT")
+        if not _HEX64.fullmatch(self.rights_policy_sha256):
+            raise InvariantViolation("INVALID_BAR_RIGHTS_POLICY_HASH")
         if self.live_trading_state != "HARD_LOCKED":
             raise InvariantViolation("BAR_CANNOT_CHANGE_LIVE_LOCK")
 
@@ -88,6 +100,7 @@ class TradeBar:
             "trade_count": self.trade_count,
             "available_to_strategy_at_ns": self.available_to_strategy_at_ns,
             "input_root_sha256": self.input_root_sha256,
+            "rights_policy_sha256": self.rights_policy_sha256,
             "live_trading_state": self.live_trading_state,
         }
 
@@ -101,6 +114,7 @@ def _latest_known_trades(
     knowledge_time_ns: int,
 ) -> tuple[MarketObservation, ...]:
     seen_versions: set[tuple[str, int]] = set()
+    identities: dict[str, tuple[object, ...]] = {}
     latest: dict[str, MarketObservation] = {}
     for observation in observations:
         key = (observation.observation_id, observation.version)
@@ -113,6 +127,19 @@ def _latest_known_trades(
             continue
         if observation.time.available_at_ns > knowledge_time_ns:
             continue
+        identity = (
+            observation.kind,
+            observation.listing_id,
+            observation.venue_id,
+            observation.source_id,
+            observation.channel_id,
+            observation.time.event_time_ns,
+        )
+        previous_identity = identities.setdefault(observation.observation_id, identity)
+        if previous_identity != identity:
+            raise InvariantViolation(
+                f"BAR_OBSERVATION_IDENTITY_MUTATION:{observation.observation_id}"
+            )
         previous = latest.get(observation.observation_id)
         if previous is None or (
             observation.time.available_at_ns,
@@ -134,12 +161,19 @@ def build_trade_bars(
     *,
     interval_ns: int,
     knowledge_time_ns: int,
+    rights_policy: RightsPolicy,
 ) -> tuple[TradeBar, ...]:
     """Build exact, deterministic OHLCV bars as known at a historical cutoff."""
 
     if isinstance(interval_ns, bool) or not isinstance(interval_ns, int) or interval_ns <= 0:
         raise InvariantViolation("INVALID_BAR_INTERVAL_SIZE")
     _nonnegative_int(knowledge_time_ns, "INVALID_KNOWLEDGE_TIME")
+    for capability in ("non_display", "historical_replay", "derived_data"):
+        if not rights_policy.allows(capability):
+            raise BarDerivationDenied(
+                f"BAR_DERIVATION_RIGHT_DENIED:{rights_policy.policy_id}:{capability}"
+            )
+    rights_policy_sha256 = rights_policy.sha256()
 
     trades = _latest_known_trades(
         observations,
@@ -209,6 +243,7 @@ def build_trade_bars(
                 trade_count=len(bucket),
                 available_to_strategy_at_ns=available,
                 input_root_sha256=input_root,
+                rights_policy_sha256=rights_policy_sha256,
             )
         )
     return tuple(bars)

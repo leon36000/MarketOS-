@@ -16,6 +16,9 @@
 1. The denied-rights and frozen-dataclass tests were separated so each checks one authority boundary.
 2. Stored rows that cannot be decoded after admission now fail uniformly as `MARKET_OBSERVATION_HASH_MISMATCH`, rather than surfacing an incidental schema error.
 3. The permanent derived-file workflow now runs foundation, Data Fabric and market-data acceptance verifiers and watches the permanent data workflows.
+4. Admission decisions now preserve quality- and rights-policy hashes; a duplicate under different policy is a conflict.
+5. Canonical reads re-verify the referenced raw bytes, and bar derivation requires and records explicit rights.
+6. Bar revisions cannot mutate listing, venue, source, channel or economic identity.
 
 ## Verified behavior
 
