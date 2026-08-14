@@ -22,6 +22,11 @@
       "bytes": 2241
     },
     {
+      "path": ".github/workflows/materialize-experiment-holdout.yml",
+      "sha256": "e3a5d60fd2822150d55b5f2d8362e17374b97dff2148890576657769c9cf9587",
+      "bytes": 2794
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
       "bytes": 2889
@@ -918,8 +923,8 @@
     },
     {
       "path": "src/marketos/experiments.py",
-      "sha256": "93125c278c95aaa38639ee2e481ed7ba5ea69cd0a4bd06a7bd44996743b8e019",
-      "bytes": 31711
+      "sha256": "e1e531761a7bfdd423b03985b5c7783ecf751b8c948aa96fd8ea6efd74ae2a8d",
+      "bytes": 43657
     },
     {
       "path": "src/marketos/features.py",
@@ -1085,6 +1090,11 @@
       "path": "tests/test_foundation_acceptance.py",
       "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
       "bytes": 2019
+    },
+    {
+      "path": "tests/test_holdout_access.py",
+      "sha256": "88077e71465b488511f53166fc32b4ee4002b16e810f86603e6f9a59e28e156f",
+      "bytes": 7914
     },
     {
       "path": "tests/test_identity.py",
