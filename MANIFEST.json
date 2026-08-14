@@ -917,6 +917,11 @@
       "bytes": 3732
     },
     {
+      "path": "src/marketos/experiments.py",
+      "sha256": "93125c278c95aaa38639ee2e481ed7ba5ea69cd0a4bd06a7bd44996743b8e019",
+      "bytes": 31711
+    },
+    {
       "path": "src/marketos/features.py",
       "sha256": "edb623bc4c3df6f0f26dcf3fc678a664f8fb51895eb8ef5b65079a99edc8e027",
       "bytes": 24841
@@ -1055,6 +1060,11 @@
       "path": "tests/test_events.py",
       "sha256": "2b8be64b0890e3244999ca535a11add5d6e65bb2bda55785e605d82fb511eb6c",
       "bytes": 2966
+    },
+    {
+      "path": "tests/test_experiments.py",
+      "sha256": "4c8a0463d1f3caefa0956bd510c60b6a02023cbcbaab46f88d5d7f07255fd4ed",
+      "bytes": 11239
     },
     {
       "path": "tests/test_feature_acceptance.py",
