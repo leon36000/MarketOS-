@@ -18,7 +18,15 @@ jobs:
       - name: Derived files are reconciled
         run: python tools/regenerate_derived.py --root . --check --json
       - name: Unit tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
         run: python -m unittest discover -s tests -v
+      - name: Foundation acceptance
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python tools/verify_foundation.py --json
       - name: C1 design contract
         run: python tools/validate_c1_design.py --root . --json
       - name: C2 design contract
@@ -30,4 +38,4 @@ jobs:
       - name: Repository contract
         run: python tools/validate_repository.py --root . --json
       - name: Compile Python sources
-        run: python -m compileall -q tools tests
+        run: python -m compileall -q src tools tests
