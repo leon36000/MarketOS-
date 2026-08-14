@@ -7,6 +7,11 @@
       "bytes": 2703
     },
     {
+      "path": ".github/workflows/feature-foundation.yml",
+      "sha256": "21faa9a91aa40093291fccd0ff1a192f1efec89ee3f1774e9eb52e5d9bd548bb",
+      "bytes": 2093
+    },
+    {
       "path": ".github/workflows/implementation-foundation.yml",
       "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
       "bytes": 1783
@@ -18,8 +23,8 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "f5426ed77be834c8f7cc75ad43fed8eac6035ef9449889b493df7eaf8030760d",
-      "bytes": 2779
+      "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
+      "bytes": 2889
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -325,6 +330,11 @@
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
       "sha256": "b0f6f836bcd61f868d9fd042a7818f70e5d008e1c90d1cb0162c8e57febfc673",
       "bytes": 2035
+    },
+    {
+      "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE.md",
+      "sha256": "2958378431699e15fdf3b7039d79a98a7882ac4ea65c0a7bfb5b7de83812d125",
+      "bytes": 1865
     },
     {
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
@@ -897,6 +907,11 @@
       "bytes": 3732
     },
     {
+      "path": "src/marketos/features.py",
+      "sha256": "531eeadc874eba48bb5a546a3d05a804eb9e8d3e8b8a616be8113588da2a6cf2",
+      "bytes": 21715
+    },
+    {
       "path": "src/marketos/identity.py",
       "sha256": "00c7946c29209add8a9aefeb6b364e6d3b741b91f12c4cdeb6b8cdc909b2e059",
       "bytes": 16377
@@ -945,6 +960,11 @@
       "path": "src/marketos/risk.py",
       "sha256": "48e9565bfde963fe8c7b943f53e367b73098f17cc13a8db80f7aa418dc5c3972",
       "bytes": 8505
+    },
+    {
+      "path": "src/marketos/sessions.py",
+      "sha256": "40dfef2d8b249a81c157de80267acb688988e0df3820554163e33cd180adb20c",
+      "bytes": 9180
     },
     {
       "path": "src/marketos/store.py",
@@ -1027,6 +1047,16 @@
       "bytes": 2966
     },
     {
+      "path": "tests/test_feature_acceptance.py",
+      "sha256": "0d3ed6a6707f212821c8f6851ebfb3e2a8e5082279c04da654097d73ee985757",
+      "bytes": 764
+    },
+    {
+      "path": "tests/test_features.py",
+      "sha256": "c0237ddcbdba14205d2b3290d0505aa05897a5dab50e37ae659ba5fbe2ff0da2",
+      "bytes": 10880
+    },
+    {
       "path": "tests/test_foundation_acceptance.py",
       "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
       "bytes": 2019
@@ -1097,6 +1127,11 @@
       "bytes": 5094
     },
     {
+      "path": "tests/test_sessions.py",
+      "sha256": "aeb5573c760940f6be763b80f909e1fb3f1120073fda947a72106b5db8268f28",
+      "bytes": 5616
+    },
+    {
       "path": "tests/test_store.py",
       "sha256": "f033da5c07fdb88d61587d51d100674aeb238e1d32a3c00af756c25f08fa5019",
       "bytes": 3896
@@ -1135,6 +1170,11 @@
       "path": "tools/verify_data_foundation.py",
       "sha256": "6af52c78c2415dbb8d76e4183c1ae3769147ac12be0e87135c38728e898a14d5",
       "bytes": 11378
+    },
+    {
+      "path": "tools/verify_feature_foundation.py",
+      "sha256": "259a89a3136917bb3674905f5f36ceec0ffed994ac81f28af7326376662300c0",
+      "bytes": 13389
     },
     {
       "path": "tools/verify_foundation.py",
