@@ -1,6 +1,7 @@
 {
   "phase": "C11",
-  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "status": "DESIGN_GATE_PASS",
+  "verification": {"red_run_id": 31759258039, "green_run_id": 31759425574, "result": "full CI success after contracts"},
   "locks": {
     "live_trading": "HARD_LOCKED",
     "profitability": "UNPROVEN",
