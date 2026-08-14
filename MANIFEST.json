@@ -448,8 +448,8 @@
     },
     {
       "path": "docs/superpowers/plans/2026-08-14-research-governance-kernel.md",
-      "sha256": "d0e527c90fda945f8da5840f80e10e505ba194be3454aa570465b6d406a76f06",
-      "bytes": 7630
+      "sha256": "0945be6d58d9418e0f0d6f1fee65287ee2b099f0ea94e62dc41c5d95e7e29707",
+      "bytes": 8405
     },
     {
       "path": "examples/paper_scenario.jsonl",
