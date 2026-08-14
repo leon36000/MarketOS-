@@ -320,7 +320,11 @@ class SecurityMaster:
         return True
 
     def append_identifier(self, assignment: IdentifierAssignment) -> bool:
-        if assignment.entity_id not in self._instruments and assignment.entity_id not in self._venues:
+        if (
+            assignment.entity_id not in self._instruments
+            and assignment.entity_id not in self._venues
+            and assignment.entity_id not in self._listings
+        ):
             raise InvariantViolation(f"UNKNOWN_IDENTIFIER_ENTITY:{assignment.entity_id}")
         key = (assignment.assignment_id, assignment.version)
         digest = assignment.sha256()

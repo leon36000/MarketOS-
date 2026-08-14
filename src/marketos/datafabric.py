@@ -21,11 +21,15 @@ from typing import Any, Iterable, Mapping
 from uuid import uuid4
 
 from .canonical import canonical_json, canonical_sha256
-from .errors import DuplicateConflict, InvariantViolation
+from .errors import DomainError, DuplicateConflict, InvariantViolation
 from .rights import RightsPolicy
 
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+class AmbiguousTemporalFact(DomainError):
+    """Raised when independent visible fact identities conflict for one key."""
 
 
 def _time(value: int, code: str) -> None:
@@ -66,11 +70,12 @@ def _safe_relative(path: str) -> PurePosixPath:
         not path
         or candidate.is_absolute()
         or ".." in candidate.parts
-        or "." in candidate.parts
         or "\\" in path
         or any(not part for part in candidate.parts)
     ):
         raise InvariantViolation(f"UNSAFE_DATASET_PATH:{path}")
+    if candidate.as_posix() != path:
+        raise InvariantViolation(f"NON_CANONICAL_DATASET_PATH:{path}")
     return candidate
 
 
@@ -373,19 +378,27 @@ class TemporalFactStore:
     ) -> TemporalFact | None:
         _time(economic_time_ns, "INVALID_ECONOMIC_TIME")
         _time(knowledge_time_ns, "INVALID_KNOWLEDGE_TIME")
-        row = self._connection.execute(
+        rows = self._connection.execute(
             """
             SELECT * FROM temporal_facts
             WHERE fact_key = ?
               AND valid_from_ns <= ?
               AND (valid_to_ns IS NULL OR ? < valid_to_ns)
               AND available_to_strategy_at_ns <= ?
-            ORDER BY revision_time_ns DESC, version DESC
-            LIMIT 1
+            ORDER BY fact_id, revision_time_ns DESC, version DESC
             """,
             (fact_key, economic_time_ns, economic_time_ns, knowledge_time_ns),
-        ).fetchone()
-        return None if row is None else self._from_row(row)
+        ).fetchall()
+        latest_by_fact_id: dict[str, sqlite3.Row] = {}
+        for row in rows:
+            latest_by_fact_id.setdefault(str(row["fact_id"]), row)
+        if len(latest_by_fact_id) > 1:
+            raise AmbiguousTemporalFact(
+                f"AMBIGUOUS_TEMPORAL_FACT:{fact_key}:{economic_time_ns}:{knowledge_time_ns}"
+            )
+        if not latest_by_fact_id:
+            return None
+        return self._from_row(next(iter(latest_by_fact_id.values())))
 
     def history(self, fact_id: str) -> tuple[TemporalFact, ...]:
         rows = self._connection.execute(
@@ -496,6 +509,9 @@ class DatasetPublisher:
             raise PublicationDenied("DATASET_QUALITY_GATE_FAILED")
         if lineage_complete is not True:
             raise PublicationDenied("DATASET_LINEAGE_INCOMPLETE")
+        policy_ids = [policy.policy_id for policy in policies]
+        if len(policy_ids) != len(set(policy_ids)):
+            raise PublicationDenied("DUPLICATE_RIGHTS_POLICY_ID")
         by_id = {policy.policy_id: policy for policy in policies}
         if set(by_id) != set(spec.rights_policy_ids):
             raise PublicationDenied("DATASET_RIGHTS_POLICY_SET_MISMATCH")

@@ -2,6 +2,11 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/workflows/data-foundation.yml",
+      "sha256": "f723d6ebd7584fd50e9f454d810afa76c4adec28f964b7e771d241bfd898b109",
+      "bytes": 2469
+    },
+    {
       "path": ".github/workflows/implementation-foundation.yml",
       "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
       "bytes": 1783
@@ -305,6 +310,11 @@
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
       "sha256": "b0f6f836bcd61f868d9fd042a7818f70e5d008e1c90d1cb0162c8e57febfc673",
       "bytes": 2035
+    },
+    {
+      "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
+      "sha256": "b95664361fcc4f12dfe8ffa4d5fdabab67f96cf2a9df5acb26eb870c58976d6b",
+      "bytes": 1635
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -843,13 +853,13 @@
     },
     {
       "path": "src/marketos/corporate_actions.py",
-      "sha256": "ace4efdd55cfd37c402f0e31f47c6e9b878afa17f750c1bce7120e3274c1c758",
-      "bytes": 12445
+      "sha256": "ff62ec196bdcdfea3036824542900c65aac1772b509b66f60f881ce479cd115f",
+      "bytes": 12473
     },
     {
       "path": "src/marketos/datafabric.py",
-      "sha256": "df86c456a64bcf58a0003b0cd29bdc42daef06176a5523e2ea74582f96396330",
-      "bytes": 25982
+      "sha256": "6f442f4281943d49d469f8eefe426f489ffbd7aaa2ca6db468d7b462cb90f41e",
+      "bytes": 26766
     },
     {
       "path": "src/marketos/errors.py",
@@ -863,8 +873,8 @@
     },
     {
       "path": "src/marketos/identity.py",
-      "sha256": "41725b7c412949a086f4c57dfbbd4a9b04a7068f78a6899561126709483c7456",
-      "bytes": 15967
+      "sha256": "5b4779af5e1f683a8c9e23d0d9bdabaf01d496fe38b1042269f0d8b708f98fa1",
+      "bytes": 16062
     },
     {
       "path": "src/marketos/ledger.py",
@@ -955,6 +965,16 @@
       "path": "tests/test_corporate_actions.py",
       "sha256": "6654221a7cebf57251dfc3948a4d82d67ef5b41776365e68097e5edcafefc787",
       "bytes": 4317
+    },
+    {
+      "path": "tests/test_data_foundation_acceptance.py",
+      "sha256": "a840c5106803d5593931fbfd17625d68d77f5286a1f6fcf7d757556be94e45eb",
+      "bytes": 719
+    },
+    {
+      "path": "tests/test_data_foundation_adversarial.py",
+      "sha256": "66385f920611c4e4bb163b35b428c339942a258e7f959a629fc5a6007d87d7b8",
+      "bytes": 6295
     },
     {
       "path": "tests/test_datafabric.py",
@@ -1055,6 +1075,11 @@
       "path": "tools/validate_repository.py",
       "sha256": "7140c9de8c2b4ba3eba81dbce7c247f4429e5c7c7df8c0739ea0c667b68e3899",
       "bytes": 12139
+    },
+    {
+      "path": "tools/verify_data_foundation.py",
+      "sha256": "6af52c78c2415dbb8d76e4183c1ae3769147ac12be0e87135c38728e898a14d5",
+      "bytes": 11378
     },
     {
       "path": "tools/verify_foundation.py",

@@ -191,7 +191,7 @@ class CorporateActionBook:
             action = self.as_known(action_id, knowledge_time_ns=knowledge_time_ns)
             if (
                 action is not None
-                and action.status is not ActionStatus.CANCELLED
+                and action.status not in {ActionStatus.CANCELLED, ActionStatus.QUARANTINED}
                 and start_ns <= action.effective_date_ns <= end_ns
             ):
                 latest.append(action)
