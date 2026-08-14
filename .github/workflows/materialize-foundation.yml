@@ -51,23 +51,37 @@ jobs:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
-          python -m unittest discover -s tests -v
+          python -m unittest \
+            tests.test_canonical \
+            tests.test_cli \
+            tests.test_events \
+            tests.test_foundation_acceptance \
+            tests.test_ledger \
+            tests.test_money \
+            tests.test_paper \
+            tests.test_portfolio \
+            tests.test_replay \
+            tests.test_risk \
+            tests.test_store -v
           python tools/verify_foundation.py --json
           python -m compileall -q src tools tests
           python -m marketos validate-config --risk config/paper-risk.json
           python -m marketos replay --input examples/paper_scenario.jsonl --risk config/paper-risk.json --initial-cash 1000.00 > /tmp/run-1.json
           python -m marketos replay --input examples/paper_scenario.jsonl --risk config/paper-risk.json --initial-cash 1000.00 > /tmp/run-2.json
           test "$(python -c 'import json; print(json.load(open("/tmp/run-1.json"))["fingerprint"])')" = "$(python -c 'import json; print(json.load(open("/tmp/run-2.json"))["fingerprint"])')"
-      - name: Reconcile repository-derived files
+      - name: Reconcile repository-derived files and run full suite
         env:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           python tools/regenerate_derived.py --root . --json
+          python -m unittest discover -s tests -v
+          python tools/verify_foundation.py --json
           python tools/validate_c1_design.py --root . --json
           python tools/validate_c2_design.py --root . --json
           jq -e '.phase == "C3" and (.roles | length == 10) and .locks.storage_engine_selected == false and .locks.raw_overwrite == "FORBIDDEN" and ([.candidate_matrix[] | select(.status == "ADOPTED")] | length == 0) and (.recovery_rules | index("BACKUP_IS_NOT_VERIFIED_UNTIL_RESTORE") != null)' planning/phases/C3/C3_DECISIONS.json
           python tools/validate_repository.py --root . --json
+          python -m compileall -q src tools tests
       - name: Commit verified implementation
         shell: bash
         run: |
