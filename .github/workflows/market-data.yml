@@ -8,8 +8,10 @@ on:
       - "tests/test_marketdata.py"
       - "tests/test_bars.py"
       - "tests/test_marketdata_acceptance.py"
+      - "tests/test_marketdata_authority.py"
       - "tools/verify_market_data.py"
       - "docs/implementation/CANONICAL_MARKET_DATA.md"
+      - "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md"
       - ".github/workflows/market-data.yml"
   pull_request:
     paths:
@@ -18,8 +20,10 @@ on:
       - "tests/test_marketdata.py"
       - "tests/test_bars.py"
       - "tests/test_marketdata_acceptance.py"
+      - "tests/test_marketdata_authority.py"
       - "tools/verify_market_data.py"
       - "docs/implementation/CANONICAL_MARKET_DATA.md"
+      - "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md"
       - ".github/workflows/market-data.yml"
 
 permissions:
@@ -41,7 +45,8 @@ jobs:
           python -m unittest \
             tests.test_marketdata \
             tests.test_bars \
-            tests.test_marketdata_acceptance -v
+            tests.test_marketdata_acceptance \
+            tests.test_marketdata_authority -v
       - name: Independent market-data acceptance
         env:
           PYTHONPATH: src
