@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "cfdbe83afa299f218479f6bf83da8b774576304955390743570b432769d9220a",
-      "bytes": 3590
+      "sha256": "52be5674e952551c45fb9b963543b914630ece1be452a66d0f085b4570b72762",
+      "bytes": 837
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -473,8 +473,8 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "4d56f3a6215042ce6bc2b52fd1a5eecee97014425d4707f8c47d2836c890148a",
-      "bytes": 5320
+      "sha256": "54b489d5e01a982c749af49e5f3988f0da445c604ba13682fceee817fd1e5bcf",
+      "bytes": 5336
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
