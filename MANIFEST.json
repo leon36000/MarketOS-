@@ -608,8 +608,8 @@
     },
     {
       "path": "planning/phases/C8/C8_REQUIREMENT_CLOSURE.json",
-      "sha256": "fb3a3e4ba761fc30d1012d3b609ff619aca03304bc821db26da33d038df70373",
-      "bytes": 467
+      "sha256": "65680b8aaec2d0a9b9767aa0ea6c68d3285abc707bff12a059b834854f6208f0",
+      "bytes": 518
     },
     {
       "path": "planning/phases/C8/EXECUTION_CONTRACT.md",
