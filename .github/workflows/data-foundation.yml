@@ -13,6 +13,7 @@ on:
       - "tests/test_datafabric.py"
       - "tests/test_data_foundation_adversarial.py"
       - "tests/test_data_foundation_acceptance.py"
+      - "tests/test_data_foundation_temporal_semantics.py"
       - "tools/verify_data_foundation.py"
       - "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md"
       - ".github/workflows/data-foundation.yml"
@@ -28,6 +29,7 @@ on:
       - "tests/test_datafabric.py"
       - "tests/test_data_foundation_adversarial.py"
       - "tests/test_data_foundation_acceptance.py"
+      - "tests/test_data_foundation_temporal_semantics.py"
       - "tools/verify_data_foundation.py"
       - "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md"
       - ".github/workflows/data-foundation.yml"
@@ -54,7 +56,8 @@ jobs:
             tests.test_rights \
             tests.test_datafabric \
             tests.test_data_foundation_adversarial \
-            tests.test_data_foundation_acceptance -v
+            tests.test_data_foundation_acceptance \
+            tests.test_data_foundation_temporal_semantics -v
       - name: Independent acceptance verifier
         env:
           PYTHONPATH: src
@@ -68,5 +71,6 @@ jobs:
           python tools/regenerate_derived.py --root . --check --json
           python -m unittest discover -s tests -v
           python tools/verify_foundation.py --json
+          python tools/verify_data_foundation.py --json
           python tools/validate_repository.py --root . --json
           python -m compileall -q src tools tests
