@@ -47,8 +47,10 @@ jobs:
         run: python .github/patch-temporal-hardening-helper.py
       - name: Apply exact temporal hardening patch
         run: python .github/data-foundation-temporal-hardening.py
-      - name: Remove one-time materializer
-        run: rm .github/data-foundation-temporal-hardening.py .github/patch-temporal-hardening-helper.py .github/workflows/materialize-data-foundation-temporal-hardening.yml
+      - name: Keep workflow mutations outside the bot-authored product commit
+        run: |
+          rm .github/data-foundation-temporal-hardening.py .github/patch-temporal-hardening-helper.py
+          git checkout -- .github/workflows/data-foundation.yml
       - name: Focused GREEN verification
         env:
           PYTHONPATH: src
