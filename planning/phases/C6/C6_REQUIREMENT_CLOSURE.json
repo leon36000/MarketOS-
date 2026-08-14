@@ -1,7 +1,6 @@
 {
   "phase":"C6",
-  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "status":"DESIGN_GATE_PASS",
   "requirement_ids":["AUD-DAT-009","AUD-AI-004","AUD-AI-014","AUD-CMP-001","AUD-CMP-002","AUD-CMP-015","AUD-CMP-016","AUD-CMP-017","AUD-CMP-019"],
-  "artifacts":["docs/architecture/C6_NUMERICAL_TRUTH.md","docs/architecture/C6_PROBABILITY_CALIBRATION.md","docs/architecture/C6_OPTIMIZATION_CAUSAL_TCA.md"],
-  "hard_boundary":{"numerical_library_selected":false,"solver_selected":false,"sampler_selected":false,"accelerator_equivalence_proven":false,"real_tca_calibrated":false,"strategy_edge_proven":false,"live_trading":"HARD_LOCKED","profitability":"UNPROVEN"}
+  "gate_source":"planning/phases/C6/C6_DECISIONS.json"
 }
