@@ -45,7 +45,9 @@ jobs:
                       raise SystemExit(f"unsafe archive member: {member.name}")
               handle.extractall(".", filter="data")
           PY
-          rm -rf .github/marketos-bootstrap .github/workflows/materialize-foundation.yml
+          rm -rf .github/marketos-bootstrap
+          git checkout -- .github/workflows/validate.yml .github/workflows/reconcile-derived-files.yml
+          rm -f .github/workflows/implementation-foundation.yml
       - name: Run focused implementation verification
         env:
           PYTHONPATH: src
