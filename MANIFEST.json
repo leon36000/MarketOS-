@@ -1162,6 +1162,11 @@
       "bytes": 6935
     },
     {
+      "path": "tests/test_research_governance_acceptance.py",
+      "sha256": "15c0c140162cc8c5732d6dcdc218a21fdd53b4174a5dca324124e247a73335e4",
+      "bytes": 973
+    },
+    {
       "path": "tests/test_rights.py",
       "sha256": "3c80835a161a9ec5639024113eb9cfc5ec7eca7f13ed3233db58029d0fd71564",
       "bytes": 1943
@@ -1245,6 +1250,11 @@
       "path": "tools/verify_neon_memory.py",
       "sha256": "a4d78d8494040946e47a9d588ff90ea3ef4d798c8d17acfa4d202b98cfc8f22e",
       "bytes": 1258
+    },
+    {
+      "path": "tools/verify_research_governance.py",
+      "sha256": "5cbdddbb0303c1d177db964438de8ec0d32422a663df861246608689b1454e76",
+      "bytes": 20100
     }
   ]
 }
