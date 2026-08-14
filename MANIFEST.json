@@ -13,13 +13,8 @@
     },
     {
       "path": ".github/workflows/market-data.yml",
-      "sha256": "14aa756663697710cb3c12e93689fedf4866f41f6d61c158ae0014c4e1f798d2",
-      "bytes": 1981
-    },
-    {
-      "path": ".github/workflows/materialize-market-data-authority-hardening.yml",
-      "sha256": "ccbaa23ea8ab59e18b6b80ee5f202b25822cd02a01da74245a475020f593b91c",
-      "bytes": 2946
+      "sha256": "afceca9e74beae6ee2adc33a8471fa66c51e1d0b9019653bbf3b0cd0377445d6",
+      "bytes": 2241
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
