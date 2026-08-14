@@ -26,4 +26,25 @@ if text.count(manifest_old) != 1:
     raise SystemExit(
         f"could not locate committed-file record type check: {text.count(manifest_old)}"
     )
-path.write_text(text.replace(manifest_old, manifest_new, 1), encoding="utf-8")
+text = text.replace(manifest_old, manifest_new, 1)
+order_old = '''            if len(data) != record.get("bytes"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_BYTE_COUNT_MISMATCH:{relative.as_posix()}"
+                )
+            if _sha256_bytes(data) != record.get("sha256"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_HASH_MISMATCH:{relative.as_posix()}"
+                )
+'''
+order_new = '''            if _sha256_bytes(data) != record.get("sha256"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_HASH_MISMATCH:{relative.as_posix()}"
+                )
+            if len(data) != record.get("bytes"):
+                raise InvariantViolation(
+                    f"DATASET_FILE_BYTE_COUNT_MISMATCH:{relative.as_posix()}"
+                )
+'''
+if text.count(order_old) != 1:
+    raise SystemExit(f"could not locate dataset verification order: {text.count(order_old)}")
+path.write_text(text.replace(order_old, order_new, 1), encoding="utf-8")
