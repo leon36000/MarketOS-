@@ -292,6 +292,11 @@
       "bytes": 709
     },
     {
+      "path": "docs/research/C9_EVIDENCE_SOURCES.md",
+      "sha256": "fc67b3ed5ddb74eadfd88339c4e204b81726de3ac8a819921a2e6025bb0248c1",
+      "bytes": 485
+    },
+    {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
       "sha256": "68d9aa7759beebd701693ba0d9796358829c052836c4ab3efa9e464f4aa6caeb",
       "bytes": 3826
@@ -398,8 +403,8 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "45ff7c9bb10e0f454ffbc4198bc1804d4ad27a85d9d7a63e42ed08cc25b9e577",
-      "bytes": 5305
+      "sha256": "8fc37d6894ac7bbd05a327599d90e8af9f98e875bad128819417b2a8c923ff0e",
+      "bytes": 5320
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
