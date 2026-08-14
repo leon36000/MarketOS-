@@ -1,0 +1,18 @@
+{
+  "phase":"C9",
+  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "locks":{
+    "latest_revision_used_historically":"FORBIDDEN",
+    "single_unverified_item_escalates_authority":"FORBIDDEN",
+    "fast_path_bypasses_control":false,
+    "macro_source_selected":false,
+    "event_source_selected":false,
+    "social_source_selected":false,
+    "regime_method_selected":false,
+    "unverified_stream_authoritative":false,
+    "event_value_proven":false
+  },
+  "fast_path_actions":["ALERT","COLLECT_MORE","PAUSE_DEPENDENT_PATH","REDUCE_UNDER_PREAUTHORIZED_POLICY"],
+  "deep_path_requirements":["PRIMARY_SOURCE_CHECK","POINT_IN_TIME_CONTEXT","CROSS_SOURCE_CORROBORATION","UNCERTAINTY","EXPOSURE_GRAPH","PORTFOLIO_AND_RISK_GATES"],
+  "source_tiers":["PRIMARY_OFFICIAL","LICENSED_PROFESSIONAL","VERIFIED_SPECIALIST","CORROBORATED_COMMUNITY","UNVERIFIED_DISCOVERY"]
+}
