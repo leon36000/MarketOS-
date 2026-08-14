@@ -12,6 +12,7 @@ from typing import Callable
 from uuid import UUID
 
 from marketos.bars import TradeBar
+from marketos.canonical import canonical_sha256
 from marketos.features import (
     FeatureDefinition,
     FeatureDerivationDenied,
@@ -27,6 +28,11 @@ from marketos.sessions import SessionStatus, SessionVersion, VenueCalendar
 LISTING_ID = UUID("00000000-0000-0000-0000-000000009100")
 VENUE_ID = UUID("00000000-0000-0000-0000-000000009010")
 SESSION_ID = UUID("00000000-0000-0000-0000-000000009200")
+INPUT_BARS = ("1" * 64, "2" * 64)
+INPUT_SESSIONS = ("3" * 64,)
+INPUT_ROOT = canonical_sha256(
+    {"bars": INPUT_BARS, "sessions": INPUT_SESSIONS}
+)
 
 
 def _require(condition: bool, code: str) -> None:
@@ -239,13 +245,14 @@ def verify_feature_foundation() -> dict[str, object]:
                     value=Decimal("0.100000"),
                     definition_sha256=_definition().sha256(),
                     rights_policy_sha256=_rights().sha256(),
-                    input_root_sha256="c" * 64,
-                    input_bar_sha256=("1" * 64, "2" * 64),
+                    input_root_sha256=INPUT_ROOT,
+                    input_bar_sha256=INPUT_BARS,
+                input_session_sha256=INPUT_SESSIONS,
                 )
                 _require(store.append(point), "FEATURE_FIRST_INSERT_FAILED")
                 _require(not store.append(point), "FEATURE_IDEMPOTENCY_FAILED")
-                _require(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=2_299) is None, "FEATURE_FUTURE_VISIBLE")
-                _require(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=2_300) == point, "FEATURE_ASOF_MISSING")
+                _require(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=2_299) is None, "FEATURE_FUTURE_VISIBLE")
+                _require(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=2_300) == point, "FEATURE_ASOF_MISSING")
 
         run("append_only_feature_store", store_idempotency)
 
@@ -259,15 +266,16 @@ def verify_feature_foundation() -> dict[str, object]:
                     economic_time_ns=2_000,
                     definition_sha256=_definition().sha256(),
                     rights_policy_sha256=_rights().sha256(),
-                    input_root_sha256="c" * 64,
-                    input_bar_sha256=("1" * 64, "2" * 64),
+                    input_root_sha256=INPUT_ROOT,
+                    input_bar_sha256=INPUT_BARS,
+                input_session_sha256=INPUT_SESSIONS,
                 )
                 v1 = FeaturePoint(version=1, available_to_strategy_at_ns=2_300, value=Decimal("0.100000"), **common)
                 v2 = FeaturePoint(version=2, available_to_strategy_at_ns=3_300, value=Decimal("0.090000"), **common)
                 store.append(v1)
                 store.append(v2)
-                _require(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=3_000) == v1, "FEATURE_REVISION_LOOKAHEAD")
-                _require(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=4_000) == v2, "FEATURE_REVISION_MISSING")
+                _require(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=3_000) == v1, "FEATURE_REVISION_LOOKAHEAD")
+                _require(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=4_000) == v2, "FEATURE_REVISION_MISSING")
 
         run("latest_known_feature_revisions", store_revision)
 
@@ -284,8 +292,9 @@ def verify_feature_foundation() -> dict[str, object]:
                 value=Decimal("0.100000"),
                 definition_sha256=_definition().sha256(),
                 rights_policy_sha256=_rights().sha256(),
-                input_root_sha256="c" * 64,
-                input_bar_sha256=("1" * 64, "2" * 64),
+                input_root_sha256=INPUT_ROOT,
+                input_bar_sha256=INPUT_BARS,
+                input_session_sha256=INPUT_SESSIONS,
             )
             with FeatureStore(path) as store:
                 store.append(point)

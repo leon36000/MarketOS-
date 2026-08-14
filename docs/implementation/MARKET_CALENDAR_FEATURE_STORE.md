@@ -11,11 +11,13 @@ This slice extends canonical market data with provider-neutral session and featu
 - immutable feature definitions with code, configuration, input-schema and rights hashes;
 - explicit `non_display`, `historical_replay` and `derived_data` admission;
 - exact close-to-close return materialization with declared quantization;
-- input-bar, definition and rights lineage in every point;
+- input-bar, calendar-session, definition and rights lineage in every point;
+- a canonical root that must match both bar and session input hashes;
 - availability equal to the latest bar or session revision used;
 - calendar-aware filtering that obeys the historical knowledge cutoff;
-- append-only SQLite feature revisions with latest-known queries;
-- stored feature hash verification and idempotent duplicate handling;
+- append-only SQLite feature revisions with exact-version latest-known queries;
+- explicit ambiguity when independent points occupy one semantic feature key;
+- stored feature hash verification before idempotent duplicate handling;
 - independent eight-check acceptance verification and dedicated CI.
 
 ## Deliberate non-selection

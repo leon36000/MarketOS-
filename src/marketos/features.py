@@ -24,6 +24,10 @@ class FeatureDerivationDenied(DomainError):
     """Raised when rights or point-in-time authority blocks materialization."""
 
 
+class AmbiguousFeaturePoint(DomainError):
+    """Raised when independent points occupy one semantic feature key."""
+
+
 def _time(value: int, code: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise InvariantViolation(code)
@@ -116,6 +120,7 @@ class FeaturePoint:
     rights_policy_sha256: str
     input_root_sha256: str
     input_bar_sha256: tuple[str, ...]
+    input_session_sha256: tuple[str, ...]
 
     def __post_init__(self) -> None:
         if not self.point_id.strip():
@@ -145,7 +150,18 @@ class FeaturePoint:
             raise InvariantViolation("INVALID_FEATURE_INPUT_BAR_SHA256")
         if len(bars) != len(set(bars)):
             raise InvariantViolation("DUPLICATE_FEATURE_INPUT_BAR")
+        sessions = tuple(self.input_session_sha256)
+        if not sessions or any(not _HEX64.fullmatch(digest) for digest in sessions):
+            raise InvariantViolation("INVALID_FEATURE_INPUT_SESSION_SHA256")
+        if len(sessions) != len(set(sessions)):
+            raise InvariantViolation("DUPLICATE_FEATURE_INPUT_SESSION")
+        expected_root = canonical_sha256(
+            {"bars": bars, "sessions": sessions}
+        )
+        if self.input_root_sha256 != expected_root:
+            raise InvariantViolation("FEATURE_INPUT_ROOT_MISMATCH")
         object.__setattr__(self, "input_bar_sha256", bars)
+        object.__setattr__(self, "input_session_sha256", sessions)
 
     def canonical_dict(self) -> dict[str, object]:
         return {
@@ -161,6 +177,7 @@ class FeaturePoint:
             "rights_policy_sha256": self.rights_policy_sha256,
             "input_root_sha256": self.input_root_sha256,
             "input_bar_sha256": self.input_bar_sha256,
+            "input_session_sha256": self.input_session_sha256,
         }
 
     def sha256(self) -> str:
@@ -180,6 +197,7 @@ class FeaturePoint:
             "rights_policy_sha256": self.rights_policy_sha256,
             "input_root_sha256": self.input_root_sha256,
             "input_bar_sha256": self.input_bar_sha256,
+            "input_session_sha256": self.input_session_sha256,
         }
 
 
@@ -204,7 +222,7 @@ def _bar_is_in_session(
     calendar: VenueCalendar,
     *,
     knowledge_time_ns: int,
-) -> tuple[bool, int]:
+) -> tuple[bool, int, tuple[str, ...]]:
     if bar.interval_end_ns <= bar.interval_start_ns:
         raise InvariantViolation("INVALID_BAR_INTERVAL")
     start_session = calendar.session_for_time(
@@ -218,15 +236,19 @@ def _bar_is_in_session(
         knowledge_time_ns=knowledge_time_ns,
     )
     if start_session is None or end_session is None:
-        return False, 0
+        return False, 0, ()
     if start_session.session_id != end_session.session_id:
-        return False, 0
+        return False, 0, ()
+    session_sha256 = start_session.sha256()
+    if session_sha256 != end_session.sha256():
+        raise InvariantViolation("FEATURE_SESSION_REVISION_MISMATCH")
     return (
         True,
         max(
             start_session.available_to_strategy_at_ns,
             end_session.available_to_strategy_at_ns,
         ),
+        (session_sha256,),
     )
 
 
@@ -243,7 +265,7 @@ def build_close_return_features(
     _time(knowledge_time_ns, "INVALID_KNOWLEDGE_TIME")
     rights_sha = _admit_rights(definition, rights_policy)
     seen: set[tuple[UUID, UUID, int, int]] = set()
-    eligible: list[tuple[TradeBar, int]] = []
+    eligible: list[tuple[TradeBar, int, tuple[str, ...]]] = []
     for bar in bars:
         identity = (
             bar.listing_id,
@@ -262,13 +284,13 @@ def build_close_return_features(
             )
         if bar.available_to_strategy_at_ns > knowledge_time_ns:
             continue
-        in_session, session_available = _bar_is_in_session(
+        in_session, session_available, session_hashes = _bar_is_in_session(
             bar,
             calendar,
             knowledge_time_ns=knowledge_time_ns,
         )
         if in_session:
-            eligible.append((bar, session_available))
+            eligible.append((bar, session_available, session_hashes))
 
     eligible.sort(
         key=lambda item: (
@@ -278,7 +300,10 @@ def build_close_return_features(
             item[0].input_root_sha256,
         )
     )
-    grouped: dict[tuple[UUID, UUID], list[tuple[TradeBar, int]]] = {}
+    grouped: dict[
+        tuple[UUID, UUID],
+        list[tuple[TradeBar, int, tuple[str, ...]]],
+    ] = {}
     for item in eligible:
         grouped.setdefault((item[0].listing_id, item[0].venue_id), []).append(item)
 
@@ -310,17 +335,31 @@ def build_close_return_features(
             raw_value = current_bar.close.value / first_bar.close.value - Decimal("1")
             value = raw_value.quantize(quantizer, rounding=ROUND_HALF_EVEN)
             bar_hashes = tuple(item[0].sha256() for item in window)
-            input_root = canonical_sha256(bar_hashes)
+            session_hashes = tuple(
+                sorted(
+                    {
+                        digest
+                        for item in window
+                        for digest in item[2]
+                    }
+                )
+            )
+            input_root = canonical_sha256(
+                {"bars": bar_hashes, "sessions": session_hashes}
+            )
             available = max(
                 max(item[0].available_to_strategy_at_ns for item in window),
                 max(item[1] for item in window),
             )
+            definition_sha256 = definition.sha256()
             point_id = canonical_sha256(
                 {
                     "feature_id": definition.feature_id,
                     "feature_version": definition.version,
                     "listing_id": listing_id,
                     "economic_time_ns": current_bar.interval_end_ns,
+                    "definition_sha256": definition_sha256,
+                    "rights_policy_sha256": rights_sha,
                 }
             )
             points.append(
@@ -333,10 +372,11 @@ def build_close_return_features(
                     economic_time_ns=current_bar.interval_end_ns,
                     available_to_strategy_at_ns=available,
                     value=value,
-                    definition_sha256=definition.sha256(),
+                    definition_sha256=definition_sha256,
                     rights_policy_sha256=rights_sha,
                     input_root_sha256=input_root,
                     input_bar_sha256=bar_hashes,
+                    input_session_sha256=session_hashes,
                 )
             )
     return tuple(points)
@@ -371,6 +411,7 @@ class FeatureStore:
                 rights_policy_sha256 TEXT NOT NULL,
                 input_root_sha256 TEXT NOT NULL,
                 input_bar_sha256_json TEXT NOT NULL,
+                input_session_sha256_json TEXT NOT NULL,
                 point_sha256 TEXT NOT NULL,
                 PRIMARY KEY(point_id, version)
             );
@@ -395,8 +436,11 @@ class FeatureStore:
     def _from_row(row: sqlite3.Row) -> FeaturePoint:
         try:
             bars_value = json.loads(row["input_bar_sha256_json"])
+            sessions_value = json.loads(row["input_session_sha256_json"])
             if not isinstance(bars_value, list):
                 raise ValueError("invalid input bars")
+            if not isinstance(sessions_value, list):
+                raise ValueError("invalid input sessions")
             point = FeaturePoint(
                 point_id=str(row["point_id"]),
                 version=int(row["version"]),
@@ -410,6 +454,9 @@ class FeatureStore:
                 rights_policy_sha256=str(row["rights_policy_sha256"]),
                 input_root_sha256=str(row["input_root_sha256"]),
                 input_bar_sha256=tuple(str(item) for item in bars_value),
+                input_session_sha256=tuple(
+                    str(item) for item in sessions_value
+                ),
             )
         except (ValueError, TypeError, KeyError) as exc:
             raise InvariantViolation(
@@ -426,11 +473,12 @@ class FeatureStore:
         try:
             digest = point.sha256()
             existing = self._connection.execute(
-                "SELECT point_sha256 FROM feature_points WHERE point_id = ? AND version = ?",
+                "SELECT * FROM feature_points WHERE point_id = ? AND version = ?",
                 (point.point_id, point.version),
             ).fetchone()
             if existing is not None:
-                if str(existing["point_sha256"]) != digest:
+                stored = self._from_row(existing)
+                if stored.sha256() != digest:
                     raise DuplicateConflict(
                         f"FEATURE_POINT_VERSION_CONFLICT:{point.point_id}:{point.version}"
                     )
@@ -474,8 +522,9 @@ class FeatureStore:
                     point_id, version, feature_id, feature_version, listing_id,
                     economic_time_ns, available_to_strategy_at_ns, value_text,
                     definition_sha256, rights_policy_sha256, input_root_sha256,
-                    input_bar_sha256_json, point_sha256
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    input_bar_sha256_json, input_session_sha256_json,
+                    point_sha256
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     point.point_id,
@@ -490,6 +539,10 @@ class FeatureStore:
                     point.rights_policy_sha256,
                     point.input_root_sha256,
                     json.dumps(point.input_bar_sha256, separators=(",", ":")),
+                    json.dumps(
+                        point.input_session_sha256,
+                        separators=(",", ":"),
+                    ),
                     digest,
                 ),
             )
@@ -509,6 +562,7 @@ class FeatureStore:
     def as_of(
         self,
         feature_id: str,
+        feature_version: int,
         listing_id: UUID,
         economic_time_ns: int,
         *,
@@ -516,23 +570,40 @@ class FeatureStore:
     ) -> FeaturePoint | None:
         _time(economic_time_ns, "INVALID_FEATURE_ECONOMIC_TIME")
         _time(knowledge_time_ns, "INVALID_KNOWLEDGE_TIME")
-        row = self._connection.execute(
+        if (
+            isinstance(feature_version, bool)
+            or not isinstance(feature_version, int)
+            or feature_version < 1
+        ):
+            raise InvariantViolation("INVALID_FEATURE_VERSION")
+        rows = self._connection.execute(
             """
             SELECT * FROM feature_points
             WHERE feature_id = ?
+              AND feature_version = ?
               AND listing_id = ?
               AND economic_time_ns = ?
               AND available_to_strategy_at_ns <= ?
-            ORDER BY feature_version DESC,
+            ORDER BY point_id,
                      available_to_strategy_at_ns DESC,
                      version DESC
-            LIMIT 1
             """,
             (
                 feature_id,
+                feature_version,
                 str(listing_id),
                 economic_time_ns,
                 knowledge_time_ns,
             ),
-        ).fetchone()
-        return None if row is None else self._from_row(row)
+        ).fetchall()
+        latest_by_point_id: dict[str, FeaturePoint] = {}
+        for row in rows:
+            point_id = str(row["point_id"])
+            if point_id not in latest_by_point_id:
+                latest_by_point_id[point_id] = self._from_row(row)
+        if len(latest_by_point_id) > 1:
+            raise AmbiguousFeaturePoint(
+                f"AMBIGUOUS_FEATURE_POINT:{feature_id}:{feature_version}:"
+                f"{listing_id}:{economic_time_ns}:{knowledge_time_ns}"
+            )
+        return next(iter(latest_by_point_id.values()), None)

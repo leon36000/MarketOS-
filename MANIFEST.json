@@ -22,6 +22,11 @@
       "bytes": 2241
     },
     {
+      "path": ".github/workflows/materialize-feature-foundation-hardening.yml",
+      "sha256": "51922db4c87f4313640856ea71a86a6038ede9117ebc0ddff2de031c2c4495f3",
+      "bytes": 3026
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
       "bytes": 2889
@@ -333,8 +338,8 @@
     },
     {
       "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE.md",
-      "sha256": "2958378431699e15fdf3b7039d79a98a7882ac4ea65c0a7bfb5b7de83812d125",
-      "bytes": 1865
+      "sha256": "711b649bdcd59cc182a6eaaddc6986bd28ad67fac83bdc96bd1693e1a62fb23b",
+      "bytes": 2048
     },
     {
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
@@ -908,8 +913,8 @@
     },
     {
       "path": "src/marketos/features.py",
-      "sha256": "531eeadc874eba48bb5a546a3d05a804eb9e8d3e8b8a616be8113588da2a6cf2",
-      "bytes": 21715
+      "sha256": "edb623bc4c3df6f0f26dcf3fc678a664f8fb51895eb8ef5b65079a99edc8e027",
+      "bytes": 24841
     },
     {
       "path": "src/marketos/identity.py",
@@ -963,8 +968,8 @@
     },
     {
       "path": "src/marketos/sessions.py",
-      "sha256": "40dfef2d8b249a81c157de80267acb688988e0df3820554163e33cd180adb20c",
-      "bytes": 9180
+      "sha256": "c96f9653acfc0f57c71cf0716cdc984933cbfae05956a6bd2430a5f9205fb403",
+      "bytes": 9463
     },
     {
       "path": "src/marketos/store.py",
@@ -1052,9 +1057,14 @@
       "bytes": 764
     },
     {
+      "path": "tests/test_feature_foundation_adversarial.py",
+      "sha256": "8c5625612c75a247ded74984532b61ffdbc11036c8b6b0ab667421df99f7bdb2",
+      "bytes": 8366
+    },
+    {
       "path": "tests/test_features.py",
-      "sha256": "c0237ddcbdba14205d2b3290d0505aa05897a5dab50e37ae659ba5fbe2ff0da2",
-      "bytes": 10880
+      "sha256": "21d9d936f327bdabf74caa485a340840e2decd73b721088cb2a8a96ce630324a",
+      "bytes": 11179
     },
     {
       "path": "tests/test_foundation_acceptance.py",
@@ -1173,8 +1183,8 @@
     },
     {
       "path": "tools/verify_feature_foundation.py",
-      "sha256": "259a89a3136917bb3674905f5f36ceec0ffed994ac81f28af7326376662300c0",
-      "bytes": 13389
+      "sha256": "0dc8b337354fe33848c741003066753a3495eb59096184f7804ff4e64aa8ae70",
+      "bytes": 13733
     },
     {
       "path": "tools/verify_foundation.py",

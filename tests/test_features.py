@@ -9,6 +9,7 @@ import unittest
 from uuid import UUID
 
 from marketos.bars import TradeBar
+from marketos.canonical import canonical_sha256
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.features import (
     FeatureDefinition,
@@ -25,6 +26,11 @@ from marketos.sessions import SessionStatus, SessionVersion, VenueCalendar
 LISTING_ID = UUID("00000000-0000-0000-0000-000000008100")
 VENUE_ID = UUID("00000000-0000-0000-0000-000000008010")
 SESSION_ID = UUID("00000000-0000-0000-0000-000000008200")
+INPUT_BARS = ("1" * 64, "2" * 64)
+INPUT_SESSIONS = ("3" * 64,)
+INPUT_ROOT = canonical_sha256(
+    {"bars": INPUT_BARS, "sessions": INPUT_SESSIONS}
+)
 
 
 class FeatureTests(unittest.TestCase):
@@ -229,13 +235,14 @@ class FeatureTests(unittest.TestCase):
             value=Decimal("0.100000"),
             definition_sha256=self.definition.sha256(),
             rights_policy_sha256=self.rights.sha256(),
-            input_root_sha256="c" * 64,
-            input_bar_sha256=("1" * 64, "2" * 64),
+            input_root_sha256=INPUT_ROOT,
+            input_bar_sha256=INPUT_BARS,
+                input_session_sha256=INPUT_SESSIONS,
         )
         self.assertTrue(store.append(point))
         self.assertFalse(store.append(point))
-        self.assertIsNone(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=2_299))
-        self.assertEqual(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=2_300), point)
+        self.assertIsNone(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=2_299))
+        self.assertEqual(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=2_300), point)
         with self.assertRaises(DuplicateConflict):
             store.append(
                 FeaturePoint(
@@ -266,15 +273,16 @@ class FeatureTests(unittest.TestCase):
             economic_time_ns=2_000,
             definition_sha256=self.definition.sha256(),
             rights_policy_sha256=self.rights.sha256(),
-            input_root_sha256="c" * 64,
-            input_bar_sha256=("1" * 64, "2" * 64),
+            input_root_sha256=INPUT_ROOT,
+            input_bar_sha256=INPUT_BARS,
+                input_session_sha256=INPUT_SESSIONS,
         )
         v1 = FeaturePoint(version=1, available_to_strategy_at_ns=2_300, value=Decimal("0.100000"), **common)
         v2 = FeaturePoint(version=2, available_to_strategy_at_ns=3_300, value=Decimal("0.090000"), **common)
         store.append(v1)
         store.append(v2)
-        self.assertEqual(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=3_000), v1)
-        self.assertEqual(store.as_of("close-return", LISTING_ID, 2_000, knowledge_time_ns=4_000), v2)
+        self.assertEqual(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=3_000), v1)
+        self.assertEqual(store.as_of("close-return", 1, LISTING_ID, 2_000, knowledge_time_ns=4_000), v2)
 
 
 if __name__ == "__main__":

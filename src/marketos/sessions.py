@@ -7,6 +7,7 @@ external gates.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 import re
 from typing import Iterable
@@ -57,6 +58,10 @@ class SessionVersion:
             raise InvariantViolation("INVALID_SESSION_VERSION")
         if not _DATE.fullmatch(self.session_date):
             raise InvariantViolation("INVALID_SESSION_DATE")
+        try:
+            session_date = date.fromisoformat(self.session_date).isoformat()
+        except ValueError as exc:
+            raise InvariantViolation("INVALID_SESSION_DATE") from exc
         label = self.label.strip().upper()
         if not label:
             raise InvariantViolation("MISSING_SESSION_LABEL")
@@ -76,6 +81,7 @@ class SessionVersion:
         source = self.source_id.strip()
         if not source:
             raise InvariantViolation("MISSING_SESSION_SOURCE")
+        object.__setattr__(self, "session_date", session_date)
         object.__setattr__(self, "label", label)
         object.__setattr__(self, "source_id", source)
 
