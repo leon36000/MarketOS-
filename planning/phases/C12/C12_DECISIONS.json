@@ -1,0 +1,15 @@
+{
+  "phase":"C12",
+  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "locks":{
+    "unpinned_alias_allowed":false,
+    "participant_output_authoritative":false,
+    "equal_weight_vote_allowed":false,
+    "minority_report_required":true,
+    "single_participant_can_promote_archive":false,
+    "future_archive_visible_in_history":false,
+    "sandbox_can_modify_active_baseline":false,
+    "hidden_test_visible_to_candidate":false,
+    "initial_human_approval_required":true
+  }
+}
