@@ -6,10 +6,11 @@ Strategy Factory, temporal validation, experiment retention, execution-fidelity 
 
 ## Findings corrected before merge
 
-- Requirement-closure validation now checks the exact 21 mapped requirement IDs.
+- Requirement-closure validation checks the exact 21 mapped requirement IDs.
 - Every closure artifact must exist in the repository.
 - Decision and closure records must both be `DESIGN_GATE_PASS`.
 - Live/profitability locks are checked in both decisions and hard-boundary records.
+- Missing requirements and missing linked artifacts now have permanent adversarial tests.
 
 ## Residual implementation gates
 
