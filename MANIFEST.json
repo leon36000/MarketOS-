@@ -2,19 +2,19 @@
   "version": "0.4.0",
   "files": [
     {
-      "path": ".github/workflows/materialize-foundation.yml",
-      "sha256": "d2131aa2d4031eccc4b6b363c386a14edc30e9d61245c49ddca554d91bbadc9f",
-      "bytes": 4409
+      "path": ".github/workflows/implementation-foundation.yml",
+      "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
+      "bytes": 1783
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "b53d9b63087727da1b24031813cf19a477cf0eeb8fd7d9d72cd6a4277b0fbd26",
-      "bytes": 1910
+      "sha256": "5941da9028517565d10b54963c95a32360b9ed256832c04c04b187198d96b12c",
+      "bytes": 2579
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "74f5acbfaa95c167dcb1618186d3a47a2f33902a777647be4adba472208f62f6",
-      "bytes": 1503
+      "sha256": "86bbe013b254fe6bf02766739e105ffc36b4c2311ecd48d55c63308a2c58270d",
+      "bytes": 1753
     },
     {
       "path": ".gitignore",
