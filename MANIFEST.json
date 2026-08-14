@@ -192,6 +192,51 @@
       "bytes": 836
     },
     {
+      "path": "docs/architecture/C7_ACCOUNTING_QUALITY.md",
+      "sha256": "2285a8a5cad5d452181bb865f212f56e2f6d3221e3c3548de0b11fa49323ace2",
+      "bytes": 587
+    },
+    {
+      "path": "docs/architecture/C7_FUNDAMENTAL_FACTS.md",
+      "sha256": "6ecf2150bae986b4f786b845eed6133491eeb189f1d99f148ab282dc46e1d428",
+      "bytes": 1056
+    },
+    {
+      "path": "docs/architecture/C7_VALUATION_DISTRIBUTIONS.md",
+      "sha256": "f32d25bae8ada062a6f9cb262594a46f2383ef6814dbf72c8096afb11408ff71",
+      "bytes": 1037
+    },
+    {
+      "path": "docs/architecture/C8_DERIVATIVE_SURFACES.md",
+      "sha256": "0413efb78f67468bb1623ade53ebcf14f479d2d12200ddaa415b93c805df8be7",
+      "bytes": 829
+    },
+    {
+      "path": "docs/architecture/C8_MULTI_SCALE_FEATURES.md",
+      "sha256": "8bc6a9a44ab96fe74109e694d865e61f13498507845bf809993a9c8a29a133b8",
+      "bytes": 681
+    },
+    {
+      "path": "docs/architecture/C8_OBSERVATION_FIDELITY.md",
+      "sha256": "63c37fbf78e0d3db8aa4d6a5dd14d8fec7f8c21a996df33bb3bf711766ff3102",
+      "bytes": 671
+    },
+    {
+      "path": "docs/architecture/C9_ALT_DATA_RIGHTS.md",
+      "sha256": "d2a7635cf2d784b22db253b9ac34404f373f0307b15fa60cab424bf2b0bb787a",
+      "bytes": 1124
+    },
+    {
+      "path": "docs/architecture/C9_EVENT_SOCIAL_FABRIC.md",
+      "sha256": "8c357071e3dfee5214419b2a36bbf6d5969f00a5192f8c3607da19556afd2969",
+      "bytes": 1572
+    },
+    {
+      "path": "docs/architecture/C9_MACRO_VINTAGES_REGIMES.md",
+      "sha256": "9a72e5702b4d9e38798efc19d7e2a65945f276631b8bb0d1f9d0f2384ea471ba",
+      "bytes": 1076
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -235,6 +280,16 @@
       "path": "docs/research/C6_SOURCE_LEDGER.md",
       "sha256": "f97cf608e6bdd80d113e926666755d49d89607d3e5e3f4dd5b4c28415c59a157",
       "bytes": 704
+    },
+    {
+      "path": "docs/research/C7_SOURCE_LEDGER.md",
+      "sha256": "47c0f1fddcac1271b795c0e4e4bb4f1699cd62b4b903d04ecdc2288608f1e8fb",
+      "bytes": 688
+    },
+    {
+      "path": "docs/research/C8_SOURCE_LEDGER.md",
+      "sha256": "531e09ef57e65d7a886b294666b47c88472f26e5d37434265b68db593d6ca800",
+      "bytes": 709
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -343,7 +398,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "4b6be3e095050ba0a7ba0034739e113344bc3248a029639c10270a7336854e78",
+      "sha256": "45ff7c9bb10e0f454ffbc4198bc1804d4ad27a85d9d7a63e42ed08cc25b9e577",
       "bytes": 5305
     },
     {
@@ -522,14 +577,64 @@
       "bytes": 1470
     },
     {
+      "path": "planning/phases/C7/C7_DECISIONS.json",
+      "sha256": "b852cb7193bf96de86458206a26b65c32a29bae03b3571827f273d144b975b55",
+      "bytes": 1695
+    },
+    {
+      "path": "planning/phases/C7/C7_REQUIREMENT_CLOSURE.json",
+      "sha256": "2fe5097246c0620e1fe2591a1583b68d649c0d70690e57a5b56f624cff4ca553",
+      "bytes": 2494
+    },
+    {
+      "path": "planning/phases/C7/EXECUTION_CONTRACT.md",
+      "sha256": "89a6b4ea1f01afba4b02d380588ff3114a36a8e18b1a03dee0fbe47e67c0b603",
+      "bytes": 1429
+    },
+    {
       "path": "planning/phases/C7/PHASE_BRIEF.md",
       "sha256": "3cdd6852d8bc16a3eac1e678d7b40645f6011217ac3835c8e61fd824a16ae167",
       "bytes": 1144
     },
     {
+      "path": "planning/phases/C8/C8_DECISIONS.json",
+      "sha256": "c0eec9a501fe46cbf8603f44d66b6f556c2ed9930dc4246af8881b130eb04dec",
+      "bytes": 379
+    },
+    {
+      "path": "planning/phases/C8/C8_DESIGN.md",
+      "sha256": "7c8a9281ed6931c1f47091d041bc5978c3cc612983f7876f59c7912976100839",
+      "bytes": 227
+    },
+    {
+      "path": "planning/phases/C8/C8_REQUIREMENT_CLOSURE.json",
+      "sha256": "fb3a3e4ba761fc30d1012d3b609ff619aca03304bc821db26da33d038df70373",
+      "bytes": 467
+    },
+    {
+      "path": "planning/phases/C8/EXECUTION_CONTRACT.md",
+      "sha256": "c2c6791dc3445786f9476378fed01edb64abca729c5eb77bbd9ed27abd42f91c",
+      "bytes": 1296
+    },
+    {
       "path": "planning/phases/C8/PHASE_BRIEF.md",
       "sha256": "b753bc7d830b8f3cbafe8af032af72cd1a04f459f07de531f4a69f8c1e473a6b",
       "bytes": 1180
+    },
+    {
+      "path": "planning/phases/C9/C9_DECISIONS.json",
+      "sha256": "fbaaf05d0561fedb776317aa04d36d8eab01b1df24801efba1057cf7276a52b6",
+      "bytes": 858
+    },
+    {
+      "path": "planning/phases/C9/C9_REQUIREMENT_CLOSURE.json",
+      "sha256": "a0610add3855b95df2afb045077f3ff4b5d3d16a8052992c14eb98773e4ed403",
+      "bytes": 578
+    },
+    {
+      "path": "planning/phases/C9/EXECUTION_CONTRACT.md",
+      "sha256": "e249dc68feaa287a0193ec52bc8478e6d467f94970e2562d935706239f944a78",
+      "bytes": 1477
     },
     {
       "path": "planning/phases/C9/PHASE_BRIEF.md",
@@ -570,6 +675,11 @@
       "path": "tests/test_c4_c6_design.py",
       "sha256": "1c0890e137e903b9546fa042cb97a37b77d795c0cc88107578d78f19ab87913c",
       "bytes": 4931
+    },
+    {
+      "path": "tests/test_c7_c9_design.py",
+      "sha256": "0bcc6c7cb6386359302c36ea79767372c059bbee19d99924273f05efa90383b3",
+      "bytes": 5562
     },
     {
       "path": "tests/test_regenerate_derived.py",
