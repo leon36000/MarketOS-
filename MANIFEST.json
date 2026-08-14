@@ -598,8 +598,8 @@
     },
     {
       "path": "planning/phases/C8/C8_DECISIONS.json",
-      "sha256": "c0eec9a501fe46cbf8603f44d66b6f556c2ed9930dc4246af8881b130eb04dec",
-      "bytes": 379
+      "sha256": "ccb987aae86e6a18e739860c7b44161f715589117f48a452a3228a5a4e35fefc",
+      "bytes": 1828
     },
     {
       "path": "planning/phases/C8/C8_DESIGN.md",
