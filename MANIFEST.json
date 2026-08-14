@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/feature-foundation.yml",
-      "sha256": "21faa9a91aa40093291fccd0ff1a192f1efec89ee3f1774e9eb52e5d9bd548bb",
-      "bytes": 2093
+      "sha256": "8615824e1d20b92f1f6024b451f118060aa22eeb898b2f711536dae564aab062",
+      "bytes": 2412
     },
     {
       "path": ".github/workflows/implementation-foundation.yml",
@@ -20,11 +20,6 @@
       "path": ".github/workflows/market-data.yml",
       "sha256": "afceca9e74beae6ee2adc33a8471fa66c51e1d0b9019653bbf3b0cd0377445d6",
       "bytes": 2241
-    },
-    {
-      "path": ".github/workflows/materialize-feature-foundation-hardening.yml",
-      "sha256": "51922db4c87f4313640856ea71a86a6038ede9117ebc0ddff2de031c2c4495f3",
-      "bytes": 3026
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -340,6 +335,11 @@
       "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE.md",
       "sha256": "711b649bdcd59cc182a6eaaddc6986bd28ad67fac83bdc96bd1693e1a62fb23b",
       "bytes": 2048
+    },
+    {
+      "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE_REVIEW.md",
+      "sha256": "289c606ad8f1d9bdf987ac86c305894fcdddf5090830049071fd7d23ef919aed",
+      "bytes": 1816
     },
     {
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
