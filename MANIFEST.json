@@ -22,14 +22,14 @@
       "bytes": 2241
     },
     {
-      "path": ".github/workflows/materialize-research-governance-adversarial.yml",
-      "sha256": "6d344be393acb082f565882be3f246842c25deb34c795a4e619a67e8a940f90b",
-      "bytes": 3547
+      "path": ".github/workflows/reconcile-derived-files.yml",
+      "sha256": "c4e5d724cf358ed1bcc6346cae0613cb88a4c886a403302e4e7287cfa5165a0c",
+      "bytes": 3028
     },
     {
-      "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
-      "bytes": 2889
+      "path": ".github/workflows/research-governance.yml",
+      "sha256": "5e40cc8cd113350a8cac5de3730352e79b89d16d14e8ee311de06b4fd27a7474",
+      "bytes": 3155
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -345,6 +345,16 @@
       "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE_REVIEW.md",
       "sha256": "289c606ad8f1d9bdf987ac86c305894fcdddf5090830049071fd7d23ef919aed",
       "bytes": 1816
+    },
+    {
+      "path": "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md",
+      "sha256": "651ae57bf1ebd067a89b270aa7f131ae7f5065ed0129401eafb6ad385881ea48",
+      "bytes": 5531
+    },
+    {
+      "path": "docs/implementation/RESEARCH_GOVERNANCE_KERNEL_REVIEW.md",
+      "sha256": "8489db42e4fcd0206088d8420521141787361f42b9ae54d53c9d8eb07d66193b",
+      "bytes": 3496
     },
     {
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
