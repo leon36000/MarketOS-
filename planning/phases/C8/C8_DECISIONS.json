@@ -1,0 +1,13 @@
+{
+  "phase":"C8",
+  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "locks":{
+    "future_observation_visibility":"FORBIDDEN",
+    "lower_detail_validates_higher_detail":false,
+    "surface_consistency_checks_required":true,
+    "depth_profile_selected":false,
+    "execution_model_calibrated":false,
+    "derivative_model_selected":false,
+    "predictive_value_proven":false
+  }
+}
