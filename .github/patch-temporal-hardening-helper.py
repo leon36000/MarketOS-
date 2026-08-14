@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-path = Path(".github/data-foundation-temporal-hardening.py")
-text = path.read_text(encoding="utf-8")
-old = '''    count = text.count(old)
+patch_path = Path(".github/data-foundation-temporal-hardening.py")
+patch_text = patch_path.read_text(encoding="utf-8")
+
+helper_old = '''    count = text.count(old)
     if count != 1:
         raise SystemExit(f"expected one patch site in {path}, found {count}")
     target.write_text(text.replace(old, new, 1), encoding="utf-8")
 '''
-new = '''    count = text.count(old)
+helper_new = '''    count = text.count(old)
     if count == 0:
         if new in text:
             return
@@ -17,34 +18,32 @@ new = '''    count = text.count(old)
         raise SystemExit(f"expected one or two patch sites in {path}, found {count}")
     target.write_text(text.replace(old, new), encoding="utf-8")
 '''
-if text.count(old) != 1:
+if patch_text.count(helper_old) != 1:
     raise SystemExit("could not locate replace_once implementation")
-text = text.replace(old, new, 1)
+patch_text = patch_text.replace(helper_old, helper_new, 1)
+
 manifest_old = "if not isinstance(records, list):"
 manifest_new = "if not isinstance(records, (list, tuple)):"
-if text.count(manifest_old) != 1:
+if patch_text.count(manifest_old) != 1:
     raise SystemExit(
-        f"could not locate committed-file record type check: {text.count(manifest_old)}"
+        "could not locate committed-file record type check: "
+        f"{patch_text.count(manifest_old)}"
     )
-text = text.replace(manifest_old, manifest_new, 1)
-order_old = '''            if len(data) != record.get("bytes"):
-                raise InvariantViolation(
-                    f"DATASET_FILE_BYTE_COUNT_MISMATCH:{relative.as_posix()}"
-                )
-            if _sha256_bytes(data) != record.get("sha256"):
-                raise InvariantViolation(
-                    f"DATASET_FILE_HASH_MISMATCH:{relative.as_posix()}"
-                )
-'''
-order_new = '''            if _sha256_bytes(data) != record.get("sha256"):
-                raise InvariantViolation(
-                    f"DATASET_FILE_HASH_MISMATCH:{relative.as_posix()}"
-                )
-            if len(data) != record.get("bytes"):
-                raise InvariantViolation(
-                    f"DATASET_FILE_BYTE_COUNT_MISMATCH:{relative.as_posix()}"
-                )
-'''
-if text.count(order_old) != 1:
-    raise SystemExit(f"could not locate dataset verification order: {text.count(order_old)}")
-path.write_text(text.replace(order_old, order_new, 1), encoding="utf-8")
+patch_path.write_text(
+    patch_text.replace(manifest_old, manifest_new, 1),
+    encoding="utf-8",
+)
+
+# Keep the tampered dataset member the same byte length as the original.  This
+# isolates content-hash verification from the separate byte-count diagnostic.
+test_path = Path("tests/test_data_foundation_temporal_semantics.py")
+test_text = test_path.read_text(encoding="utf-8")
+test_old = '(result.commit_path.parent / "part-000.jsonl").write_bytes(b"tampered")'
+test_new = '''(result.commit_path.parent / "part-000.jsonl").write_bytes(
+            b'{"id":2}\n'
+        )'''
+if test_text.count(test_old) != 1:
+    raise SystemExit(
+        f"could not locate dataset corruption fixture: {test_text.count(test_old)}"
+    )
+test_path.write_text(test_text.replace(test_old, test_new, 1), encoding="utf-8")
