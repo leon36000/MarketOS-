@@ -17,11 +17,6 @@
       "bytes": 1981
     },
     {
-      "path": ".github/workflows/materialize-market-data-hardening.yml",
-      "sha256": "4aaf70773c8bc82106ad696adfe95f800a228230da8a1bd5e28963852cddf492",
-      "bytes": 2349
-    },
-    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "f5426ed77be834c8f7cc75ad43fed8eac6035ef9449889b493df7eaf8030760d",
       "bytes": 2779
@@ -320,6 +315,11 @@
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
       "sha256": "fd84a24b874b6fc66df0090553845acf559a6f5199abc3b0af410319466dfb0e",
       "bytes": 2033
+    },
+    {
+      "path": "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md",
+      "sha256": "78005941c3050b241275ea0c4ab984a8bf8e1e2d3a69a98a20ef004ce3ccac50",
+      "bytes": 2228
     },
     {
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
