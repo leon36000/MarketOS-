@@ -432,6 +432,11 @@
       "bytes": 9247
     },
     {
+      "path": "docs/superpowers/plans/2026-08-14-research-governance-kernel.md",
+      "sha256": "27ad17aa9dd7c0325d2b367403cb4fa97e3e7f11d43f5fc560f4dc9981a3dae6",
+      "bytes": 10533
+    },
+    {
       "path": "examples/paper_scenario.jsonl",
       "sha256": "5c91680060b7f2c2162f79fa8a18419dbfa57f01f4c288abfb55783442ca1b70",
       "bytes": 1901
