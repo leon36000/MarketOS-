@@ -7,6 +7,7 @@ on:
       - codex/security-master-data-fabric
     paths:
       - ".github/data-foundation-temporal-hardening.py"
+      - ".github/patch-temporal-hardening-helper.py"
       - ".github/workflows/materialize-data-foundation-temporal-hardening.yml"
 
 permissions:
@@ -42,34 +43,12 @@ jobs:
             exit 1
           fi
           echo "RED confirmed with exit code $status"
-      - name: Make exact patch helper tolerate the duplicated push/pull path block
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('.github/data-foundation-temporal-hardening.py')
-          text = path.read_text(encoding='utf-8')
-          old = '''    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f"expected one patch site in {path}, found {count}")
-    target.write_text(text.replace(old, new, 1), encoding="utf-8")
-'''
-          new = '''    count = text.count(old)
-    if count == 0:
-        if new in text:
-            return
-        raise SystemExit(f"expected patch site in {path}, found 0")
-    if count not in {1, 2}:
-        raise SystemExit(f"expected one or two patch sites in {path}, found {count}")
-    target.write_text(text.replace(old, new), encoding="utf-8")
-'''
-          if text.count(old) != 1:
-              raise SystemExit('could not locate replace_once implementation')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
-          PY
+      - name: Prepare exact patch helper
+        run: python .github/patch-temporal-hardening-helper.py
       - name: Apply exact temporal hardening patch
         run: python .github/data-foundation-temporal-hardening.py
       - name: Remove one-time materializer
-        run: rm .github/data-foundation-temporal-hardening.py .github/workflows/materialize-data-foundation-temporal-hardening.yml
+        run: rm .github/data-foundation-temporal-hardening.py .github/patch-temporal-hardening-helper.py .github/workflows/materialize-data-foundation-temporal-hardening.yml
       - name: Focused GREEN verification
         env:
           PYTHONPATH: src
