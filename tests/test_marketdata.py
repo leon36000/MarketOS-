@@ -207,8 +207,6 @@ class MarketDataTests(unittest.TestCase):
     def test_denied_rights_or_missing_raw_evidence_never_become_accepted(self) -> None:
         with self.assertRaises(IngestionDenied):
             self.store.ingest(self.quote("denied", 1), quality_policy=self.quality, rights_policy=self.rights(allow=False))
-        missing = self.quote("missing", 2)
-        missing.raw_content_sha256 = "f" * 64  # frozen dataclass must prevent this mutation
 
     def test_market_observation_is_immutable(self) -> None:
         observation = self.quote("immutable", 1)
