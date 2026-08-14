@@ -1,6 +1,6 @@
 # Research Governance Kernel Implementation Plan
 
-**Status:** `IMPLEMENTED_AND_LOCALLY_VERIFIED — EXACT_HEAD_AND_PR_PUBLICATION_PENDING`
+**Status:** `COMPLETE_AS_STACKED_CANDIDATE_PR`
 
 **Goal:** Build a provider-neutral C10 conformance kernel that preserves every strategy trial, prevents hidden-holdout and temporal leakage, proves purging/embargo behavior, and limits any successful candidate to independent-review eligibility for shadow.
 
@@ -97,9 +97,9 @@
 - [x] Derived-file reconciliation executes all five successive acceptance verifiers.
 - [x] One-shot materialization helpers removed.
 - [x] `MANIFEST.json`, requirement index and phase index reconciled.
-- [ ] Create a clean user-authored exact-head verification commit.
-- [ ] Capture final exact-head workflow IDs and test count.
-- [ ] Open the stacked draft PR, record Neon checkpoint and advance the open loop.
+- [x] Create a clean user-authored exact-head verification commit.
+- [x] Capture final exact-head workflow IDs and test count.
+- [x] Open the stacked draft PR, record Neon checkpoint and advance the open loop.
 
 ## TDD and adversarial evidence
 
@@ -112,6 +112,30 @@
 | Shadow-only promotion | missing `marketos.promotion` | `92fc235d3a5bf95e4c249017aecaa247bcaff030` |
 | Final adversarial review | eight targeted failures on `fc9b1a6da9161ed09a21fa14a75b692099f66d84` | materializer run `31827107627`, commit `641cfcf6a554ea9f362a77ca8e932ca78443fb3a` |
 | Permanent CI/docs | stale manifest on first permanent run | reconcile run `31827315256`, commit `3d42cf77940cf5982cf07503f7c38667a30ddbc1` |
+| Functional exact head | — | `270f8c0d7155d16c717a8d859cf2e5dccc7776cc` |
+
+## Exact-head publication evidence
+
+```yaml
+pull_request: 19
+base_pull_request: 18
+head_sha: 270f8c0d7155d16c717a8d859cf2e5dccc7776cc
+focused_tests: 64_PASS
+full_tests: 241_PASS
+research_governance_acceptance: 10/10_PASS
+foundation_acceptance: 9/9_PASS
+data_foundation_acceptance: 8/8_PASS
+market_data_acceptance: 8/8_PASS
+feature_foundation_acceptance: 8/8_PASS
+research_governance_workflow: 31827689090_PASS
+implementation_foundation_workflow: 31827689202_PASS
+validate_workflow: 31827689763_PASS
+requirements_count: 108
+manifested_file_count: 255
+neon_checkpoint: CP-IMPLEMENTATION-RESEARCH-GOVERNANCE-2026-08-14
+neon_decision: DEC-IMPLEMENTATION-RESEARCH-GOVERNANCE-001
+next_open_loop: LOOP-IMPLEMENTATION-RESEARCH-GOVERNANCE-PR19
+```
 
 ## Deliberate non-selection and residual gates
 
