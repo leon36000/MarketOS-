@@ -607,11 +607,6 @@
       "bytes": 1828
     },
     {
-      "path": "planning/phases/C8/C8_DESIGN.md",
-      "sha256": "7c8a9281ed6931c1f47091d041bc5978c3cc612983f7876f59c7912976100839",
-      "bytes": 227
-    },
-    {
       "path": "planning/phases/C8/C8_REQUIREMENT_CLOSURE.json",
       "sha256": "65680b8aaec2d0a9b9767aa0ea6c68d3285abc707bff12a059b834854f6208f0",
       "bytes": 518
