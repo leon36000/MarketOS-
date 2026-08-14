@@ -1,0 +1,7 @@
+{
+  "phase": "C12",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "requirement_ids": ["AUD-MKT-014", "AUD-AI-001", "AUD-AI-005", "AUD-AI-006", "AUD-AI-007", "AUD-AI-010", "AUD-AI-012", "AUD-AI-013", "AUD-RSK-008"],
+  "artifacts": ["docs/architecture/C12_PROVIDER_COUNCIL.md", "docs/architecture/C12_SELECTIVE_MEMORY.md", "docs/architecture/C12_RECURSIVE_IMPROVEMENT.md", "docs/architecture/C12_MODEL_ADAPTATION_TOOLS.md", "docs/research/C12_SOURCE_LEDGER.md"],
+  "hard_boundary": {"provider_selected": false, "model_selected": false, "memory_backend_selected": false, "recursive_method_selected": false, "champion_promoted": false, "private_council_benchmarked": false, "live_trading": "HARD_LOCKED", "profitability": "UNPROVEN"}
+}

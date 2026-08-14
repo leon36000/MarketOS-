@@ -1,0 +1,24 @@
+{
+  "phase": "C10",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "strategy_family_selected": false,
+    "strategy_edge_proven": false,
+    "execution_simulator_calibrated": false,
+    "champion_promoted": false,
+    "hidden_holdout_access": "FORBIDDEN",
+    "trial_deletion": "FORBIDDEN",
+    "in_sample_promotion": "FORBIDDEN",
+    "synthetic_result_promotes": false,
+    "lookahead_via_data_model_memory_prompt": "FORBIDDEN",
+    "no_trade_baseline_required": true,
+    "multiple_testing_control_required": true
+  },
+  "strategy_contract_fields": ["strategy_id", "hypothesis", "mechanism", "universe", "features", "decision_rule", "position_rule", "risk_budget", "execution_policy", "abstention", "failure_modes", "data_cutoffs", "code_hash", "config_hash"],
+  "validation_stages": ["NAIVE_BASELINE", "PURGED_WALK_FORWARD", "EMBARGOED_HOLDOUT", "PBO_CSCV", "DEFLATED_SHARPE", "COST_CAPACITY", "REGIME_STRESS", "SHADOW", "PAPER"],
+  "fidelity_stages": ["S0_BAR", "S1_TRADE_QUOTE", "S2_L2_DEPTH", "S3_L3_QUEUE", "S4_BROKER_SIM", "S5_SHADOW_PAPER_REAL_COMPARISON"],
+  "promotion_rule": "ALL_GATES_PASS_AND_INDEPENDENT_APPROVAL",
+  "retirement_rule": "DRIFT_OR_ASSUMPTION_BREAK_REQUIRES_FALLBACK"
+}
