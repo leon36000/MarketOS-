@@ -7,6 +7,7 @@ on:
       - codex/experiment-ledger-temporal-validation
     paths:
       - ".github/research-governance-adversarial-hardening.py"
+      - ".github/research-governance-fixture-alignment.py"
       - ".github/workflows/materialize-research-governance-adversarial.yml"
 
 permissions:
@@ -42,11 +43,14 @@ jobs:
             exit 1
           fi
           echo "RED confirmed with exit code $status"
-      - name: Apply exact adversarial hardening
-        run: python .github/research-governance-adversarial-hardening.py
-      - name: Remove helper but keep workflow outside bot-authored product commit
+      - name: Apply exact adversarial hardening and align legacy fixtures
+        run: |
+          python .github/research-governance-adversarial-hardening.py
+          python .github/research-governance-fixture-alignment.py
+      - name: Remove helpers but keep workflow outside bot-authored product commit
         run: |
           rm .github/research-governance-adversarial-hardening.py
+          rm .github/research-governance-fixture-alignment.py
           git checkout -- .github/workflows/materialize-research-governance-adversarial.yml
       - name: Focused GREEN verification
         env:
