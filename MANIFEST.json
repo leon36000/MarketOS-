@@ -22,11 +22,6 @@
       "bytes": 2241
     },
     {
-      "path": ".github/workflows/materialize-validation-evidence.yml",
-      "sha256": "0ef6d355a175dcdb63cb0fda247d99e2b9ef75fe2dfc8f764a291cedff7c182f",
-      "bytes": 2952
-    },
-    {
       "path": ".github/workflows/reconcile-derived-files.yml",
       "sha256": "062c1834e02cb47435b908220a18237b167f609fbbc634008234fbc08167609d",
       "bytes": 2889
@@ -967,6 +962,11 @@
       "bytes": 8196
     },
     {
+      "path": "src/marketos/promotion.py",
+      "sha256": "4760632522995dbb1fe873d2f6c8603b4d91b7133b396c8aac51b712f360be39",
+      "bytes": 17153
+    },
+    {
       "path": "src/marketos/replay.py",
       "sha256": "f8c09204c57da1ae4b859d75f872762a4121f6ec5d038e6e9602ef25c45c8a81",
       "bytes": 13448
@@ -1140,6 +1140,11 @@
       "path": "tests/test_portfolio.py",
       "sha256": "11a0ca95032e25979fb855f7b623145b388b751c4582c21ddf0f81a2eea36b51",
       "bytes": 3302
+    },
+    {
+      "path": "tests/test_promotion.py",
+      "sha256": "f95d0ff596a3ee66c8170cffba97c31e97de61fb60adeccfcc20d1f929ead8b5",
+      "bytes": 16149
     },
     {
       "path": "tests/test_regenerate_derived.py",
