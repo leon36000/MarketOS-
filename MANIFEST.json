@@ -3,18 +3,13 @@
   "files": [
     {
       "path": ".github/workflows/data-foundation.yml",
-      "sha256": "f723d6ebd7584fd50e9f454d810afa76c4adec28f964b7e771d241bfd898b109",
-      "bytes": 2469
+      "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
+      "bytes": 2703
     },
     {
       "path": ".github/workflows/implementation-foundation.yml",
       "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
       "bytes": 1783
-    },
-    {
-      "path": ".github/workflows/materialize-data-foundation-temporal-hardening.yml",
-      "sha256": "2efbf92dc82b1a4f8d80caa894b717f2d066ae1bf73d3903bc8ef240d5b25428",
-      "bytes": 3293
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -320,6 +315,11 @@
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md",
       "sha256": "ab683fa4d06ba2b12a46004cac6bbc72b0f55261dca9efa2ae98669193bc3b1f",
       "bytes": 1695
+    },
+    {
+      "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC_REVIEW.md",
+      "sha256": "63427330ee8f29e1016cc291f5c57d1c2fac5cb070fc8a8bb20adb4fee9d2c46",
+      "bytes": 2563
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
