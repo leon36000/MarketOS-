@@ -32,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .github/marketos-bootstrap/part-*.b64 | base64 --decode > /tmp/marketos-foundation.tar.gz
-          echo "4b8df63a99f9b875fbd0d5def2ae68e60de700694b7ea1c5d2822784b9511fee  /tmp/marketos-foundation.tar.gz" | sha256sum --check --strict
+          echo "3ed9be2a1d506b1860715d82adf98dbcd2fc430e33dc13b3b160211a296e0a05  /tmp/marketos-foundation.tar.gz" | sha256sum --check --strict
           python - <<'PY'
           import tarfile
           from pathlib import PurePosixPath
