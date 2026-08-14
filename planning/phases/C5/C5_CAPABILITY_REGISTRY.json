@@ -1,0 +1,12 @@
+{
+  "version":"0.1.0",
+  "inventory_fields":["node_identity","cpu_topology","isa","numa","ram","nvme","network","pcie","gpu","npu","fpga","smartnic_dpu","drivers","firmware","runtimes","thermals","energy","ecc_ras","cgroups","raw_probe_hashes","signature","expires_at"],
+  "workload_fields":["workload_id","workload_class","precision","determinism","cpu","ram","accelerator","storage","network","data_classification","rights_policy_ids","deadline","maximum_cost","checkpoint","fallback","evidence_path"],
+  "vendor_families":{
+    "nvidia":["CUDA","cuBLAS","cuSOLVER","cuSPARSE","cuFFT","cuRAND","cuTENSOR","MathDx","RAPIDS","NCCL","NVSHMEM","GPUDirect","Nsight","DCGM"],
+    "amd":["AOCL","AOCC","uProf","ROCm","HIP","rocBLAS","rocSOLVER","rocSPARSE","rocFFT","rocRAND","RCCL","rocSHMEM","ROCm-DS","ROCm-Finance","Vitis-Quantitative-Finance","AMD-SMI","ROCprofiler"],
+    "intel":["oneAPI","SYCL","Level-Zero","oneMKL","oneDAL","oneDNN","oneTBB","oneDPL","oneCCL","Intel-MPI","IPP","OpenVINO","VTune","Advisor","Quartus-OPAE"]
+  },
+  "workloads":["EXACT_ACCOUNTING","COVARIANCE_SVD","MONTE_CARLO_QMC","VAR_ES","BOOTSTRAP_WALK_FORWARD","SPARSE_EXPOSURE_GRAPH","PIT_ETL_JOINS","TABULAR_ML","TIME_SERIES_MODELS","L2_L3_REPLAY","OPTIONS_GREEKS","DISTRIBUTED_SIMULATION","MODEL_INFERENCE"],
+  "admission_metrics":["ABSOLUTE_ERROR","RELATIVE_ERROR","ULP_ERROR","DISTRIBUTION_DISTANCE","DECISION_EQUIVALENCE","THROUGHPUT","LATENCY","MEMORY","ENERGY","THERMALS","STABILITY","TCO"]
+}

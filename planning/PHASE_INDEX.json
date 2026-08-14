@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.6.0",
   "count": 16,
   "bootstrap": "C0-BOOTSTRAP_NOT_COUNTED",
   "phases": [
@@ -26,7 +26,7 @@
         "C8",
         "C9"
       ],
-      "status": "IN_PROGRESS",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C2/PHASE_BRIEF.md"
     },
     {
@@ -41,7 +41,7 @@
         "C8",
         "C9"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C3/PHASE_BRIEF.md"
     },
     {
@@ -54,7 +54,7 @@
         "C10",
         "C13"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C4/PHASE_BRIEF.md"
     },
     {
@@ -68,7 +68,7 @@
         "C11",
         "C12"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C5/PHASE_BRIEF.md"
     },
     {
@@ -83,7 +83,7 @@
         "C9",
         "C10"
       ],
-      "status": "NOT_STARTED",
+      "status": "DESIGN_GATE_PASS",
       "brief_path": "planning/phases/C6/PHASE_BRIEF.md"
     },
     {
@@ -97,7 +97,7 @@
       "unlocks": [
         "C10"
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "brief_path": "planning/phases/C7/PHASE_BRIEF.md"
     },
     {
@@ -246,6 +246,6 @@
     "counted": false,
     "artifact": "planning/C0_1_FINAL_RECONCILIATION.md"
   },
-  "formal_execution_contracts_present": 12,
+  "formal_execution_contracts_present": 15,
   "takeover_gate": "authority/CLAUDE_CODE_TAKEOVER_GATE.json"
 }

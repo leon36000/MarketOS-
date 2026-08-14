@@ -1,0 +1,7 @@
+{
+  "phase":"C5",
+  "status":"DESIGN_GATE_PASS",
+  "requirement_ids":["AUD-CMP-001","AUD-CMP-002","AUD-CMP-003","AUD-CMP-004","AUD-CMP-005","AUD-CMP-006","AUD-CMP-007","AUD-CMP-008","AUD-CMP-010","AUD-CMP-012","AUD-CMP-015","AUD-CMP-016","AUD-CMP-017","AUD-CMP-018","AUD-CMP-019"],
+  "artifacts":["docs/architecture/C5_COMPUTE_FABRIC.md","docs/architecture/C5_VENDOR_STACKS.md","docs/architecture/C5_NODE_CLOUD_FPGA.md","planning/phases/C5/C5_CAPABILITY_REGISTRY.json"],
+  "gate_source":"planning/phases/C5/C5_DECISIONS.json"
+}

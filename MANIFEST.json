@@ -58,8 +58,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "70ed4d85233bdc72ead5f906a5e995acce0fe775db625f0ba3f36756f090767b",
-      "bytes": 681
+      "sha256": "3bc644b37b826ac02cae81626fb9cca0731d854f6517623c7d24a3f7362fc824",
+      "bytes": 917
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -152,6 +152,46 @@
       "bytes": 710
     },
     {
+      "path": "docs/architecture/C4_TIME_ENGINE_EXECUTION.md",
+      "sha256": "3c04710cc9e54d77447a38489f3b333463e77a9d14e8c87838f61fd7b12f5574",
+      "bytes": 1375
+    },
+    {
+      "path": "docs/architecture/C4_VISUAL_WORKFLOW_BOUNDARY.md",
+      "sha256": "60d9df9d042bbe51324cb3bd72ff577d9276ef32c73fbd5840f9346b34429e71",
+      "bytes": 907
+    },
+    {
+      "path": "docs/architecture/C5_COMPUTE_FABRIC.md",
+      "sha256": "ac8380b08c67b1ab275e5aa7a52d542832fccad800f4e960e592c5c3029eb0bf",
+      "bytes": 709
+    },
+    {
+      "path": "docs/architecture/C5_NODE_CLOUD_FPGA.md",
+      "sha256": "6def7023c525e4ca6c83cd56d9e7b9d8a9113665da64c0f50156fd9d1eb1fc45",
+      "bytes": 1018
+    },
+    {
+      "path": "docs/architecture/C5_VENDOR_STACKS.md",
+      "sha256": "d98d746f8a386c60a4c8a32deac143c64d9037e8bee9a43c7257ae87a8e5d3da",
+      "bytes": 395
+    },
+    {
+      "path": "docs/architecture/C6_NUMERICAL_TRUTH.md",
+      "sha256": "8d7d3d76907ad8d2edb78c0464fe826378dea10d7ac0f1dc8da17626803cad27",
+      "bytes": 1017
+    },
+    {
+      "path": "docs/architecture/C6_OPTIMIZATION_CAUSAL_TCA.md",
+      "sha256": "649ac9ef7849b472b4db0e5029ca64439ebf2b71999bcf5494cce7013a407e65",
+      "bytes": 976
+    },
+    {
+      "path": "docs/architecture/C6_PROBABILITY_CALIBRATION.md",
+      "sha256": "07ec2531ea78d50c838e1268e1d8398610309e3f2b9285a13c0c74f260ac8477",
+      "bytes": 836
+    },
+    {
       "path": "docs/research/C1_APP_MATRIX.md",
       "sha256": "132053e1cd1ea25e3242d3667d5db1d0487f8bbeb7214d2bffd8de277a4fef99",
       "bytes": 744
@@ -180,6 +220,21 @@
       "path": "docs/research/C3_SOURCE_LEDGER.md",
       "sha256": "d3cfdb3c0d7319d4ed0f2f48d9b51dcf0b6cab06b1297f76a547c2918e449e8c",
       "bytes": 1370
+    },
+    {
+      "path": "docs/research/C4_SOURCE_LEDGER.md",
+      "sha256": "9e2374180a840c5aa6aaf81b2a949c892e6ad62c40b55cc1d32f3f1c51278c88",
+      "bytes": 928
+    },
+    {
+      "path": "docs/research/C5_SOURCE_LEDGER.md",
+      "sha256": "2cee7c2f81a00f98d845a130a434ce7f344997282cede218da9f75e8b84e942d",
+      "bytes": 1036
+    },
+    {
+      "path": "docs/research/C6_SOURCE_LEDGER.md",
+      "sha256": "f97cf608e6bdd80d113e926666755d49d89607d3e5e3f4dd5b4c28415c59a157",
+      "bytes": 704
     },
     {
       "path": "execution-contracts/MARKET-OS-PHASE-02B-MARKET-KNOWLEDGE-CLAUDE-CODE-CONTRACT-v0.22.0.md",
@@ -272,6 +327,11 @@
       "bytes": 1529
     },
     {
+      "path": "phases/C4-C6/INDEPENDENT_REVIEW.md",
+      "sha256": "256290a5717cd8e32047af96e596a2c7d0b46645e3805d32ccc0614d36cb21bc",
+      "bytes": 755
+    },
+    {
       "path": "planning/C0_1_FINAL_RECONCILIATION.md",
       "sha256": "d38b5ad7cedc1296061f47158436083c12d05a14699660865f04bb74f1a075ff",
       "bytes": 1182
@@ -283,8 +343,8 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "cfa3033e44030368797ac779e2b94ce525cb2d59aaf6fd48f3c692be7540bfbc",
-      "bytes": 5280
+      "sha256": "4b6be3e095050ba0a7ba0034739e113344bc3248a029639c10270a7336854e78",
+      "bytes": 5305
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -397,14 +457,64 @@
       "bytes": 528
     },
     {
+      "path": "planning/phases/C4/C4_DECISIONS.json",
+      "sha256": "4ad1989757d5ab7035c3c838c1ef11238aa2e0d77906d5597c1c873379e5f46c",
+      "bytes": 2771
+    },
+    {
+      "path": "planning/phases/C4/C4_REQUIREMENT_CLOSURE.json",
+      "sha256": "9f42d3cdaaa2558891ad3af01df0e5747f7c6ecf8487f15a6514352584d24264",
+      "bytes": 989
+    },
+    {
+      "path": "planning/phases/C4/EXECUTION_CONTRACT.md",
+      "sha256": "9f3992bc60a0df4189501fda086185b939f0eee5b95bc6eaaa9374bdb7303d13",
+      "bytes": 1191
+    },
+    {
       "path": "planning/phases/C4/PHASE_BRIEF.md",
       "sha256": "ada486fea735c90e8048626329c0f45eb39befa545699bf471fd4b4593ec7fd7",
       "bytes": 1380
     },
     {
+      "path": "planning/phases/C5/C5_CAPABILITY_REGISTRY.json",
+      "sha256": "6de3f888343dabe2db445fdf5973d378ec115b0ab4e78774101e131bfd198561",
+      "bytes": 1476
+    },
+    {
+      "path": "planning/phases/C5/C5_DECISIONS.json",
+      "sha256": "b109bedc1994017eb9a17226db78e7c8905883ca0a4c0208800c8ffc0487ea5f",
+      "bytes": 1297
+    },
+    {
+      "path": "planning/phases/C5/C5_REQUIREMENT_CLOSURE.json",
+      "sha256": "31010e96649db7b00e731db61d28b089ebfc06dd31fffb1aa18a08fa90d2c82b",
+      "bytes": 528
+    },
+    {
+      "path": "planning/phases/C5/EXECUTION_CONTRACT.md",
+      "sha256": "dcea48728192b7a3317464ca46279064212f8489d14c6e267fc68838e91bcdbd",
+      "bytes": 1323
+    },
+    {
       "path": "planning/phases/C5/PHASE_BRIEF.md",
       "sha256": "b25dc9f08753c4b8d19c65ce31c7e4c22ec994d41c543cacd49927b059a66fca",
       "bytes": 1480
+    },
+    {
+      "path": "planning/phases/C6/C6_DECISIONS.json",
+      "sha256": "68541a5d4ac2a1643d2b8ea8cef76dc31f727fe77a6716ed689270973ee1ebf3",
+      "bytes": 1752
+    },
+    {
+      "path": "planning/phases/C6/C6_REQUIREMENT_CLOSURE.json",
+      "sha256": "adfe114e5f236902cc1f888484db3007b590c4022b965d8a61981da9511fa345",
+      "bytes": 412
+    },
+    {
+      "path": "planning/phases/C6/EXECUTION_CONTRACT.md",
+      "sha256": "305bd8499722d295b4e25b5eed87846380ac1c09844af916958f18eaee4f1b81",
+      "bytes": 600
     },
     {
       "path": "planning/phases/C6/PHASE_BRIEF.md",
@@ -455,6 +565,11 @@
       "path": "tests/test_c1_design.py",
       "sha256": "f761e1346fca8877ca56744fce2a6cc7f7fdcf40402b2facb8e17dcf6a386dea",
       "bytes": 4020
+    },
+    {
+      "path": "tests/test_c4_c6_design.py",
+      "sha256": "1c0890e137e903b9546fa042cb97a37b77d795c0cc88107578d78f19ab87913c",
+      "bytes": 4931
     },
     {
       "path": "tests/test_regenerate_derived.py",

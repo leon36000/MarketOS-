@@ -1,0 +1,23 @@
+{
+  "artifact_id":"ART-C5-DECISIONS-001",
+  "version":"0.1.0",
+  "phase":"C5",
+  "status":"DESIGN_GATE_PASS",
+  "verification":{"red_run_id":31754709249,"green_run_id":31755492253,"result":"full CI success with adversarial tests"},
+  "locks":{
+    "live_trading":"HARD_LOCKED",
+    "profitability":"UNPROVEN",
+    "global_vendor_winner":"FORBIDDEN",
+    "hardware_backend_selected":false,
+    "cloud_provider_selected":false,
+    "fpga_purchase_authorized":false,
+    "automatic_driver_firmware_install":"FORBIDDEN",
+    "user_reported_inventory_closes_gate":false,
+    "cpu_golden_oracle_fallback_required":true
+  },
+  "capability_states":["PRESENT","DRIVER_READY","SDK_READY","DIAGNOSTIC_PASS","BENCHMARKED_FOR_ROLE"],
+  "scheduling_order":["HARD_CONSTRAINTS","DATA_LOCALITY","NUMERICAL_ADMISSION","HEALTH_AND_CONTENTION","DEADLINE","COST","ENERGY"],
+  "scheduler_candidates":["ROOTLESS_CGROUPS_AFFINITY","SLURM","K3S","DASK","RAY","MPI","UCX"],
+  "cloud_rules":["DATA_RIGHTS_REQUIRED","REGION_ALLOWLIST","IMMUTABLE_IMAGE","MAXIMUM_COST","EGRESS_ESTIMATE","CHECKPOINT_RESTORE","AUTOSTOP_TTL","DESTROY_RECEIPT","LOCAL_REVALIDATION"],
+  "fpga_stages":["F0_PYTHON","F1_OPTIMIZED_CPU","F2_KERNEL_BYPASS","F3_SMARTNIC_DPU","F4_FPGA_SIMULATOR","F5_DEVELOPMENT_CARD","F6_SHADOW","F7_BOUNDED_CANARY"]
+}
