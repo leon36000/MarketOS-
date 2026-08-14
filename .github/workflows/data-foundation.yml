@@ -1,0 +1,72 @@
+name: data-foundation
+
+on:
+  push:
+    paths:
+      - "src/marketos/identity.py"
+      - "src/marketos/corporate_actions.py"
+      - "src/marketos/rights.py"
+      - "src/marketos/datafabric.py"
+      - "tests/test_identity.py"
+      - "tests/test_corporate_actions.py"
+      - "tests/test_rights.py"
+      - "tests/test_datafabric.py"
+      - "tests/test_data_foundation_adversarial.py"
+      - "tests/test_data_foundation_acceptance.py"
+      - "tools/verify_data_foundation.py"
+      - "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md"
+      - ".github/workflows/data-foundation.yml"
+  pull_request:
+    paths:
+      - "src/marketos/identity.py"
+      - "src/marketos/corporate_actions.py"
+      - "src/marketos/rights.py"
+      - "src/marketos/datafabric.py"
+      - "tests/test_identity.py"
+      - "tests/test_corporate_actions.py"
+      - "tests/test_rights.py"
+      - "tests/test_datafabric.py"
+      - "tests/test_data_foundation_adversarial.py"
+      - "tests/test_data_foundation_acceptance.py"
+      - "tools/verify_data_foundation.py"
+      - "docs/implementation/SECURITY_MASTER_DATA_FABRIC.md"
+      - ".github/workflows/data-foundation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Contract and adversarial tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest \
+            tests.test_identity \
+            tests.test_corporate_actions \
+            tests.test_rights \
+            tests.test_datafabric \
+            tests.test_data_foundation_adversarial \
+            tests.test_data_foundation_acceptance -v
+      - name: Independent acceptance verifier
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python tools/verify_data_foundation.py --json
+      - name: Full repository suite
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python tools/regenerate_derived.py --root . --check --json
+          python -m unittest discover -s tests -v
+          python tools/verify_foundation.py --json
+          python tools/validate_repository.py --root . --json
+          python -m compileall -q src tools tests
