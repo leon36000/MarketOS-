@@ -498,8 +498,8 @@
     },
     {
       "path": "planning/phases/C10/C10_DECISIONS.json",
-      "sha256": "95d37ddde0195902997a264e97b5bfb5002eca7c0f46a02986a6c9ce55d41e73",
-      "bytes": 1283
+      "sha256": "826cfc63e62ccf7bb82921b7733c9fcb408b09e111820884ba5bd2f83183a096",
+      "bytes": 1390
     },
     {
       "path": "planning/phases/C10/C10_REQUIREMENT_CLOSURE.json",
