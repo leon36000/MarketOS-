@@ -937,6 +937,11 @@
       "bytes": 3732
     },
     {
+      "path": "src/marketos/execution_evidence.py",
+      "sha256": "0196f24dc4e861ecb0ef6f0db24d86dd1a0d5b542575599e7237ba2b53c6f023",
+      "bytes": 23832
+    },
+    {
       "path": "src/marketos/experiments.py",
       "sha256": "dff39021d2fbec8ff42254e96ab191dd017ccf190180b3ed92117a6d00ec4ec3",
       "bytes": 45154
@@ -1090,6 +1095,11 @@
       "path": "tests/test_events.py",
       "sha256": "2b8be64b0890e3244999ca535a11add5d6e65bb2bda55785e605d82fb511eb6c",
       "bytes": 2966
+    },
+    {
+      "path": "tests/test_execution_evidence.py",
+      "sha256": "4f6fb66d3db5f05bbff515169749aa552b63c101962df1ed92bc58cc5b21a05d",
+      "bytes": 13347
     },
     {
       "path": "tests/test_experiments.py",
