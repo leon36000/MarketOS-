@@ -12,9 +12,14 @@
       "bytes": 1783
     },
     {
+      "path": ".github/workflows/market-data.yml",
+      "sha256": "afceca9e74beae6ee2adc33a8471fa66c51e1d0b9019653bbf3b0cd0377445d6",
+      "bytes": 2241
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "5941da9028517565d10b54963c95a32360b9ed256832c04c04b187198d96b12c",
-      "bytes": 2579
+      "sha256": "f5426ed77be834c8f7cc75ad43fed8eac6035ef9449889b493df7eaf8030760d",
+      "bytes": 2779
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -305,6 +310,16 @@
       "path": "docs/architecture/C9_MACRO_VINTAGES_REGIMES.md",
       "sha256": "9a72e5702b4d9e38798efc19d7e2a65945f276631b8bb0d1f9d0f2384ea471ba",
       "bytes": 1076
+    },
+    {
+      "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
+      "sha256": "ecc37f2f827cf8bc6ef914a7ea7577528fbdd41e9fd3239a5c4f3f66ebd3a37f",
+      "bytes": 2156
+    },
+    {
+      "path": "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md",
+      "sha256": "0e9578b11ef0fb477bae5dd8d3c17cdacd9b657d705db7f8c546e383e0c3618d",
+      "bytes": 2546
     },
     {
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
@@ -842,6 +857,11 @@
       "bytes": 48
     },
     {
+      "path": "src/marketos/bars.py",
+      "sha256": "b1cbacb8ff4027732f76a542cf721fd7bee0ca0895066456f2c93006831396da",
+      "bytes": 9566
+    },
+    {
       "path": "src/marketos/canonical.py",
       "sha256": "71fec5fa4b00b6373b92a72adedb9669c03b96b17d0be196e2e776245f04c233",
       "bytes": 3015
@@ -885,6 +905,11 @@
       "path": "src/marketos/ledger.py",
       "sha256": "35eefbba3119573169ad491f92e0e4f22666504f5d3b4c9a74e3c79ec37c20a5",
       "bytes": 6068
+    },
+    {
+      "path": "src/marketos/marketdata.py",
+      "sha256": "fe833c6fe45f544a6885cd7c87e8c696a9ab8fe0d6024a6d5a2ddabd1a38ab0d",
+      "bytes": 31783
     },
     {
       "path": "src/marketos/money.py",
@@ -935,6 +960,11 @@
       "path": "tests/__init__.py",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
+    },
+    {
+      "path": "tests/test_bars.py",
+      "sha256": "0976a50768d425ca12a3691fd635026315852447280271ab42ca1a171feeac2e",
+      "bytes": 4687
     },
     {
       "path": "tests/test_c10_c12_design.py",
@@ -1010,6 +1040,21 @@
       "path": "tests/test_ledger.py",
       "sha256": "ee1eb8d7fe8466e57c9e88d5c2d1103cb3504b578db8a62e8104b04b88f8d048",
       "bytes": 2677
+    },
+    {
+      "path": "tests/test_marketdata.py",
+      "sha256": "477224f84a925b1764396300a41fa18bf74593ba425b8811b0a4d8e84dfbe0d2",
+      "bytes": 10495
+    },
+    {
+      "path": "tests/test_marketdata_acceptance.py",
+      "sha256": "95e2e5ba63f16d4bdf66aab5867207bde32ddb8bd6c8cb6af95e6d261fddcb73",
+      "bytes": 676
+    },
+    {
+      "path": "tests/test_marketdata_authority.py",
+      "sha256": "73f2868c41ade14036f5ac6d613e5f6bb64b0ad7f7c48e94c8d1d32c1b572fb8",
+      "bytes": 8187
     },
     {
       "path": "tests/test_money.py",
@@ -1095,6 +1140,11 @@
       "path": "tools/verify_foundation.py",
       "sha256": "bd08ba931d039e06e88cf59895fd165aaae5d0bd8cd944757e6b078e28a924af",
       "bytes": 10102
+    },
+    {
+      "path": "tools/verify_market_data.py",
+      "sha256": "e6af2129778c8323511d3cca885f5316a8eaf3775ce09f0949a98409abe78ae2",
+      "bytes": 13574
     },
     {
       "path": "tools/verify_neon_memory.py",
