@@ -19,4 +19,13 @@ new = '''    count = text.count(old)
 '''
 if text.count(old) != 1:
     raise SystemExit("could not locate replace_once implementation")
-path.write_text(text.replace(old, new, 1), encoding="utf-8")
+text = text.replace(old, new, 1)
+manifest_old = '''        if not isinstance(records, list):
+            raise InvariantViolation("INVALID_DATASET_COMMIT_MANIFEST")
+'''
+manifest_new = '''        if not isinstance(records, (list, tuple)):
+            raise InvariantViolation("INVALID_DATASET_COMMIT_MANIFEST")
+'''
+if text.count(manifest_old) != 1:
+    raise SystemExit("could not locate committed-file record type check")
+path.write_text(text.replace(manifest_old, manifest_new, 1), encoding="utf-8")
