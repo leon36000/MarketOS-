@@ -498,8 +498,8 @@
     },
     {
       "path": "planning/phases/C6/C6_DECISIONS.json",
-      "sha256": "41d4c6a8e14ae4abc28031934f34d949a657e742546ccde06d9b6efe48c49e09",
-      "bytes": 2212
+      "sha256": "ea87b74f807ddaf25a86e98808756ca0ba9a877f943eaf95009ad323bb5f7f5e",
+      "bytes": 1810
     },
     {
       "path": "planning/phases/C6/C6_REQUIREMENT_CLOSURE.json",
