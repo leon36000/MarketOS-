@@ -1,0 +1,20 @@
+{
+  "phase":"C10",
+  "status":"CANDIDATE_PENDING_VERIFICATION",
+  "locks":{
+    "live_trading":"HARD_LOCKED",
+    "profitability":"UNPROVEN",
+    "method_family_selected":false,
+    "edge_proven":false,
+    "hidden_holdout_visible_to_generator":false,
+    "complete_trial_registry_required":true,
+    "negative_results_retained":true,
+    "synthetic_fixture_can_promote":false,
+    "multiple_testing_controls_required":true,
+    "no_trade_baseline_required":true,
+    "implementation_costs_required":true,
+    "automatic_promotion_allowed":false
+  },
+  "validation_ladder":["IN_SAMPLE_DIAGNOSTIC","PURGED_WALK_FORWARD","HIDDEN_TEMPORAL_HOLDOUT","STRESS_AND_REGIME","SHADOW","PAPER"],
+  "fidelity_levels":["S0_IDEALIZED","S1_COSTED_BARS","S2_TRADES_QUOTES","S3_DEPTH","S4_MESSAGE_QUEUE","S5_OBSERVED_EXTERNAL_OUTCOME"]
+}
