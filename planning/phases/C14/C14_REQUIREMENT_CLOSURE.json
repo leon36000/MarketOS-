@@ -1,0 +1,7 @@
+{
+  "phase": "C14",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "requirement_ids": ["AUD-AI-002", "AUD-AI-003", "AUD-UI-001", "AUD-UI-002", "AUD-UI-003", "AUD-UI-004", "AUD-UI-005", "AUD-UI-006", "AUD-UI-007", "AUD-UI-008", "AUD-UI-009"],
+  "artifacts": ["docs/architecture/C14_COCKPIT_ARCHITECTURE.md", "docs/architecture/C14_CONFIGURATION_SECRETS.md", "docs/architecture/C14_EVIDENCE_ACCESSIBILITY.md", "docs/architecture/C14_OPERATIONS_INCIDENTS.md", "docs/research/C14_SOURCE_LEDGER.md"],
+  "hard_boundary": {"frontend_framework_selected": false, "auth_platform_selected": false, "secret_manager_selected": false, "cockpit_implemented": false, "browser_direct_broker_route": "FORBIDDEN", "live_trading": "HARD_LOCKED", "profitability": "UNPROVEN"}
+}

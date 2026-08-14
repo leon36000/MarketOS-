@@ -1,0 +1,29 @@
+{
+  "phase": "C14",
+  "status": "CANDIDATE_PENDING_VERIFICATION",
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "frontend_framework_selected": false,
+    "auth_platform_selected": false,
+    "secret_manager_selected": false,
+    "cockpit_implemented": false,
+    "material_claims_require_evidence": true,
+    "pnl_equals_decision_quality": false,
+    "browser_direct_broker_route": "FORBIDDEN",
+    "secret_readback": "FORBIDDEN",
+    "mobile_risk_increase": "FORBIDDEN",
+    "delete_without_dependency_analysis": "FORBIDDEN",
+    "catalog_mutation_without_diff": "FORBIDDEN",
+    "public_ingress_default": "FORBIDDEN",
+    "sensitive_action_requires_reauth": true,
+    "accessibility_target": "WCAG_2_2_AA"
+  },
+  "screens": ["COMMAND_CENTER", "MARKETS", "PORTFOLIO", "RISK", "STRATEGY_LAB", "REPLAY_SHADOW_PAPER", "MODEL_COUNCIL", "COMPUTE_NODES", "CLOUD", "TOOLS_AND_VISUAL_BRIDGE", "MEMORY", "EVIDENCE", "INCIDENTS", "SETTINGS"],
+  "evidence_fields": ["source_id", "as_of", "first_seen_at", "freshness", "classification", "confidence", "uncertainty", "contradictions", "version", "gate_state", "evidence_uri"],
+  "configuration_resources": ["PROVIDER", "MODEL", "SECRET_REFERENCE", "COMPUTE_NODE", "CLOUD_PROFILE", "DATA_SOURCE", "TOOL", "BROKER_ACCOUNT", "RISK_POLICY", "ALERT_CHANNEL"],
+  "mutation_flow": ["PREVIEW_DIFF", "DEPENDENCY_GRAPH", "PERMISSION_CHECK", "STRONG_REAUTH", "TYPED_REASON", "CONFIRM", "SERVER_SIDE_EXECUTION", "POSTCONDITION", "AUDIT_RECEIPT"],
+  "mobile_allowed": ["VIEW", "ACKNOWLEDGE", "SAFE_STOP", "DISABLE_NONCRITICAL_WORKFLOW"],
+  "mobile_forbidden": ["INCREASE_RISK", "CHANGE_LIMITS", "ADD_SECRET", "PROMOTE_MODEL", "ENABLE_LIVE"],
+  "accessibility_rules": ["KEYBOARD_COMPLETE", "VISIBLE_FOCUS", "NON_COLOR_STATUS", "REDUCED_MOTION", "SCREEN_READER_LABELS", "ERROR_IDENTIFICATION", "TARGET_SIZE", "RESPONSIVE_REFLOW"]
+}
