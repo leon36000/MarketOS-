@@ -1,0 +1,82 @@
+name: research-governance
+
+on:
+  push:
+    paths:
+      - "src/marketos/experiments.py"
+      - "src/marketos/validation.py"
+      - "src/marketos/promotion.py"
+      - "tests/test_experiments.py"
+      - "tests/test_holdout_access.py"
+      - "tests/test_validation.py"
+      - "tests/test_validation_evidence.py"
+      - "tests/test_promotion.py"
+      - "tests/test_research_governance_acceptance.py"
+      - "tests/test_research_governance_adversarial.py"
+      - "tools/verify_research_governance.py"
+      - "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md"
+      - "docs/implementation/RESEARCH_GOVERNANCE_KERNEL_REVIEW.md"
+      - "docs/superpowers/plans/2026-08-14-research-governance-kernel.md"
+      - ".github/workflows/research-governance.yml"
+  pull_request:
+    paths:
+      - "src/marketos/experiments.py"
+      - "src/marketos/validation.py"
+      - "src/marketos/promotion.py"
+      - "tests/test_experiments.py"
+      - "tests/test_holdout_access.py"
+      - "tests/test_validation.py"
+      - "tests/test_validation_evidence.py"
+      - "tests/test_promotion.py"
+      - "tests/test_research_governance_acceptance.py"
+      - "tests/test_research_governance_adversarial.py"
+      - "tools/verify_research_governance.py"
+      - "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md"
+      - "docs/implementation/RESEARCH_GOVERNANCE_KERNEL_REVIEW.md"
+      - "docs/superpowers/plans/2026-08-14-research-governance-kernel.md"
+      - ".github/workflows/research-governance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Research-governance contract and adversarial tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest \
+            tests.test_experiments \
+            tests.test_holdout_access \
+            tests.test_validation \
+            tests.test_validation_evidence \
+            tests.test_promotion \
+            tests.test_research_governance_acceptance \
+            tests.test_research_governance_adversarial -v
+      - name: Independent research-governance acceptance
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python tools/verify_research_governance.py --json
+      - name: Full repository verification
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python tools/regenerate_derived.py --root . --check --json
+          python -m unittest discover -s tests -v
+          python tools/verify_foundation.py --json
+          python tools/verify_data_foundation.py --json
+          python tools/verify_market_data.py --json
+          python tools/verify_feature_foundation.py --json
+          python tools/verify_research_governance.py --json
+          python tools/validate_repository.py --root . --json
+          python -m compileall -q src tools tests
+          git diff --check

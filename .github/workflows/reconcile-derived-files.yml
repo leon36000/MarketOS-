@@ -12,6 +12,7 @@ on:
       - ".github/workflows/data-foundation.yml"
       - ".github/workflows/market-data.yml"
       - ".github/workflows/feature-foundation.yml"
+      - ".github/workflows/research-governance.yml"
       - "pyproject.toml"
       - "src/**"
       - "config/**"
@@ -58,11 +59,13 @@ jobs:
           python tools/verify_data_foundation.py --json
           python tools/verify_market_data.py --json
           python tools/verify_feature_foundation.py --json
+          python tools/verify_research_governance.py --json
           python tools/validate_c1_design.py --root . --json
           python tools/validate_c2_design.py --root . --json
           jq -e '.phase == "C3" and (.roles | length == 10) and .locks.storage_engine_selected == false and .locks.raw_overwrite == "FORBIDDEN" and ([.candidate_matrix[] | select(.status == "ADOPTED")] | length == 0) and (.recovery_rules | index("BACKUP_IS_NOT_VERIFIED_UNTIL_RESTORE") != null)' planning/phases/C3/C3_DECISIONS.json
           python tools/validate_repository.py --root . --json
           python -m compileall -q src tools tests
+          git diff --check
       - name: Commit reconciled files
         shell: bash
         run: |
