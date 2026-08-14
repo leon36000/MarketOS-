@@ -246,6 +246,6 @@
     "counted": false,
     "artifact": "planning/C0_1_FINAL_RECONCILIATION.md"
   },
-  "formal_execution_contracts_present": 18,
+  "formal_execution_contracts_present": 21,
   "takeover_gate": "authority/CLAUDE_CODE_TAKEOVER_GATE.json"
 }
