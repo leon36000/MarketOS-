@@ -2,6 +2,11 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/workflows/architecture-reconciliation.yml",
+      "sha256": "f508597c09ceddc0525e7ad83fc1fd09e5c799c72c1e3ad2ad15937b6fa658b7",
+      "bytes": 3074
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
       "bytes": 2703
@@ -33,8 +38,8 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "e3ce7099767b213fd593bba932b0e003697204039288a888bf15f9acdf65209f",
-      "bytes": 3144
+      "sha256": "784b6ff371e6a2eb444079d8b86b5664d2159e794d9b5a29c1ea735f79ebc76c",
+      "bytes": 3316
     },
     {
       "path": ".github/workflows/research-governance.yml",
@@ -93,8 +98,8 @@
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "52be5674e952551c45fb9b963543b914630ece1be452a66d0f085b4570b72762",
-      "bytes": 837
+      "sha256": "fe0839f57442be8fa9bf6501af968ae83df9dcc1186c2d3530f63bda0892cf2f",
+      "bytes": 1368
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -330,6 +335,11 @@
       "path": "docs/architecture/C9_MACRO_VINTAGES_REGIMES.md",
       "sha256": "9a72e5702b4d9e38798efc19d7e2a65945f276631b8bb0d1f9d0f2384ea471ba",
       "bytes": 1076
+    },
+    {
+      "path": "docs/audit/PR14_PR20_RECONCILIATION.md",
+      "sha256": "4be8db8601f163f469928276da08c7bf6f1a670851c19da7706f93b9e142289e",
+      "bytes": 4675
     },
     {
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
@@ -595,6 +605,11 @@
       "path": "planning/PHASE_INDEX.json",
       "sha256": "54b489d5e01a982c749af49e5f3988f0da445c604ba13682fceee817fd1e5bcf",
       "bytes": 5336
+    },
+    {
+      "path": "planning/architecture/PR14_PR20_RECONCILIATION.json",
+      "sha256": "3d1bbab2c68b8d199c6ed547a58cc7f1401cf2b201ef739bb61308d6d214b1f0",
+      "bytes": 9250
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -1067,6 +1082,11 @@
       "bytes": 0
     },
     {
+      "path": "tests/test_architecture_reconciliation_acceptance.py",
+      "sha256": "d2ead5a1a5d5dd09ac6dbb74722d03083b95799f138dc2ce72bc6c095d786e99",
+      "bytes": 1721
+    },
+    {
       "path": "tests/test_bars.py",
       "sha256": "0976a50768d425ca12a3691fd635026315852447280271ab42ca1a171feeac2e",
       "bytes": 4687
@@ -1320,6 +1340,11 @@
       "path": "tools/validate_repository.py",
       "sha256": "7140c9de8c2b4ba3eba81dbce7c247f4429e5c7c7df8c0739ea0c667b68e3899",
       "bytes": 12139
+    },
+    {
+      "path": "tools/verify_architecture_reconciliation.py",
+      "sha256": "0cf0953503e914a4a3c5d81484547248e5f4deccae4cdcd09482c3bd0fb4ee98",
+      "bytes": 15860
     },
     {
       "path": "tools/verify_data_foundation.py",
