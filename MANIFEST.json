@@ -2,9 +2,19 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/shadow-evidence-fixture-fix.py",
+      "sha256": "a871f663750e6bb7d5dbbfbcbd4c5e49992d6a7ecd3d3326a735ff09715e4066",
+      "bytes": 789
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
       "bytes": 2703
+    },
+    {
+      "path": ".github/workflows/execution-calibration.yml",
+      "sha256": "508937ac299cc3445bb1051d3a2223e5d161eaf4a35f5578028c3d696e188b3d",
+      "bytes": 3601
     },
     {
       "path": ".github/workflows/feature-foundation.yml",
@@ -28,8 +38,8 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "c4e5d724cf358ed1bcc6346cae0613cb88a4c886a403302e4e7287cfa5165a0c",
-      "bytes": 3028
+      "sha256": "e3ce7099767b213fd593bba932b0e003697204039288a888bf15f9acdf65209f",
+      "bytes": 3144
     },
     {
       "path": ".github/workflows/research-governance.yml",
@@ -335,6 +345,16 @@
       "path": "docs/implementation/CANONICAL_MARKET_DATA_REVIEW.md",
       "sha256": "0e9578b11ef0fb477bae5dd8d3c17cdacd9b657d705db7f8c546e383e0c3618d",
       "bytes": 2546
+    },
+    {
+      "path": "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE.md",
+      "sha256": "03ee7fac05c28b854d4b9514a97d5d5cad61769d36db0be590da296569955d92",
+      "bytes": 3809
+    },
+    {
+      "path": "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE_REVIEW.md",
+      "sha256": "1b8212df7b790b7c5bc53680bb7c1d902c9e11688afcad4a8948e98f43cdf5f0",
+      "bytes": 4066
     },
     {
       "path": "docs/implementation/FOUNDATION_PAPER_CORE.md",
@@ -912,6 +932,11 @@
       "bytes": 3015
     },
     {
+      "path": "src/marketos/capacity.py",
+      "sha256": "c0bb850ecf5cf12247f9dfc56bb9d7ff4a157aff903c05e2c90bc3584cde23b0",
+      "bytes": 18373
+    },
+    {
       "path": "src/marketos/cli.py",
       "sha256": "bbf61f615376d13ad0dd0a1affd206822ecc97c767b46545c90975ce7f8f7978",
       "bytes": 4851
@@ -1022,6 +1047,11 @@
       "bytes": 9463
     },
     {
+      "path": "src/marketos/shadow_evidence.py",
+      "sha256": "6446453c5b9a55d5d169d867d071d280bda565d991996590a0c2fdab038f8e27",
+      "bytes": 25598
+    },
+    {
       "path": "src/marketos/store.py",
       "sha256": "417dc30b195c5dcfa8403b04e8aeabe98ae48d933f1376021e855e13e888e18f",
       "bytes": 11082
@@ -1072,6 +1102,11 @@
       "bytes": 1333
     },
     {
+      "path": "tests/test_capacity.py",
+      "sha256": "fff9afa94d671f29502cb350185af4d2ec8b54d431a2ea1151c6e73c5c74c8bf",
+      "bytes": 10554
+    },
+    {
       "path": "tests/test_cli.py",
       "sha256": "183cf08b6318cd7676ffafa60026e5531d19b0d91fab40a8c8202014c0188192",
       "bytes": 3058
@@ -1110,6 +1145,11 @@
       "path": "tests/test_execution_calibration.py",
       "sha256": "071abae699124b33f9c68da821fd4b206fa41b384bb312b6ba26dc0f6760ecf2",
       "bytes": 13457
+    },
+    {
+      "path": "tests/test_execution_calibration_acceptance.py",
+      "sha256": "6fd97e9a230b798ea9069ccafbf21ad889e125dcdf3e9fea041e3660b9dc3f2f",
+      "bytes": 1045
     },
     {
       "path": "tests/test_execution_evidence.py",
@@ -1237,6 +1277,11 @@
       "bytes": 5616
     },
     {
+      "path": "tests/test_shadow_evidence.py",
+      "sha256": "bae9cc5c5e4c6824460991f7e4094ae8c22f36a19a7970c8104c2816a0c281f8",
+      "bytes": 16411
+    },
+    {
       "path": "tests/test_store.py",
       "sha256": "f033da5c07fdb88d61587d51d100674aeb238e1d32a3c00af756c25f08fa5019",
       "bytes": 3896
@@ -1285,6 +1330,11 @@
       "path": "tools/verify_data_foundation.py",
       "sha256": "6af52c78c2415dbb8d76e4183c1ae3769147ac12be0e87135c38728e898a14d5",
       "bytes": 11378
+    },
+    {
+      "path": "tools/verify_execution_calibration.py",
+      "sha256": "ad9b1c88044c74488239249cfdd7b6637c1390ca29d6d890675d44cd6f88287e",
+      "bytes": 28063
     },
     {
       "path": "tools/verify_feature_foundation.py",
