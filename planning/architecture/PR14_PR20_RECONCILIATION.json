@@ -1,0 +1,198 @@
+{
+  "version": "1.0.0",
+  "snapshot_date": "2026-08-18",
+  "authority": "RECONCILIATION_EVIDENCE",
+  "purpose": "Reconcile the failed/stale PR14 C16 target architecture with exact executable evidence from PR15 through PR20 without promoting partial slices to completed implementation nodes.",
+  "sources": {
+    "pr14": {
+      "number": 14,
+      "head_sha": "bd3bf2823d6e731ece5ed8d66570d196be42b560",
+      "role": "TARGET_ARCHITECTURE_ONLY",
+      "merge_safe": false,
+      "exact_head_ci_green": false,
+      "ci_runs": [
+        {"id": 31761607472, "name": "validate", "conclusion": "failure"},
+        {"id": 31761607461, "name": "validate-c16", "conclusion": "failure"}
+      ],
+      "failure_causes": [
+        "planning/PHASE_INDEX.json stale under regenerate-derived check",
+        "MANIFEST.json stale under regenerate-derived check",
+        "C16 tests, cross-audit and pack verification skipped after the early failure",
+        "C13-C16 structural design-gate prerequisites absent from the PR14 base graph"
+      ]
+    },
+    "pr20": {
+      "number": 20,
+      "head_sha": "b05dd6004f60cc20b76c2c5c86c3ba6046401180",
+      "base_pr": 19,
+      "base_sha": "ea851564a2a5781cd3627d0dd5eb9ca857001095",
+      "role": "EXECUTABLE_EVIDENCE_BASE",
+      "exact_head_ci_green": true,
+      "ci_runs": [
+        {"id": 32189100569, "name": "validate", "conclusion": "success"},
+        {"id": 32189100686, "name": "implementation-foundation", "conclusion": "success"},
+        {"id": 32189100652, "name": "execution-calibration", "conclusion": "success"}
+      ],
+      "full_repository_tests": 296,
+      "execution_contracts": 21,
+      "manifested_files": 271,
+      "canonical_requirements": 108
+    }
+  },
+  "execution_slices": [
+    {
+      "pr": 15,
+      "head_sha": "fab4c16c048e3216093a43af0c42f5f0c9562c33",
+      "base": "main",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [31774716660],
+      "target_node_ids": ["00", "01", "06", "07", "10", "29", "30", "PC3", "PC4"]
+    },
+    {
+      "pr": 16,
+      "head_sha": "9b6f9d94de82963a62e07a6183d63cf1a5dea33a",
+      "base_pr": 15,
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [31779092103, 31779092043, 31779092084],
+      "target_node_ids": ["03", "04", "05", "31", "PC1", "PC2"]
+    },
+    {
+      "pr": 17,
+      "head_sha": "e602c17e22caa12bf358743c47a38e90cdaeb8a9",
+      "base_pr": 16,
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [31781106036, 31781106037, 31781106039],
+      "target_node_ids": ["03", "04", "13", "14", "PC1", "PC2"]
+    },
+    {
+      "pr": 18,
+      "head_sha": "ffe23f955770f68bf897f94c7a506dfeb27c09b6",
+      "base_pr": 17,
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [31824108505, 31824108427, 31824108478],
+      "target_node_ids": ["13", "PC2"]
+    },
+    {
+      "pr": 19,
+      "head_sha": "ea851564a2a5781cd3627d0dd5eb9ca857001095",
+      "base_pr": 18,
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [31827966807, 31827966804, 31827966838],
+      "target_node_ids": ["20", "21", "22", "PC0", "PC6"]
+    },
+    {
+      "pr": 20,
+      "head_sha": "b05dd6004f60cc20b76c2c5c86c3ba6046401180",
+      "base_pr": 19,
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_runs": [32189100569, 32189100686, 32189100652],
+      "target_node_ids": ["22", "PC5"]
+    }
+  ],
+  "requirements": {
+    "canonical_repository_count": 108,
+    "memory_observed_count": 119,
+    "memory_is_canonical_repository_set": false,
+    "rule": "The 119-row memory set is an audit superset. It must never replace the 108-requirement repository oracle without explicit reconciliation."
+  },
+  "target_dag": {
+    "source_pr": 14,
+    "source_head_sha": "bd3bf2823d6e731ece5ed8d66570d196be42b560",
+    "nodes_total": 49,
+    "nodes_complete": 0,
+    "node_ids": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "PC0", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7"],
+    "policy_blocked_nodes": ["37", "38", "39"],
+    "completion_rule": "A broad target node becomes COMPLETE only after its full exit contract is implemented and independently verified; overlap from a verified slice is insufficient."
+  },
+  "node_coverage": [
+    {"id": "00", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "01", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "02", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "03", "status": "VERIFIED_PARTIAL", "evidence_prs": [16, 17]},
+    {"id": "04", "status": "VERIFIED_PARTIAL", "evidence_prs": [16, 17]},
+    {"id": "05", "status": "VERIFIED_PARTIAL", "evidence_prs": [16]},
+    {"id": "06", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "07", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "08", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "09", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "10", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "11", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "12", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "13", "status": "VERIFIED_PARTIAL", "evidence_prs": [17, 18]},
+    {"id": "14", "status": "VERIFIED_PARTIAL", "evidence_prs": [17]},
+    {"id": "15", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "16", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "17", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "18", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "19", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "20", "status": "VERIFIED_PARTIAL", "evidence_prs": [19]},
+    {"id": "21", "status": "VERIFIED_PARTIAL", "evidence_prs": [19]},
+    {"id": "22", "status": "VERIFIED_PARTIAL", "evidence_prs": [19, 20]},
+    {"id": "23", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "24", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "25", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "26", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "27", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "28", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "29", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "30", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "31", "status": "VERIFIED_PARTIAL", "evidence_prs": [16]},
+    {"id": "32", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "33", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "34", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "35", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "36", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "37", "status": "POLICY_BLOCKED", "evidence_prs": []},
+    {"id": "38", "status": "POLICY_BLOCKED", "evidence_prs": []},
+    {"id": "39", "status": "POLICY_BLOCKED", "evidence_prs": []},
+    {"id": "40", "status": "UNVERIFIED_TARGET", "evidence_prs": []},
+    {"id": "PC0", "status": "VERIFIED_PARTIAL", "evidence_prs": [19]},
+    {"id": "PC1", "status": "VERIFIED_PARTIAL", "evidence_prs": [16, 17]},
+    {"id": "PC2", "status": "VERIFIED_PARTIAL", "evidence_prs": [16, 17, 18]},
+    {"id": "PC3", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "PC4", "status": "VERIFIED_PARTIAL", "evidence_prs": [15]},
+    {"id": "PC5", "status": "VERIFIED_PARTIAL", "evidence_prs": [20]},
+    {"id": "PC6", "status": "VERIFIED_PARTIAL", "evidence_prs": [19]},
+    {"id": "PC7", "status": "UNVERIFIED_TARGET", "evidence_prs": []}
+  ],
+  "stale_claims": [
+    {"claim": "PR14 exact-head CI is green", "accepted_as_current": false},
+    {"claim": "C16 design gate passed on PR14", "accepted_as_current": false},
+    {"claim": "C16 deterministic pack was verified on PR14", "accepted_as_current": false},
+    {"claim": "all 49 implementation nodes are NOT_STARTED as current system truth", "accepted_as_current": false}
+  ],
+  "stale_closure_refs": [
+    {
+      "path": "execution-contracts/MARKET-OS-PHASE-C13-PORTEFEUILLE-RISQUE-BROKER-COMPTABILITE-ET-SECURITE-CLAUDE-CODE-CONTRACT.md",
+      "resolved": false,
+      "treat_as_evidence": false
+    },
+    {
+      "path": "execution-contracts/MARKET-OS-PHASE-C14-COCKPIT-PREMIUM-ET-EXPLOITATION-CLAUDE-CODE-CONTRACT.md",
+      "resolved": false,
+      "treat_as_evidence": false
+    }
+  ],
+  "critical_open_gaps": [
+    "C13_RUNTIME_CONTRACTS",
+    "C14_COCKPIT_AND_OPERABILITY",
+    "C15_QUALIFICATION",
+    "C16_PACKAGING_AND_INTEGRATION",
+    "PROOF_BINDING",
+    "REQUIREMENTS_119_VS_108"
+  ],
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "software_implementation_complete": false,
+    "strategy_edge_proven": false,
+    "broker_selected": false,
+    "production_backend_selected": false
+  }
+}
