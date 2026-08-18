@@ -1,9 +1,9 @@
 name: architecture-reconciliation-red
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/pr14-pr20-reconciliation-proof
+      - codex/execution-calibration-shadow-evidence
     paths:
       - "tests/test_architecture_reconciliation_acceptance.py"
       - ".github/workflows/architecture-reconciliation-red.yml"
