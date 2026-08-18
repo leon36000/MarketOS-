@@ -1,0 +1,94 @@
+name: execution-calibration
+
+on:
+  push:
+    branches:
+      - codex/execution-calibration-shadow-evidence
+    paths:
+      - ".github/workflows/execution-calibration.yml"
+      - "src/marketos/execution_evidence.py"
+      - "src/marketos/execution_calibration.py"
+      - "src/marketos/shadow_evidence.py"
+      - "src/marketos/capacity.py"
+      - "tools/verify_execution_calibration.py"
+      - "tests/test_execution_evidence.py"
+      - "tests/test_execution_calibration.py"
+      - "tests/test_execution_reality_gap.py"
+      - "tests/test_shadow_evidence.py"
+      - "tests/test_capacity.py"
+      - "tests/test_execution_calibration_acceptance.py"
+      - "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE.md"
+      - "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE_REVIEW.md"
+  pull_request:
+    branches:
+      - codex/experiment-ledger-temporal-validation
+    paths:
+      - ".github/workflows/execution-calibration.yml"
+      - "src/marketos/execution_evidence.py"
+      - "src/marketos/execution_calibration.py"
+      - "src/marketos/shadow_evidence.py"
+      - "src/marketos/capacity.py"
+      - "tools/verify_execution_calibration.py"
+      - "tests/test_execution_evidence.py"
+      - "tests/test_execution_calibration.py"
+      - "tests/test_execution_reality_gap.py"
+      - "tests/test_shadow_evidence.py"
+      - "tests/test_capacity.py"
+      - "tests/test_execution_calibration_acceptance.py"
+      - "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE.md"
+      - "docs/implementation/EXECUTION_CALIBRATION_SHADOW_EVIDENCE_REVIEW.md"
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance-green:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Focused execution-calibration tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest \
+            tests.test_execution_evidence \
+            tests.test_execution_calibration \
+            tests.test_execution_reality_gap \
+            tests.test_shadow_evidence \
+            tests.test_capacity \
+            tests.test_execution_calibration_acceptance -v
+      - name: Independent ten-check acceptance verifier
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python tools/verify_execution_calibration.py --json
+
+  repository-green:
+    needs: acceptance-green
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Derived files are reconciled
+        run: python tools/regenerate_derived.py --root . --check --json
+      - name: Full repository verification
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest discover -s tests -v
+          python tools/verify_foundation.py --json
+          python tools/verify_data_foundation.py --json
+          python tools/verify_market_data.py --json
+          python tools/verify_feature_foundation.py --json
+          python tools/verify_research_governance.py --json
+          python tools/verify_execution_calibration.py --json
+          python tools/validate_repository.py --root . --json
+          python -m compileall -q src tools tests
+          git diff --check
