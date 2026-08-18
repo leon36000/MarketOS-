@@ -2,11 +2,6 @@
   "version": "0.4.0",
   "files": [
     {
-      "path": ".github/shadow-evidence-fixture-fix.py",
-      "sha256": "a871f663750e6bb7d5dbbfbcbd4c5e49992d6a7ecd3d3326a735ff09715e4066",
-      "bytes": 789
-    },
-    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
       "bytes": 2703
