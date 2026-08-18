@@ -1,0 +1,44 @@
+name: reconcile-obsolete-helper-removal
+
+on:
+  push:
+    branches:
+      - codex/execution-calibration-shadow-evidence
+    paths:
+      - ".github/workflows/reconcile-obsolete-helper-removal.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Remove one-shot workflow before regeneration
+        run: rm .github/workflows/reconcile-obsolete-helper-removal.yml
+      - name: Regenerate and verify derived files
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python tools/regenerate_derived.py --root . --json
+          python tools/regenerate_derived.py --root . --check --json
+          python tools/verify_execution_calibration.py --json
+          python tools/validate_repository.py --root . --json
+          git diff --check
+      - name: Commit clean reconciled tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "marketos-verifier[bot]"
+          git config user.email "marketos-verifier[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: reconcile obsolete helper removal"
+          git push origin "HEAD:${{ github.ref_name }}"
