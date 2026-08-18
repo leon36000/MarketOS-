@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import unittest
 
+# Intentionally imports a verifier that does not exist until RED is observed.
 from tools.verify_architecture_reconciliation import verify_architecture_reconciliation
 
 
