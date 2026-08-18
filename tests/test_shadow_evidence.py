@@ -335,7 +335,11 @@ class ShadowEvidenceTests(unittest.TestCase):
         self.assertFalse(self.ledger.append(original))
         with self.assertRaises(DuplicateConflict):
             self.ledger.append(
-                replace(original, opportunity_fill_ratio=Decimal("0.50"))
+                replace(
+                    original,
+                    opportunity_fill_ratio=Decimal("0.50"),
+                    fill_ratio_gap=Decimal("-0.30"),
+                )
             )
         with self.assertRaisesRegex(InvariantViolation, "SHADOW_VERSION_SEQUENCE"):
             self.ledger.append(
