@@ -353,8 +353,8 @@
     },
     {
       "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
-      "sha256": "32a702b94b93b0c727cec85a52065827dba877b7df3721ab80486596e43c3cda",
-      "bytes": 2990
+      "sha256": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
+      "bytes": 3061
     },
     {
       "path": "docs/implementation/C16_PACK_BUILDER.md",
@@ -513,8 +513,8 @@
     },
     {
       "path": "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
-      "sha256": "aa77fd2b45ab645c9b69df5a5d4d9a9b33d4b92935c2ffb1770613cab4b5cd07",
-      "bytes": 16812
+      "sha256": "5710a2006d71b023fdadf8ac4eddff8ba9c0d9580f3ba2e22ecb15c55364c5b3",
+      "bytes": 16878
     },
     {
       "path": "docs/superpowers/plans/2026-08-20-proof-binding.md",
@@ -523,8 +523,8 @@
     },
     {
       "path": "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
-      "sha256": "2997b04d5cf872459b19096fc03e4a7a05cfbbfdc4f0a7b75e28313c30411a21",
-      "bytes": 7588
+      "sha256": "776580d5c94086c3fe337701a78b35648aef35583df9520000c840be73a614b3",
+      "bytes": 7651
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -758,7 +758,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "c4a37252c5460ddd574bb627993d5a07bd92529a233057319563f48239884077",
+      "sha256": "4f9ac6618bac333358d38f26bfb709947da15f19c8b047041c5c7fa0691212b5",
       "bytes": 2102
     },
     {
@@ -1008,8 +1008,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "8216099d6f6e5ffd4dfa1392f58c9fc506ce9f8b46bf03e4e6528e4c9faeae38",
-      "bytes": 39302
+      "sha256": "acb17940dde6993f240f7888e48a3a50785a3cf40ad0b8d0436d532c7285c914",
+      "bytes": 39747
     },
     {
       "path": "src/marketos/bars.py",
@@ -1178,8 +1178,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "60170a4183354bae396adfe8df82a42ed42c80c94d77c594176f36e894994809",
-      "bytes": 29203
+      "sha256": "b22282bff53ea7d57efa27c318c38a25dfff4fce44b452a809dbc9e0a28db956",
+      "bytes": 30537
     },
     {
       "path": "tests/test_c1_design.py",

@@ -290,6 +290,37 @@ class C13DurableLedgerTests(unittest.TestCase):
             ("fund-1", "fund-2"),
         )
 
+    def test_stale_batch_writer_refreshes_inside_transaction(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        first = DurableLedger(self.path)
+        second = DurableLedger(self.path)
+        self.addCleanup(first.close)
+        self.addCleanup(second.close)
+        self.assertTrue(first.post(self.entry("fund-1")))
+        self.assertEqual(
+            second.post_many((self.entry("fund-2", "1.00"), self.entry("fund-3", "2.00"))),
+            (True, True),
+        )
+        self.assertTrue(second.verify())
+        self.assertEqual(
+            tuple(entry.entry_id for entry in second.entries()),
+            ("fund-1", "fund-2", "fund-3"),
+        )
+
+    def test_concurrent_reversal_is_rejected_by_current_ledger(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        first = DurableLedger(self.path)
+        second = DurableLedger(self.path)
+        self.addCleanup(first.close)
+        self.addCleanup(second.close)
+        original = self.entry("fund-1")
+        self.assertTrue(first.post(original))
+        first.reverse("fund-1", reversal_id="reverse-1", occurred_at_ns=200)
+        with self.assertRaisesRegex(InvariantViolation, "JOURNAL_ENTRY_ALREADY_REVERSED"):
+            second.reverse("fund-1", reversal_id="reverse-2", occurred_at_ns=300)
+
 
 class C13ReconciliationTests(unittest.TestCase):
     def setUp(self) -> None:

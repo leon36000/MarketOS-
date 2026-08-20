@@ -116,30 +116,12 @@ class BookReconciliation:
         repr=False,
         compare=False,
     )
-
-    @classmethod
-    def _from_reconciler(
-        cls,
-        *,
-        status: ReconciliationStatus,
-        journal_sha256: str,
-        book_sha256: str,
-        expected_sha256: str,
-        reasons: tuple[str, ...],
-        source_ledger: Any,
-        source_checkpoint_sha256: str | None,
-    ) -> "BookReconciliation":
-        result = cls(
-            status=status,
-            journal_sha256=journal_sha256,
-            book_sha256=book_sha256,
-            expected_sha256=expected_sha256,
-            reasons=reasons,
-        )
-        object.__setattr__(result, "_provenance", _RECONCILIATION_PROVENANCE)
-        object.__setattr__(result, "_source_ledger", source_ledger)
-        object.__setattr__(result, "_source_checkpoint_sha256", source_checkpoint_sha256)
-        return result
+    _source_snapshot: PortfolioSnapshot | None = field(
+        default=None,
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def canonical_dict(self) -> dict[str, object]:
         return {
@@ -537,6 +519,13 @@ class DurableLedger:
                 self._connection.execute("COMMIT")
                 self._ledger = current
                 return False
+            if entry.reversal_of is not None and any(
+                existing.reversal_of == entry.reversal_of
+                for existing in current.entries()
+            ):
+                raise InvariantViolation(
+                    f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
+                )
             record_json = canonical_json(entry.canonical_dict())
             record_sha256 = entry.sha256()
             previous = self._connection.execute(
@@ -604,6 +593,13 @@ class DurableLedger:
                 inserted = candidate.post(entry)
                 results.append(inserted)
                 if inserted:
+                    if entry.reversal_of is not None and sum(
+                        existing.reversal_of == entry.reversal_of
+                        for existing in candidate.entries()
+                    ) > 1:
+                        raise InvariantViolation(
+                            f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
+                        )
                     new_entries.append(entry)
             if not new_entries:
                 self._connection.execute("COMMIT")
@@ -623,7 +619,7 @@ class DurableLedger:
             entry_count = int(
                 self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
             )
-            running = self._ledger.clone()
+            running = current.clone()
             for entry in new_entries:
                 self._connection.execute(
                     """
@@ -882,15 +878,22 @@ def reconcile_book(
         }
     )
     status = ReconciliationStatus.RECONCILED if not reasons else ReconciliationStatus.DIVERGENT
-    return BookReconciliation._from_reconciler(
+    result = BookReconciliation(
         status=status,
         journal_sha256=journal_sha256,
         book_sha256=book_sha256,
         expected_sha256=expected_sha256,
         reasons=tuple(reasons),
-        source_ledger=ledger,
-        source_checkpoint_sha256=(None if checkpoint is None else checkpoint.sha256()),
     )
+    object.__setattr__(result, "_provenance", _RECONCILIATION_PROVENANCE)
+    object.__setattr__(result, "_source_ledger", ledger)
+    object.__setattr__(
+        result,
+        "_source_checkpoint_sha256",
+        None if checkpoint is None else checkpoint.sha256(),
+    )
+    object.__setattr__(result, "_source_snapshot", snapshot)
+    return result
 
 
 class C13RiskGate:
@@ -924,15 +927,17 @@ class C13RiskGate:
             )
             if current_checkpoint_sha256 != reconciliation._source_checkpoint_sha256:
                 return False
-            expected = canonical_sha256(
-                {
-                    "status": reconciliation.status,
-                    "journal_sha256": reconciliation.journal_sha256,
-                    "book_sha256": reconciliation.book_sha256,
-                    "reasons": reconciliation.reasons,
-                }
+            source_snapshot = reconciliation._source_snapshot
+            if not isinstance(source_snapshot, PortfolioSnapshot):
+                return False
+            fresh = reconcile_book(source_ledger, source_snapshot)
+            return (
+                fresh.status is reconciliation.status
+                and fresh.journal_sha256 == reconciliation.journal_sha256
+                and fresh.book_sha256 == reconciliation.book_sha256
+                and fresh.expected_sha256 == reconciliation.expected_sha256
+                and fresh.reasons == reconciliation.reasons
             )
-            return expected == reconciliation.expected_sha256
         except Exception:
             return False
 

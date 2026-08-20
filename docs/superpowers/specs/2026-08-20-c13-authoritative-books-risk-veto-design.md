@@ -88,10 +88,11 @@ Add an immutable `BookReconciliation` result with:
 - a deterministic result SHA-256.
 
 The reconciler also attaches an opaque in-process provenance capability bound
-to the exact `DurableLedger` object, its current journal digest and the latest
-checkpoint digest. `C13RiskGate` re-verifies those live bindings before an
-allow, so a caller cannot pass a self-consistent fabricated reconciliation or
-reuse a reconciled result after a new ledger head or checkpoint.
+to the exact `DurableLedger` object, its current journal digest, latest
+checkpoint digest and source snapshot. `C13RiskGate` re-runs reconciliation
+from that bound snapshot and re-verifies the live bindings before an allow, so
+a caller cannot pass a self-consistent fabricated reconciliation or reuse a
+reconciled result after a new ledger head or checkpoint.
 
 The reconciler compares the durable ledger replay with the supplied portfolio
 book snapshot and requires the ledger fingerprint referenced by the snapshot

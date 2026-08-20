@@ -25,8 +25,9 @@ latest checkpoint and returns deterministic reasons such as
 `JOURNAL_INTEGRITY_FAILURE`. Its expected digest includes reconciliation
 status, preventing a forged `DIVERGENT` → `RECONCILED` replacement. The result
 also carries an opaque in-process provenance bound to the source ledger head
-and checkpoint; `C13RiskGate` rejects a self-consistent fabricated result or a
-reconciliation reused after the ledger advances.
+and checkpoint. `C13RiskGate` re-runs reconciliation from the bound snapshot
+before allowing, so a self-consistent fabricated result or a reconciliation
+reused after the ledger advances is rejected.
 
 `C13RiskGate` is the final boundary in this slice. It accepts only an intact
 `RiskDecision.ALLOW`, a `RECONCILED` book, an actual `PAPER` or `SHADOW`

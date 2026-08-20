@@ -140,7 +140,7 @@
 
 - [ ] **Step 4: Implement `reconcile_book`.**
 
-  Call `ledger.verify()`, compare the supplied snapshot ledger hash with the current durable hash, compare it with the latest checkpoint, and return an immutable result. Include `status` in the `expected_sha256` input. Bind the result to an opaque provenance capability containing the source ledger object, current journal digest and checkpoint digest; the risk gate must re-verify those live bindings before an allow. Use deterministic reason order: `JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`, `BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`, `BOOK_SNAPSHOT_MISMATCH`. Return `RECONCILED` only with no reasons.
+  Call `ledger.verify()`, compare the supplied snapshot ledger hash with the current durable hash, compare it with the latest checkpoint, and return an immutable result. Include `status` in the `expected_sha256` input. Bind the result to an opaque provenance capability containing the source ledger object, current journal digest, checkpoint digest and source snapshot; the risk gate must re-run reconciliation from that bound snapshot and re-verify the live bindings before an allow. Use deterministic reason order: `JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`, `BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`, `BOOK_SNAPSHOT_MISMATCH`. Return `RECONCILED` only with no reasons.
 
 - [ ] **Step 5: Run the reconciliation tests and full focused module.**
 
