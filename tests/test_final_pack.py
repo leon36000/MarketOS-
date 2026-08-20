@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -9,7 +10,7 @@ import warnings
 import zipfile
 from pathlib import Path
 
-from tools.build_claude_pack import PackError, build_pack, verify_archive
+from tools.build_claude_pack import PackError, build_and_verify, build_pack, verify_archive
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +48,77 @@ class FinalPackTests(unittest.TestCase):
 
         with self.assertRaises(PackError):
             build_pack(self.source, self.temp / "dirty.zip", validate=False, require_clean=True)
+
+    def test_output_path_is_confined_to_system_temp_directory(self) -> None:
+        unsafe = ROOT.parent / f".marketos-unsafe-output-{id(self)}.zip"
+        self.assertFalse(unsafe.exists())
+        self.addCleanup(unsafe.unlink, missing_ok=True)
+
+        with self.assertRaises(PackError):
+            build_pack(self.source, unsafe, validate=False, require_clean=False)
+
+    def test_broken_output_symlink_is_rejected(self) -> None:
+        target = self.temp / "missing-target.zip"
+        symlink = self.temp / "broken-output.zip"
+        try:
+            os.symlink(target, symlink)
+        except OSError:
+            self.skipTest("symbolic links are unavailable on this platform")
+
+        with self.assertRaises(PackError):
+            build_pack(self.source, symlink, validate=False, require_clean=False)
+
+    def test_sha_sidecar_symlink_is_rejected(self) -> None:
+        output = self.temp / "sha-sidecar.zip"
+        target = self.temp / "sha-sidecar-target.txt"
+        target.write_text("keep", encoding="utf-8")
+        try:
+            os.symlink(target, Path(str(output) + ".sha256"))
+        except OSError:
+            self.skipTest("symbolic links are unavailable on this platform")
+
+        with self.assertRaises(PackError):
+            build_and_verify(self.source, output, require_clean=False)
+        self.assertEqual(target.read_text(encoding="utf-8"), "keep")
+
+    def test_verification_sidecar_symlink_is_rejected(self) -> None:
+        output = self.temp / "verification-sidecar.zip"
+        target = self.temp / "verification-sidecar-target.txt"
+        target.write_text("keep", encoding="utf-8")
+        try:
+            os.symlink(target, Path(str(output) + ".verification.json"))
+        except OSError:
+            self.skipTest("symbolic links are unavailable on this platform")
+
+        with self.assertRaises(PackError):
+            build_and_verify(self.source, output, require_clean=False)
+        self.assertEqual(target.read_text(encoding="utf-8"), "keep")
+
+    def test_sha_sidecar_hardlink_does_not_truncate_target(self) -> None:
+        output = self.temp / "hardlink-sidecar.zip"
+        target = self.temp / "hardlink-sidecar-target.txt"
+        target.write_text("keep", encoding="utf-8")
+        try:
+            os.link(target, Path(str(output) + ".sha256"))
+        except OSError:
+            self.skipTest("hard links are unavailable on this platform")
+
+        build_and_verify(self.source, output, require_clean=False)
+
+        self.assertEqual(target.read_text(encoding="utf-8"), "keep")
+
+    def test_zip_hardlink_does_not_truncate_target(self) -> None:
+        output = self.temp / "hardlink-output.zip"
+        target = self.temp / "hardlink-output-target.bin"
+        target.write_bytes(b"keep")
+        try:
+            os.link(target, output)
+        except OSError:
+            self.skipTest("hard links are unavailable on this platform")
+
+        build_pack(self.source, output, validate=False, require_clean=False)
+
+        self.assertEqual(target.read_bytes(), b"keep")
 
     def test_two_builds_are_byte_identical(self) -> None:
         first = self.build("one.zip")

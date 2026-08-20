@@ -137,6 +137,63 @@ def _assert_clean(root: Path) -> None:
         raise PackError(f"source repository is not clean:\n{output}")
 
 
+def _validated_output_path(root: Path, output: Path) -> Path:
+    """Return a confined release path suitable for archive and sidecars."""
+    root = root.resolve()
+    candidate = output if output.is_absolute() else Path.cwd() / output
+    if candidate.name in {"", ".", ".."} or candidate.suffix.lower() != ".zip":
+        raise PackError("pack output must be a .zip file path")
+    if candidate.is_symlink():
+        raise PackError("pack output symlinks are forbidden")
+
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    parent = candidate.parent.resolve()
+    try:
+        parent.relative_to(temp_root)
+    except ValueError as exc:
+        raise PackError("pack output must be under the system temporary directory") from exc
+
+    validated = parent / candidate.name
+    if validated == root or root in validated.parents:
+        raise PackError("pack output must be outside the source repository")
+    if validated.is_symlink():
+        raise PackError("pack output symlinks are forbidden")
+    if validated.exists() and not validated.is_file():
+        raise PackError("pack output must not replace a non-file")
+    return validated
+
+
+def _sidecar_path(output: Path, suffix: str) -> Path:
+    if suffix not in {".sha256", ".verification.json"}:
+        raise PackError("unsupported pack sidecar")
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    parent = output.parent.resolve()
+    try:
+        parent.relative_to(temp_root)
+    except ValueError as exc:
+        raise PackError("pack sidecar must be under the system temporary directory") from exc
+    return parent / f"{output.name}{suffix}"
+
+
+def _write_sidecar(path: Path, data: bytes) -> None:
+    if path.is_symlink():
+        raise PackError(f"pack sidecar symlinks are forbidden: {path.name}")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    except OSError as exc:
+        raise PackError(f"could not write pack sidecar: {path.name}") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def _run_json_validator(root: Path, relative: str) -> dict[str, Any]:
     result = _run([sys.executable, relative, "--root", ".", "--json"], cwd=root)
     try:
@@ -298,22 +355,40 @@ def _members(root: Path, tracked: Iterable[tuple[str, int]], info: dict[str, Any
 def _write_zip(output: Path, members: dict[str, bytes], modes: dict[str, int], epoch: int) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     timestamp = _zip_time(epoch)
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
-        for name in sorted(members):
-            _safe_name(name)
-            info = zipfile.ZipInfo(name, date_time=timestamp)
-            info.create_system = 3
-            info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.flag_bits |= 0x800
-            archive.writestr(info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{output.name}.", suffix=".tmp", dir=output.parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w+b") as temporary_file:
+            descriptor = -1
+            with zipfile.ZipFile(
+                temporary_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+            ) as archive:
+                for name in sorted(members):
+                    _safe_name(name)
+                    info = zipfile.ZipInfo(name, date_time=timestamp)
+                    info.create_system = 3
+                    info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    info.flag_bits |= 0x800
+                    archive.writestr(
+                        info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9
+                    )
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        os.replace(temporary, output)
+    except OSError as exc:
+        raise PackError(f"could not write pack archive: {output.name}") from exc
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        temporary.unlink(missing_ok=True)
 
 
 def build_pack(root: Path, output: Path, *, validate: bool = True, require_clean: bool = True) -> dict[str, Any]:
     root = root.resolve()
-    output = output.resolve()
-    if root == output or root in output.parents:
-        raise PackError("pack output must be outside the source repository")
+    output = _validated_output_path(root, output)
     if require_clean:
         _assert_clean(root)
     reports = validate_source(root, require_clean=require_clean) if validate else None
@@ -386,6 +461,8 @@ def verify_archive(archive_path: Path, *, run_repository_checks: bool = False) -
 
 
 def build_and_verify(root: Path, output: Path, *, require_clean: bool = True) -> dict[str, Any]:
+    root = root.resolve()
+    output = _validated_output_path(root, output)
     first = build_pack(root, output, validate=True, require_clean=require_clean)
     verification = verify_archive(output, run_repository_checks=False)
     with tempfile.TemporaryDirectory(prefix="marketos-pack-rebuild-") as temp_dir:
@@ -403,10 +480,11 @@ def build_and_verify(root: Path, output: Path, *, require_clean: bool = True) ->
         "verification": verification,
         "deterministic_rebuild_match": True,
     }
-    output.with_name(output.name + ".sha256").write_text(
-        f"{first['archive_sha256']}  {output.name}\n", encoding="utf-8"
+    _write_sidecar(
+        _sidecar_path(output, ".sha256"),
+        f"{first['archive_sha256']}  {output.name}\n".encode("utf-8"),
     )
-    output.with_name(output.name + ".verification.json").write_bytes(_canonical_json(report))
+    _write_sidecar(_sidecar_path(output, ".verification.json"), _canonical_json(report))
     return report
 
 

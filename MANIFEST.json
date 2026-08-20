@@ -1238,8 +1238,8 @@
     },
     {
       "path": "tests/test_final_pack.py",
-      "sha256": "6a7192f31000a0f090535609bd1e4fe6333a1d32714f70bc15ce2360c16161f9",
-      "bytes": 4760
+      "sha256": "ca870603db3b55dd34ff3ab7fd77a7dc10b7e69c119b705f23857077809e509c",
+      "bytes": 7828
     },
     {
       "path": "tests/test_foundation_acceptance.py",
@@ -1388,8 +1388,8 @@
     },
     {
       "path": "tools/build_claude_pack.py",
-      "sha256": "57f791dc49ce4eb2087b823afce451f2cc774095c2afc4e63b8ff338ee82e7cb",
-      "bytes": 17928
+      "sha256": "1d02b3bd07951e30aef1194c2e7e2fbcbd3707aee8b6d9d8d08dff9ec40f17eb",
+      "bytes": 20945
     },
     {
       "path": "tools/ingest_requirements.py",
