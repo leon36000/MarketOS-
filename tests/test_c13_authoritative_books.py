@@ -4,10 +4,12 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from dataclasses import replace
 
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.ledger import JournalEntry, Posting, PostingSide
 from marketos.money import Money
+from marketos.portfolio import PortfolioBook
 
 
 class C13DurableLedgerTests(unittest.TestCase):
@@ -126,6 +128,92 @@ class C13DurableLedgerTests(unittest.TestCase):
         connection.close()
         with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
             DurableLedger(self.path)
+
+
+class C13ReconciliationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.path = Path(self.temp_dir.name) / "authoritative-books.sqlite"
+
+    def test_checkpoint_survives_reopen_and_reconciles(self) -> None:
+        try:
+            from marketos.authoritative_books import (
+                DurableLedger,
+                ReconciliationStatus,
+                reconcile_book,
+            )
+        except ImportError as exc:
+            self.fail(f"C13 reconciliation is not implemented: {exc}")
+
+        with DurableLedger(self.path) as ledger:
+            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            snapshot = book.snapshot()
+            ledger.checkpoint("checkpoint-1", snapshot, captured_at_ns=200)
+
+        with DurableLedger(self.path) as reopened:
+            result = reconcile_book(reopened, snapshot)
+            self.assertEqual(result.status, ReconciliationStatus.RECONCILED)
+            self.assertEqual(result.reasons, ())
+
+    def test_snapshot_divergence_is_reported(self) -> None:
+        try:
+            from marketos.authoritative_books import (
+                DurableLedger,
+                ReconciliationStatus,
+                reconcile_book,
+            )
+        except ImportError as exc:
+            self.fail(f"C13 reconciliation is not implemented: {exc}")
+
+        with DurableLedger(self.path) as ledger:
+            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            snapshot = book.snapshot()
+            ledger.checkpoint("checkpoint-1", snapshot, captured_at_ns=200)
+            altered = replace(snapshot, cash=Money.from_decimal("USD", "99.00"))
+            result = reconcile_book(ledger, altered)
+            self.assertEqual(result.status, ReconciliationStatus.DIVERGENT)
+            self.assertIn("BOOK_SNAPSHOT_MISMATCH", result.reasons)
+
+    def test_new_ledger_entry_makes_checkpoint_stale(self) -> None:
+        try:
+            from marketos.authoritative_books import (
+                DurableLedger,
+                ReconciliationStatus,
+                reconcile_book,
+            )
+        except ImportError as exc:
+            self.fail(f"C13 reconciliation is not implemented: {exc}")
+
+        with DurableLedger(self.path) as ledger:
+            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            snapshot = book.snapshot()
+            ledger.checkpoint("checkpoint-1", snapshot, captured_at_ns=200)
+            ledger.post(
+                JournalEntry(
+                    entry_id="fund-2",
+                    occurred_at_ns=300,
+                    description="second fund",
+                    postings=(
+                        Posting(
+                            "asset:cash:USD",
+                            PostingSide.DEBIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                        Posting(
+                            "equity:capital:USD",
+                            PostingSide.CREDIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                    ),
+                )
+            )
+            result = reconcile_book(ledger, snapshot)
+            self.assertEqual(result.status, ReconciliationStatus.DIVERGENT)
+            self.assertIn("CHECKPOINT_STALE", result.reasons)
 
 
 if __name__ == "__main__":
