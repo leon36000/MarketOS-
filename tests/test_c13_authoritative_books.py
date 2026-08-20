@@ -466,6 +466,14 @@ class C13RiskGateTests(unittest.TestCase):
         self.assertIn("EXECUTION_MODE_NOT_ALLOWED", result.reasons)
         self.assertIn("UPSTREAM_NO_TRADE", result.reasons)
 
+    def test_gate_lock_cannot_be_weakened_by_instance_override(self) -> None:
+        decision = replace(self.decision(), live_trading_state="UNLOCKED")
+        gate = self.C13RiskGate()
+        gate.LIVE_TRADING_STATE = "UNLOCKED"
+        result = gate.evaluate(decision, self.reconciled, ExecutionMode.PAPER)
+        self.assertEqual(result.action, RiskAction.NO_TRADE)
+        self.assertIn("LIVE_TRADING_LOCK_WEAKENED", result.reasons)
+
     def test_reconciliation_status_tampering_forces_no_trade(self) -> None:
         altered = replace(self.snapshot, cash=Money.from_decimal("USD", "4999.00"))
         divergent = self.reconcile_book(self.ledger, altered)
@@ -473,6 +481,62 @@ class C13RiskGateTests(unittest.TestCase):
         result = self.C13RiskGate().evaluate(
             self.decision(),
             forged,
+            ExecutionMode.PAPER,
+        )
+        self.assertEqual(result.action, RiskAction.NO_TRADE)
+        self.assertIn("RECONCILIATION_INTEGRITY_FAILURE", result.reasons)
+
+    def test_self_consistent_forged_reconciliation_cannot_pass_gate(self) -> None:
+        from marketos.authoritative_books import BookReconciliation
+        from marketos.canonical import canonical_sha256
+
+        reasons = ()
+        expected_sha256 = canonical_sha256(
+            {
+                "status": self.ReconciliationStatus.RECONCILED,
+                "journal_sha256": self.ledger.sha256(),
+                "book_sha256": self.snapshot.sha256(),
+                "reasons": reasons,
+            }
+        )
+        forged = BookReconciliation(
+            status=self.ReconciliationStatus.RECONCILED,
+            journal_sha256=self.ledger.sha256(),
+            book_sha256=self.snapshot.sha256(),
+            expected_sha256=expected_sha256,
+            reasons=reasons,
+        )
+        result = self.C13RiskGate().evaluate(
+            self.decision(),
+            forged,
+            ExecutionMode.PAPER,
+        )
+        self.assertEqual(result.action, RiskAction.NO_TRADE)
+        self.assertIn("RECONCILIATION_INTEGRITY_FAILURE", result.reasons)
+
+    def test_reconciled_result_is_invalid_after_new_ledger_head(self) -> None:
+        self.ledger.post(
+            JournalEntry(
+                entry_id="fund-2",
+                occurred_at_ns=300,
+                description="second fund",
+                postings=(
+                    Posting(
+                        "asset:cash:USD",
+                        PostingSide.DEBIT,
+                        Money.from_decimal("USD", "1.00"),
+                    ),
+                    Posting(
+                        "equity:capital:USD",
+                        PostingSide.CREDIT,
+                        Money.from_decimal("USD", "1.00"),
+                    ),
+                ),
+            )
+        )
+        result = self.C13RiskGate().evaluate(
+            self.decision(),
+            self.reconciled,
             ExecutionMode.PAPER,
         )
         self.assertEqual(result.action, RiskAction.NO_TRADE)

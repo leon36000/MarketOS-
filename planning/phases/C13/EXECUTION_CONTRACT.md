@@ -56,7 +56,10 @@ tail truncation.
 expected digest includes the status, and reason order is
 `JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`,
 `BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`,
-`BOOK_SNAPSHOT_MISMATCH`.
+`BOOK_SNAPSHOT_MISMATCH`. A reconciled result is additionally bound to an
+opaque provenance capability for the source ledger head and checkpoint;
+`C13RiskGate` re-verifies those live bindings and rejects fabricated or stale
+reconciliation objects.
 
 `C13RiskGate.evaluate(decision, reconciliation, mode)` returns
 `C13GateDecision`. It returns `ALLOW` only for an intact upstream allow,

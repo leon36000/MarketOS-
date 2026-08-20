@@ -38,11 +38,14 @@ def _source_tree_sha256(source_hashes: dict[str, str]) -> str:
 def _runtime_checks(root: Path) -> dict[str, bool]:
     sys.path.insert(0, str(root / "src"))
     from marketos.authoritative_books import (
+        BookReconciliation,
         C13RiskGate,
         DurableLedger,
         ReconciliationStatus,
         reconcile_book,
     )
+    from marketos.canonical import canonical_sha256
+    from marketos.ledger import JournalEntry, Posting, PostingSide
     from marketos.money import Money, Price, Quantity
     from marketos.orders import ExecutionMode, OrderIntent, OrderSide, OrderType, TimeInForce
     from marketos.portfolio import PortfolioBook
@@ -125,6 +128,51 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
                 forged_status,
                 ExecutionMode.PAPER,
             )
+            forged_reasons: tuple[str, ...] = ()
+            forged_expected_sha256 = canonical_sha256(
+                {
+                    "status": ReconciliationStatus.RECONCILED,
+                    "journal_sha256": ledger.sha256(),
+                    "book_sha256": snapshot.sha256(),
+                    "reasons": forged_reasons,
+                }
+            )
+            forged_reconciliation = BookReconciliation(
+                status=ReconciliationStatus.RECONCILED,
+                journal_sha256=ledger.sha256(),
+                book_sha256=snapshot.sha256(),
+                expected_sha256=forged_expected_sha256,
+                reasons=forged_reasons,
+            )
+            fabricated_veto = C13RiskGate().evaluate(
+                decision,
+                forged_reconciliation,
+                ExecutionMode.PAPER,
+            )
+            ledger.post(
+                JournalEntry(
+                    entry_id="funding-2",
+                    occurred_at_ns=300,
+                    description="second fund",
+                    postings=(
+                        Posting(
+                            "asset:cash:USD",
+                            PostingSide.DEBIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                        Posting(
+                            "equity:capital:USD",
+                            PostingSide.CREDIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                    ),
+                )
+            )
+            stale_veto = C13RiskGate().evaluate(
+                decision,
+                reconciliation,
+                ExecutionMode.PAPER,
+            )
             malformed_decision = C13RiskGate().evaluate(
                 object(),
                 reconciliation,
@@ -145,6 +193,10 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
                 "snapshot_provenance": snapshot_provenance,
                 "status_integrity_veto": status_veto.action is RiskAction.NO_TRADE
                 and "RECONCILIATION_INTEGRITY_FAILURE" in status_veto.reasons,
+                "fabricated_reconciliation_veto": fabricated_veto.action is RiskAction.NO_TRADE
+                and "RECONCILIATION_INTEGRITY_FAILURE" in fabricated_veto.reasons,
+                "stale_reconciliation_veto": stale_veto.action is RiskAction.NO_TRADE
+                and "RECONCILIATION_INTEGRITY_FAILURE" in stale_veto.reasons,
                 "malformed_decision_veto": malformed_decision.action is RiskAction.NO_TRADE
                 and "INVALID_RISK_DECISION" in malformed_decision.reasons,
                 "malformed_reconciliation_veto": malformed_reconciliation.action is RiskAction.NO_TRADE

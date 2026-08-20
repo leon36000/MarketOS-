@@ -1,7 +1,7 @@
 """Durable paper/shadow book boundaries for the first C13 implementation slice."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
@@ -16,6 +16,9 @@ from .money import Money, Quantity
 from .orders import ExecutionMode
 from .portfolio import PortfolioBook, PortfolioSnapshot, Position
 from .risk import RiskAction, RiskDecision
+
+
+_RECONCILIATION_PROVENANCE = object()
 
 
 def _decode_canonical(value: Any) -> Any:
@@ -102,6 +105,38 @@ class BookReconciliation:
     book_sha256: str
     expected_sha256: str
     reasons: tuple[str, ...]
+    _provenance: object = field(default=None, init=False, repr=False, compare=False)
+    _source_ledger: Any = field(default=None, init=False, repr=False, compare=False)
+    _source_checkpoint_sha256: str | None = field(
+        default=None,
+        init=False,
+        repr=False,
+        compare=False,
+    )
+
+    @classmethod
+    def _from_reconciler(
+        cls,
+        *,
+        status: ReconciliationStatus,
+        journal_sha256: str,
+        book_sha256: str,
+        expected_sha256: str,
+        reasons: tuple[str, ...],
+        source_ledger: Any,
+        source_checkpoint_sha256: str | None,
+    ) -> "BookReconciliation":
+        result = cls(
+            status=status,
+            journal_sha256=journal_sha256,
+            book_sha256=book_sha256,
+            expected_sha256=expected_sha256,
+            reasons=reasons,
+        )
+        object.__setattr__(result, "_provenance", _RECONCILIATION_PROVENANCE)
+        object.__setattr__(result, "_source_ledger", source_ledger)
+        object.__setattr__(result, "_source_checkpoint_sha256", source_checkpoint_sha256)
+        return result
 
     def canonical_dict(self) -> dict[str, object]:
         return {
@@ -622,6 +657,7 @@ def reconcile_book(
     reasons: list[str] = []
     journal_sha256 = ""
     book_sha256 = snapshot.sha256()
+    checkpoint: BookCheckpoint | None = None
     try:
         ledger.verify()
         journal_sha256 = ledger.sha256()
@@ -650,16 +686,17 @@ def reconcile_book(
             "reasons": tuple(reasons),
         }
     )
-    return BookReconciliation(
+    status = ReconciliationStatus.RECONCILED if not reasons else ReconciliationStatus.DIVERGENT
+    return BookReconciliation._from_reconciler(
         status=(
-            ReconciliationStatus.RECONCILED
-            if not reasons
-            else ReconciliationStatus.DIVERGENT
+            status
         ),
         journal_sha256=journal_sha256,
         book_sha256=book_sha256,
         expected_sha256=expected_sha256,
         reasons=tuple(reasons),
+        source_ledger=ledger,
+        source_checkpoint_sha256=(None if checkpoint is None else checkpoint.sha256()),
     )
 
 
@@ -680,6 +717,20 @@ class C13RiskGate:
     @staticmethod
     def _reconciliation_is_intact(reconciliation: BookReconciliation) -> bool:
         try:
+            if reconciliation._provenance is not _RECONCILIATION_PROVENANCE:
+                return False
+            source_ledger = reconciliation._source_ledger
+            if not isinstance(source_ledger, DurableLedger):
+                return False
+            source_ledger.verify()
+            if source_ledger.sha256() != reconciliation.journal_sha256:
+                return False
+            checkpoint = source_ledger.latest_checkpoint()
+            current_checkpoint_sha256 = (
+                None if checkpoint is None else checkpoint.sha256()
+            )
+            if current_checkpoint_sha256 != reconciliation._source_checkpoint_sha256:
+                return False
             expected = canonical_sha256(
                 {
                     "status": reconciliation.status,
@@ -742,7 +793,7 @@ class C13RiskGate:
                 reasons.append("UPSTREAM_NO_TRADE")
             if not self._decision_is_intact(decision):
                 reasons.append("UPSTREAM_DECISION_INTEGRITY_FAILURE")
-            if decision.live_trading_state != self.LIVE_TRADING_STATE:
+            if decision.live_trading_state != "HARD_LOCKED":
                 reasons.append("LIVE_TRADING_LOCK_WEAKENED")
         if reconciliation_valid:
             if reconciliation.status is not ReconciliationStatus.RECONCILED:

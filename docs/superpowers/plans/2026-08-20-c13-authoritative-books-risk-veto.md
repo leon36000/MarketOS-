@@ -140,7 +140,7 @@
 
 - [ ] **Step 4: Implement `reconcile_book`.**
 
-  Call `ledger.verify()`, compare the supplied snapshot ledger hash with the current durable hash, compare it with the latest checkpoint, and return an immutable result. Include `status` in the `expected_sha256` input. Use deterministic reason order: `JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`, `BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`, `BOOK_SNAPSHOT_MISMATCH`. Return `RECONCILED` only with no reasons.
+  Call `ledger.verify()`, compare the supplied snapshot ledger hash with the current durable hash, compare it with the latest checkpoint, and return an immutable result. Include `status` in the `expected_sha256` input. Bind the result to an opaque provenance capability containing the source ledger object, current journal digest and checkpoint digest; the risk gate must re-verify those live bindings before an allow. Use deterministic reason order: `JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`, `BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`, `BOOK_SNAPSHOT_MISMATCH`. Return `RECONCILED` only with no reasons.
 
 - [ ] **Step 5: Run the reconciliation tests and full focused module.**
 
@@ -242,7 +242,7 @@
 
 - [ ] **Step 1: Write the failing verifier acceptance test.**
 
-  Add `test_c13_validator_reports_non_promotable_verified_slice` that resolves the repository root with `Path(__file__).resolve().parents[1]`, invokes `tools/verify_c13_contract.py --root repository_root --json`, parses JSON, and asserts `ok is True`, all focused checks are true, `live_trading_state == "HARD_LOCKED"`, `profitability_state == "UNPROVEN"`, `promotion_allowed is False`, and `phase_complete is False`. The focused test module must also cover digest/sequence/previous-chain tampering, tail truncation, a SQLite failure injected between batch inserts, late arrival ordering, status tampering and arbitrary snapshot rejection.
+  Add `test_c13_validator_reports_non_promotable_verified_slice` that resolves the repository root with `Path(__file__).resolve().parents[1]`, invokes `tools/verify_c13_contract.py --root repository_root --json`, parses JSON, and asserts `ok is True`, all focused checks are true, `live_trading_state == "HARD_LOCKED"`, `profitability_state == "UNPROVEN"`, `promotion_allowed is False`, and `phase_complete is False`. The focused test module must also cover digest/sequence/previous-chain tampering, tail truncation, a SQLite failure injected between batch inserts, late arrival ordering, status tampering, fabricated/stale reconciliation rejection and arbitrary snapshot rejection.
 
 - [ ] **Step 2: Run it and verify RED.**
 
