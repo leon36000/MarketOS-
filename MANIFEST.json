@@ -1388,8 +1388,8 @@
     },
     {
       "path": "tools/build_claude_pack.py",
-      "sha256": "32f9398a1e6ac87151bbe65eba5b0a99f9faeb6a173f92c264a124da6a123fd7",
-      "bytes": 20622
+      "sha256": "1d02b3bd07951e30aef1194c2e7e2fbcbd3707aee8b6d9d8d08dff9ec40f17eb",
+      "bytes": 20945
     },
     {
       "path": "tools/ingest_requirements.py",

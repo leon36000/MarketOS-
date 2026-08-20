@@ -359,21 +359,30 @@ def _write_zip(output: Path, members: dict[str, bytes], modes: dict[str, int], e
         prefix=f".{output.name}.", suffix=".tmp", dir=output.parent
     )
     temporary = Path(temporary_name)
-    os.close(descriptor)
     try:
-        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
-            for name in sorted(members):
-                _safe_name(name)
-                info = zipfile.ZipInfo(name, date_time=timestamp)
-                info.create_system = 3
-                info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
-                info.compress_type = zipfile.ZIP_DEFLATED
-                info.flag_bits |= 0x800
-                archive.writestr(info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+        with os.fdopen(descriptor, "w+b") as temporary_file:
+            descriptor = -1
+            with zipfile.ZipFile(
+                temporary_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+            ) as archive:
+                for name in sorted(members):
+                    _safe_name(name)
+                    info = zipfile.ZipInfo(name, date_time=timestamp)
+                    info.create_system = 3
+                    info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    info.flag_bits |= 0x800
+                    archive.writestr(
+                        info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9
+                    )
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
         os.replace(temporary, output)
     except OSError as exc:
         raise PackError(f"could not write pack archive: {output.name}") from exc
     finally:
+        if descriptor >= 0:
+            os.close(descriptor)
         temporary.unlink(missing_ok=True)
 
 
