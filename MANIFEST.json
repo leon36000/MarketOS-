@@ -1003,8 +1003,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "c523a3bcc94fa20b1f2a418f0a3b4d6132a08a85a1792cfba5ed524dc40f37c7",
-      "bytes": 23413
+      "sha256": "15fb45d91a95633947d0d7b3266d8def52229cb8fed467ff435868e2514ada4b",
+      "bytes": 23475
     },
     {
       "path": "src/marketos/bars.py",
@@ -1173,8 +1173,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "61ef479f3b501b2517d9c870a9ead49e6b571a64a17970849dfd70780ca0ee84",
-      "bytes": 14837
+      "sha256": "54a85ea6f25a908ca87f3545165d1fdfba6c0580f642439c8a9cffaa71b6f919",
+      "bytes": 15499
     },
     {
       "path": "tests/test_c1_design.py",

@@ -135,6 +135,22 @@ class C13DurableLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
             DurableLedger(self.path)
 
+    def test_tampered_row_metadata_is_detected(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            ledger.post(self.entry("fund-1"))
+        connection = sqlite3.connect(self.path)
+        connection.execute("DROP TRIGGER ledger_entries_no_update")
+        connection.execute(
+            "UPDATE ledger_entries SET occurred_at_ns = ? WHERE entry_id = ?",
+            (999, "fund-1"),
+        )
+        connection.commit()
+        connection.close()
+        with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
+            DurableLedger(self.path)
+
 
 class C13ReconciliationTests(unittest.TestCase):
     def setUp(self) -> None:

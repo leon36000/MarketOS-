@@ -170,6 +170,7 @@ def _entry_from_row(row: sqlite3.Row) -> JournalEntry:
         entry.sha256() != str(row["record_sha256"])
         or canonical_json(entry.canonical_dict()) != record_json
         or entry.entry_id != str(row["entry_id"])
+        or entry.occurred_at_ns != int(row["occurred_at_ns"])
     ):
         raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
     return entry
