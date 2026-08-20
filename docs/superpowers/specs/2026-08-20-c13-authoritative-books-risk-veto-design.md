@@ -48,9 +48,13 @@ Add `DurableLedger` in a focused C13 runtime module. It wraps the existing
 - `verify()`
 - `close()` and context-manager support
 
-`checkpoint(checkpoint_id, book, captured_at_ns=...)` accepts only a real
-`PortfolioBook` whose `ledger` is this `DurableLedger`; it derives the snapshot
-itself. An arbitrary caller-supplied snapshot cannot become authoritative.
+`authoritative_book(base_currency=...)` creates the only checkpoint-capable
+`PortfolioBook` for a fresh `DurableLedger`; it refuses to create a new book
+against a non-empty journal because this slice has no portfolio-state replay.
+`checkpoint(checkpoint_id, book, captured_at_ns=...)` derives the snapshot from
+that capability and tracks the book's last ledger head. An arbitrary snapshot,
+newly constructed bound book or externally advanced ledger cannot become
+authoritative.
 
 SQLite is used only as a local paper/shadow persistence boundary. The database
 uses `journal_mode = WAL` and `synchronous = FULL`. Each row stores its
@@ -58,7 +62,9 @@ sequence, stable entry ID, canonical JSON, entry SHA-256 and the previous row
 SHA-256. A second append-only head chain stores the entry count, current record
 digest and cumulative ledger digest in the same transaction. Update and delete
 triggers make both tables append-only; a missing tail row therefore disagrees
-with the durable head chain.
+with the durable head chain. A separate atomically replaced sidecar head anchor
+must also match, so coordinated deletion of the last journal and head rows is
+detected.
 
 On open, every row is decoded and replayed through the existing in-memory
 `Ledger`. The stored canonical JSON, entry digest, sequence and previous-digest

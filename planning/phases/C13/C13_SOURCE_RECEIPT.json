@@ -4,6 +4,7 @@
   "slice": "C13-0",
   "content_addressed": true,
   "promotion_allowed": false,
+  "source_parent_commit": "ab3648d1d7bcf92457f27d4b6f22bf11b3dd07cd",
   "source_paths": [
     "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
     "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
@@ -17,16 +18,16 @@
     "tools/verify_c13_contract.py"
   ],
   "source_sha256": {
-    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md": "931c4cea07a92ae127a7bf8d1001273b68621f2dbc8058aad784f13cbd81e50e",
-    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md": "83f7261e233c4a1291da838c46f6391887c8a6f8a7f2b2e40036d2bbd3c14082",
-    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md": "3e683578e5de2ceda36e8e15b99af112a97b2c44d39149545ed809e83f72afed",
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md": "32a702b94b93b0c727cec85a52065827dba877b7df3721ab80486596e43c3cda",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md": "aa77fd2b45ab645c9b69df5a5d4d9a9b33d4b92935c2ffb1770613cab4b5cd07",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md": "2997b04d5cf872459b19096fc03e4a7a05cfbbfdc4f0a7b75e28313c30411a21",
     "planning/PHASE_INDEX.json": "97a28e11538c6ca3e7451e008f0d1504f6dad6c440841ff9229f8fe969913011",
     "planning/phases/C13/C13_DECISIONS.json": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
     "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
-    "planning/phases/C13/EXECUTION_CONTRACT.md": "73df6e555c492e74e84168445784c289993f2cfa15dd9ce49cec55abc6231387",
-    "src/marketos/authoritative_books.py": "a15e6db824c150a8b048cd552c9b55ab478bb56fc31539f4e664080edb0923d4",
-    "tests/test_c13_authoritative_books.py": "d6c519bcc7652c33619f4c3fe9e98449f6a567b6d36176cca9d6fe4d001b787e",
-    "tools/verify_c13_contract.py": "7c32bedda81dafeb143aa2705d6304b693ca3460e2bdc16610b49a1df6745181"
+    "planning/phases/C13/EXECUTION_CONTRACT.md": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
+    "src/marketos/authoritative_books.py": "38077f8fb74231e5b5cf3b995907fd42e68dd862bed534f7ca0b4848a07541a9",
+    "tests/test_c13_authoritative_books.py": "60170a4183354bae396adfe8df82a42ed42c80c94d77c594176f36e894994809",
+    "tools/verify_c13_contract.py": "e3eb511771bef65615b1f24e78238215ae0bf99a2ffa2b106aed861ec9054d18"
   },
-  "source_tree_sha256": "f9f09cc4d2cc333a6d520c6668ddc98d5ad57c44f1309b46466af34815283f74"
+  "source_tree_sha256": "7cd429c7d9826e26798c81e25450d5d93a54875c75e3874328d43f8dd304f9e7"
 }

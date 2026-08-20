@@ -4,7 +4,7 @@
 
 **Goal:** Add a durable, reconstructible paper/shadow book journal and a fail-closed C13 risk gate without adding any live or broker route.
 
-**Architecture:** `DurableLedger` wraps the existing exact in-memory `Ledger` and persists canonical journal entries plus hash-chain metadata in SQLite. Append-only ledger-head rows anchor the expected tail, while `checkpoint` derives a `PortfolioSnapshot` only from a real `PortfolioBook` bound to that ledger. `reconcile_book` compares the current durable ledger and supplied snapshot to that checkpoint. `C13RiskGate` accepts only an intact upstream `RiskDecision`, a reconciled book and `PAPER`/`SHADOW` mode.
+**Architecture:** `DurableLedger` wraps the existing exact in-memory `Ledger` and persists canonical journal entries plus hash-chain metadata in SQLite. Append-only ledger-head rows and a durable sidecar anchor protect the expected tail, while `authoritative_book` creates the only checkpoint-capable book for a fresh ledger and tracks its source head. `reconcile_book` compares the current durable ledger and supplied snapshot to that checkpoint. `C13RiskGate` accepts only an intact upstream `RiskDecision`, a reconciled book and `PAPER`/`SHADOW` mode.
 
 **Tech Stack:** Python 3.12, standard-library `sqlite3`, existing `dataclasses`, canonical JSON/SHA-256 helpers, `unittest`, repository JSON validators.
 
@@ -48,7 +48,7 @@
 
 - [ ] **Step 3: Implement the minimal durable wrapper.**
 
-  Define `DurableLedger` with SQLite `WAL` and `synchronous = FULL`, a `ledger_entries` table containing `ledger_sequence`, `entry_id`, `occurred_at_ns`, `record_json`, `record_sha256`, and `previous_sha256`, plus an append-only `ledger_heads` table containing the entry count and cumulative ledger digest. Decode canonical JSON back into `JournalEntry` and `Posting` objects, rebuild an in-memory `Ledger` on open, and reject any digest, sequence, chain or tail-anchor mismatch with `InvariantViolation("JOURNAL_INTEGRITY_FAILURE")`.
+  Define `DurableLedger` with SQLite `WAL` and `synchronous = FULL`, a `ledger_entries` table containing `ledger_sequence`, `entry_id`, `occurred_at_ns`, `record_json`, `record_sha256`, and `previous_sha256`, plus an append-only `ledger_heads` table containing the entry count and cumulative ledger digest. Maintain an atomically replaced sidecar head anchor inside the write transaction; decode canonical JSON back into `JournalEntry` and `Posting` objects, rebuild an in-memory `Ledger` on open, and reject any digest, sequence, chain, sidecar or tail-anchor mismatch with `InvariantViolation("JOURNAL_INTEGRITY_FAILURE")`.
 
 - [ ] **Step 4: Run the focused test and confirm GREEN.**
 
@@ -136,7 +136,7 @@
 
 - [ ] **Step 3: Implement immutable checkpoint records.**
 
-  Add `BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)`, canonical decoding for `Money`, `Quantity`, `Position` and `PortfolioSnapshot`, and an append-only `book_checkpoints` table with sequence, record JSON, record SHA and previous SHA. Require a real `PortfolioBook` whose `ledger is self`; derive its snapshot and require `snapshot.ledger_sha256 == self.sha256()` before persisting. Identical checkpoint redelivery is idempotent; conflicting IDs raise `DuplicateConflict`; an arbitrary snapshot must be rejected with `INVALID_BOOK_CHECKPOINT_SOURCE`.
+  Add `authoritative_book(base_currency=...)` and an `AuthoritativePortfolioBook` capability. It is creatable only for an empty journal, and its mutation wrappers keep a last-seen ledger head; external or stale writers taint it. Add `BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)`, canonical decoding for `Money`, `Quantity`, `Position` and `PortfolioSnapshot`, and an append-only `book_checkpoints` table with sequence, record JSON, record SHA and previous SHA. Require the capability, an untampered source head and `snapshot.ledger_sha256 == self.sha256()` before persisting. Identical checkpoint redelivery is idempotent; conflicting IDs raise `DuplicateConflict`; an arbitrary snapshot or newly constructed bound book must be rejected.
 
 - [ ] **Step 4: Implement `reconcile_book`.**
 
@@ -242,7 +242,7 @@
 
 - [ ] **Step 1: Write the failing verifier acceptance test.**
 
-  Add `test_c13_validator_reports_non_promotable_verified_slice` that resolves the repository root with `Path(__file__).resolve().parents[1]`, invokes `tools/verify_c13_contract.py --root repository_root --json`, parses JSON, and asserts `ok is True`, all focused checks are true, `live_trading_state == "HARD_LOCKED"`, `profitability_state == "UNPROVEN"`, `promotion_allowed is False`, and `phase_complete is False`. The focused test module must also cover digest/sequence/previous-chain tampering, tail truncation, a SQLite failure injected between batch inserts, late arrival ordering, status tampering, fabricated/stale reconciliation rejection and arbitrary snapshot rejection.
+  Add `test_c13_validator_reports_non_promotable_verified_slice` that resolves the repository root with `Path(__file__).resolve().parents[1]`, invokes `tools/verify_c13_contract.py --root repository_root --json`, parses JSON, and asserts `ok is True`, all focused checks are true, `live_trading_state == "HARD_LOCKED"`, `profitability_state == "UNPROVEN"`, `promotion_allowed is False`, and `phase_complete is False`. The focused test module must also cover digest/sequence/previous-chain tampering, single and coordinated tail truncation, a SQLite failure injected between batch inserts, stale-writer refresh, late arrival ordering, status tampering, fabricated/stale reconciliation rejection, malformed fail-closed inputs and arbitrary/unreconstructed book rejection.
 
 - [ ] **Step 2: Run it and verify RED.**
 

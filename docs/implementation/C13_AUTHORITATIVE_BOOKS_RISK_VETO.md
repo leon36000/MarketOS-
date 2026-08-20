@@ -11,12 +11,14 @@ double-entry `Ledger` and persists canonical journal entries in SQLite. The
 database is configured for WAL and full synchronous writes. Each row contains
 an arrival sequence, stable entry ID, canonical record, record digest and
 previous-record digest. A second append-only head chain anchors the expected
-tail. SQL update/delete triggers enforce append-only writes for both chains.
+tail, and a durable sidecar anchor must match that head. SQL update/delete
+triggers enforce append-only writes for both chains.
 
 `BookCheckpoint` persists a full `PortfolioSnapshot` and its ledger digest.
-`DurableLedger.checkpoint` accepts a `PortfolioBook` bound to that ledger and
-derives the snapshot itself, so an arbitrary financial snapshot cannot become
-authoritative.
+`DurableLedger.authoritative_book` creates the only checkpoint-capable book for
+a fresh ledger and tracks its mutation head. `checkpoint` derives the snapshot
+from that capability; a caller-supplied snapshot or a newly constructed book
+cannot become authoritative, and an external ledger writer taints the source.
 `reconcile_book` validates both stores, compares the current snapshot with the
 latest checkpoint and returns deterministic reasons such as
 `BOOK_SNAPSHOT_MISMATCH`, `CHECKPOINT_STALE` and
@@ -38,7 +40,7 @@ from marketos.authoritative_books import C13RiskGate, DurableLedger, reconcile_b
 from marketos.portfolio import PortfolioBook
 
 with DurableLedger("paper-books.sqlite") as ledger:
-    book = PortfolioBook(base_currency="USD", ledger=ledger)
+    book = ledger.authoritative_book(base_currency="USD")
     book.fund("funding-1", amount, occurred_at_ns=100)
     snapshot = book.snapshot()
     ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)

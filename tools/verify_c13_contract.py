@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import sqlite3
+import subprocess
 import sys
 import tempfile
 from typing import Any
@@ -35,6 +36,20 @@ def _source_tree_sha256(source_hashes: dict[str, str]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+C13_SOURCE_PATHS = (
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+    "planning/PHASE_INDEX.json",
+    "planning/phases/C13/C13_DECISIONS.json",
+    "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
+    "planning/phases/C13/EXECUTION_CONTRACT.md",
+    "src/marketos/authoritative_books.py",
+    "tests/test_c13_authoritative_books.py",
+    "tools/verify_c13_contract.py",
+)
+
+
 def _runtime_checks(root: Path) -> dict[str, bool]:
     sys.path.insert(0, str(root / "src"))
     from marketos.authoritative_books import (
@@ -48,7 +63,6 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
     from marketos.ledger import JournalEntry, Posting, PostingSide
     from marketos.money import Money, Price, Quantity
     from marketos.orders import ExecutionMode, OrderIntent, OrderSide, OrderType, TimeInForce
-    from marketos.portfolio import PortfolioBook
     from marketos.risk import RiskAction, RiskContext, RiskKernel, RiskLimits
     from marketos.time import ClockQuality
     from marketos.errors import InvariantViolation
@@ -56,7 +70,7 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
     with tempfile.TemporaryDirectory(prefix="marketos-c13-verify-") as directory:
         path = Path(directory) / "books.sqlite"
         with DurableLedger(path) as ledger:
-            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book = ledger.authoritative_book(base_currency="USD")
             book.fund(
                 "funding-1",
                 Money.from_decimal("USD", "5000.00"),
@@ -232,6 +246,7 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
         "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
         "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
         "planning/phases/C13/C13_SOURCE_RECEIPT.json",
+        *C13_SOURCE_PATHS,
     ]
     checks["required_artifacts"] = all((root / path).is_file() for path in required)
     if not checks["required_artifacts"]:
@@ -307,10 +322,16 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
     source_hashes = source_receipt.get("source_sha256", {})
     source_paths_valid = (
         isinstance(source_paths, list)
-        and source_paths == sorted(source_paths)
+        and source_paths == list(C13_SOURCE_PATHS)
         and isinstance(source_hashes, dict)
         and list(source_hashes) == source_paths
         and "planning/phases/C13/C13_SOURCE_RECEIPT.json" not in source_paths
+        and all(
+            not Path(relative).is_absolute()
+            and ".." not in Path(relative).parts
+            and Path(relative).as_posix() == relative
+            for relative in source_paths
+        )
     )
     source_hashes_match = source_paths_valid
     if source_paths_valid:
@@ -319,6 +340,26 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
             if not candidate.is_file() or _sha256(candidate) != source_hashes.get(relative):
                 source_hashes_match = False
                 errors.append(f"C13_SOURCE_HASH_MISMATCH:{relative}")
+    source_parent_commit = source_receipt.get("source_parent_commit")
+    source_parent_valid = False
+    try:
+        git_result = subprocess.run(
+            ["git", "rev-parse", "HEAD^"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        source_parent_valid = (
+            git_result.returncode == 0
+            and isinstance(source_parent_commit, str)
+            and source_parent_commit == git_result.stdout.strip()
+        )
+    except OSError:
+        source_parent_valid = False
+    checks["source_parent_commit"] = source_parent_valid
+    if not source_parent_valid:
+        errors.append("C13_SOURCE_PARENT_COMMIT_INVALID")
     checks["source_content_receipt"] = (
         source_receipt.get("version") == "1.0.0"
         and source_receipt.get("authority") == "C13_SOURCE_RECEIPT"
@@ -327,6 +368,7 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
         and source_receipt.get("promotion_allowed") is False
         and source_hashes_match
         and source_receipt.get("source_tree_sha256") == _source_tree_sha256(source_hashes)
+        and source_parent_valid
     )
     if not checks["source_content_receipt"]:
         errors.append("C13_SOURCE_RECEIPT_INVALID")

@@ -167,6 +167,28 @@ class C13DurableLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
             DurableLedger(self.path)
 
+    def test_coordinated_tail_truncation_is_detected(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            ledger.post(self.entry("fund-1"))
+        connection = sqlite3.connect(self.path)
+        connection.executescript(
+            """
+            DROP TRIGGER ledger_entries_no_delete;
+            DROP TRIGGER ledger_heads_no_delete;
+            """
+        )
+        connection.execute(
+            "DELETE FROM ledger_entries WHERE entry_id = ?",
+            ("fund-1",),
+        )
+        connection.execute("DELETE FROM ledger_heads WHERE head_sequence = 1")
+        connection.commit()
+        connection.close()
+        with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
+            DurableLedger(self.path)
+
     def test_tampered_record_digest_is_detected(self) -> None:
         from marketos.authoritative_books import DurableLedger
 
@@ -253,6 +275,21 @@ class C13DurableLedgerTests(unittest.TestCase):
         with DurableLedger(self.path) as reopened:
             self.assertEqual(tuple(entry.entry_id for entry in reopened.entries()), ("early", "late"))
 
+    def test_stale_writer_refreshes_inside_transaction(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        first = DurableLedger(self.path)
+        second = DurableLedger(self.path)
+        self.addCleanup(first.close)
+        self.addCleanup(second.close)
+        self.assertTrue(first.post(self.entry("fund-1")))
+        self.assertTrue(second.post(self.entry("fund-2", "1.00")))
+        self.assertTrue(second.verify())
+        self.assertEqual(
+            tuple(entry.entry_id for entry in second.entries()),
+            ("fund-1", "fund-2"),
+        )
+
 
 class C13ReconciliationTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -271,7 +308,7 @@ class C13ReconciliationTests(unittest.TestCase):
             self.fail(f"C13 reconciliation is not implemented: {exc}")
 
         with DurableLedger(self.path) as ledger:
-            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book = ledger.authoritative_book(base_currency="USD")
             book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
             snapshot = book.snapshot()
             ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
@@ -292,7 +329,7 @@ class C13ReconciliationTests(unittest.TestCase):
             self.fail(f"C13 reconciliation is not implemented: {exc}")
 
         with DurableLedger(self.path) as ledger:
-            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book = ledger.authoritative_book(base_currency="USD")
             book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
             snapshot = book.snapshot()
             ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
@@ -312,7 +349,7 @@ class C13ReconciliationTests(unittest.TestCase):
             self.fail(f"C13 reconciliation is not implemented: {exc}")
 
         with DurableLedger(self.path) as ledger:
-            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book = ledger.authoritative_book(base_currency="USD")
             book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
             snapshot = book.snapshot()
             ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
@@ -343,11 +380,75 @@ class C13ReconciliationTests(unittest.TestCase):
         from marketos.authoritative_books import DurableLedger
 
         with DurableLedger(self.path) as ledger:
-            book = PortfolioBook(base_currency="USD", ledger=ledger)
+            book = ledger.authoritative_book(base_currency="USD")
             book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
             fake = replace(book.snapshot(), cash=Money.from_decimal("USD", "99.00"))
             with self.assertRaisesRegex(InvariantViolation, "INVALID_BOOK_CHECKPOINT_SOURCE"):
                 ledger.checkpoint("fake", fake, captured_at_ns=200)
+
+    def test_unreconstructed_bound_book_cannot_be_checkpointed(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            unreconstructed = PortfolioBook(base_currency="USD", ledger=ledger)
+            with self.assertRaisesRegex(InvariantViolation, "INVALID_BOOK_CHECKPOINT_SOURCE"):
+                ledger.checkpoint("unreconstructed", unreconstructed, captured_at_ns=200)
+
+    def test_external_ledger_mutation_taints_authoritative_book(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            ledger.post(
+                JournalEntry(
+                    entry_id="fund-2",
+                    occurred_at_ns=200,
+                    description="external fund",
+                    postings=(
+                        Posting(
+                            "asset:cash:USD",
+                            PostingSide.DEBIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                        Posting(
+                            "equity:capital:USD",
+                            PostingSide.CREDIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                    ),
+                )
+            )
+            with self.assertRaisesRegex(InvariantViolation, "BOOK_SOURCE_TAINTED"):
+                ledger.checkpoint("tainted", book, captured_at_ns=300)
+
+    def test_authoritative_book_requires_empty_ledger_for_new_state(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            ledger.post(
+                JournalEntry(
+                    entry_id="fund-1",
+                    occurred_at_ns=100,
+                    description="fund",
+                    postings=(
+                        Posting(
+                            "asset:cash:USD",
+                            PostingSide.DEBIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                        Posting(
+                            "equity:capital:USD",
+                            PostingSide.CREDIT,
+                            Money.from_decimal("USD", "1.00"),
+                        ),
+                    ),
+                )
+            )
+            with self.assertRaisesRegex(InvariantViolation, "BOOK_RECONSTRUCTION_REQUIRED"):
+                ledger.authoritative_book(base_currency="USD")
 
 
 class C13RiskGateTests(unittest.TestCase):
@@ -370,7 +471,7 @@ class C13RiskGateTests(unittest.TestCase):
         self.path = Path(self.temp_dir.name) / "authoritative-books.sqlite"
         self.ledger = DurableLedger(self.path)
         self.addCleanup(self.ledger.close)
-        self.book = PortfolioBook(base_currency="USD", ledger=self.ledger)
+        self.book = self.ledger.authoritative_book(base_currency="USD")
         self.book.fund(
             "fund-1",
             Money.from_decimal("USD", "5000.00"),
@@ -559,6 +660,25 @@ class C13RiskGateTests(unittest.TestCase):
         )
         self.assertEqual(result.action, RiskAction.NO_TRADE)
         self.assertIn("INVALID_BOOK_RECONCILIATION", result.reasons)
+
+    def test_noncanonical_decision_returns_no_trade(self) -> None:
+        malformed = self.decision()
+        object.__setattr__(malformed, "intent_id", object())
+        result = self.C13RiskGate().evaluate(
+            malformed,
+            self.reconciled,
+            ExecutionMode.PAPER,
+        )
+        self.assertEqual(result.action, RiskAction.NO_TRADE)
+
+    def test_noncanonical_reconciliation_returns_no_trade(self) -> None:
+        malformed = replace(self.reconciled, reasons=(object(),))
+        result = self.C13RiskGate().evaluate(
+            self.decision(),
+            malformed,
+            ExecutionMode.PAPER,
+        )
+        self.assertEqual(result.action, RiskAction.NO_TRADE)
 
 
 class C13VerifierTests(unittest.TestCase):

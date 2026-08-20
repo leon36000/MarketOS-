@@ -45,11 +45,14 @@ authorize a broker, capital, live trading or profitability claims.
 
 `DurableLedger(path)` preserves the book-facing operations `post`,
 `post_many`, `reverse`, `entries`, `balance` and `sha256`, and adds
+`authoritative_book(base_currency=...)`,
 `checkpoint(checkpoint_id, book, captured_at_ns=...)`, `latest_checkpoint`,
-`verify` and `close`. The checkpoint derives its snapshot from a
-`PortfolioBook` bound to the durable ledger; a caller-supplied snapshot is not
-accepted as authoritative. A second append-only ledger-head chain detects
-tail truncation.
+`verify` and `close`. The authoritative book can only start from an empty
+journal and carries a tracked source head; a caller-supplied snapshot or newly
+constructed bound book is not accepted as authoritative. A second append-only
+ledger-head chain plus a durable sidecar anchor detects single or coordinated
+tail truncation. Stale multi-writer state is refreshed inside the write
+transaction.
 
 `reconcile_book(ledger, snapshot)` returns `BookReconciliation` with status
 `RECONCILED` or `DIVERGENT`, both source fingerprints and stable reasons. Its

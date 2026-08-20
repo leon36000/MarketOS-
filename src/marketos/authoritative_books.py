@@ -1,20 +1,23 @@
 """Durable paper/shadow book boundaries for the first C13 implementation slice."""
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
+import os
 from pathlib import Path
 import json
 import sqlite3
+import tempfile
 from typing import Any, Iterable, Mapping
 
 from .canonical import canonical_json, canonical_sha256
 from .errors import DuplicateConflict, InvariantViolation
 from .ledger import JournalEntry, Ledger, Posting, PostingSide
-from .money import Money, Quantity
+from .money import Money, Price, Quantity
 from .orders import ExecutionMode
-from .portfolio import PortfolioBook, PortfolioSnapshot, Position
+from .portfolio import PortfolioBook, PortfolioSnapshot, Position, TradeApplication
 from .risk import RiskAction, RiskDecision
 
 
@@ -211,13 +214,81 @@ def _entry_from_row(row: sqlite3.Row) -> JournalEntry:
     return entry
 
 
+class AuthoritativePortfolioBook(PortfolioBook):
+    """PortfolioBook whose mutations carry the C13 source capability."""
+
+    def __init__(self, *, base_currency: str, ledger: "DurableLedger") -> None:
+        super().__init__(base_currency=base_currency, ledger=ledger)
+        self._last_book_ledger_sha256 = ledger.sha256()
+
+    @property
+    def _durable_ledger(self) -> "DurableLedger":
+        if not isinstance(self.ledger, DurableLedger):
+            raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
+        return self.ledger
+
+    def fund(self, entry_id: str, amount: Money, *, occurred_at_ns: int) -> bool:
+        with self._durable_ledger._book_operation(self):
+            inserted = super().fund(entry_id, amount, occurred_at_ns=occurred_at_ns)
+            self._last_book_ledger_sha256 = self._durable_ledger.sha256()
+            return inserted
+
+    def buy(
+        self,
+        trade_id: str,
+        instrument_id: str,
+        quantity: Quantity,
+        price: Price,
+        fee: Money,
+        *,
+        occurred_at_ns: int,
+    ) -> TradeApplication:
+        with self._durable_ledger._book_operation(self):
+            result = super().buy(
+                trade_id,
+                instrument_id,
+                quantity,
+                price,
+                fee,
+                occurred_at_ns=occurred_at_ns,
+            )
+            self._last_book_ledger_sha256 = self._durable_ledger.sha256()
+            return result
+
+    def sell(
+        self,
+        trade_id: str,
+        instrument_id: str,
+        quantity: Quantity,
+        price: Price,
+        fee: Money,
+        *,
+        occurred_at_ns: int,
+    ) -> TradeApplication:
+        with self._durable_ledger._book_operation(self):
+            result = super().sell(
+                trade_id,
+                instrument_id,
+                quantity,
+                price,
+                fee,
+                occurred_at_ns=occurred_at_ns,
+            )
+            self._last_book_ledger_sha256 = self._durable_ledger.sha256()
+            return result
+
+
 class DurableLedger:
     """SQLite-backed append-only wrapper around the exact in-memory ledger."""
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.anchor_path = self.path.with_name(self.path.name + ".anchor.json")
         self._closed = False
+        self._authoritative_book: AuthoritativePortfolioBook | None = None
+        self._book_operation_owner: AuthoritativePortfolioBook | None = None
+        self._book_tainted = False
         self._connection = sqlite3.connect(self.path, isolation_level=None)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA journal_mode = WAL")
@@ -281,16 +352,120 @@ class DurableLedger:
         self._ledger = Ledger()
         self._checkpoints: list[BookCheckpoint] = []
         self._load()
-        self._verify_heads(self._ledger.entries(), self._ledger)
         self._load_checkpoints()
 
     def _ensure_open(self) -> None:
         if self._closed:
             raise InvariantViolation("DURABLE_LEDGER_CLOSED")
 
+    @contextmanager
+    def _book_operation(self, book: AuthoritativePortfolioBook):
+        self._ensure_open()
+        if self._authoritative_book is not book:
+            raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
+        if self._book_tainted:
+            raise InvariantViolation("BOOK_SOURCE_TAINTED")
+        current_sha256 = self._read_ledger().sha256()
+        if book._last_book_ledger_sha256 != current_sha256:
+            self._book_tainted = True
+            raise InvariantViolation("BOOK_SOURCE_TAINTED")
+        if self._book_operation_owner is not None:
+            raise InvariantViolation("BOOK_OPERATION_REENTRANT")
+        self._book_operation_owner = book
+        try:
+            yield
+        finally:
+            self._book_operation_owner = None
+
+    def authoritative_book(self, *, base_currency: str) -> AuthoritativePortfolioBook:
+        """Create the only checkpoint-capable book for a fresh durable ledger."""
+        self._ensure_open()
+        if self._authoritative_book is not None:
+            if self._authoritative_book.base_currency != base_currency.upper():
+                raise InvariantViolation("BOOK_CURRENCY_MISMATCH")
+            return self._authoritative_book
+        if self._ledger.entries():
+            raise InvariantViolation("BOOK_RECONSTRUCTION_REQUIRED")
+        self._authoritative_book = AuthoritativePortfolioBook(
+            base_currency=base_currency,
+            ledger=self,
+        )
+        return self._authoritative_book
+
+    def _anchor_payload(self, ledger: Ledger) -> dict[str, object]:
+        row = self._connection.execute(
+            "SELECT * FROM ledger_heads ORDER BY head_sequence DESC LIMIT 1"
+        ).fetchone()
+        return {
+            "head_sequence": 0 if row is None else int(row["head_sequence"]),
+            "ledger_entry_count": len(ledger.entries()),
+            "head_record_sha256": "" if row is None else str(row["head_record_sha256"]),
+            "head_ledger_sha256": ledger.sha256(),
+        }
+
+    def _write_anchor(self, ledger: Ledger) -> None:
+        payload = self._anchor_payload(ledger)
+        envelope = {
+            **payload,
+            "anchor_sha256": canonical_sha256(payload),
+        }
+        temporary_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.anchor_path.parent,
+                prefix=f".{self.anchor_path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+                temporary_path = Path(handle.name)
+                handle.write(canonical_json(envelope))
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary_path, self.anchor_path)
+            directory_fd = os.open(self.anchor_path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        finally:
+            if temporary_path is not None and temporary_path.exists():
+                temporary_path.unlink()
+
+    def _verify_anchor(self, ledger: Ledger) -> None:
+        if not self.anchor_path.exists():
+            if ledger.entries():
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            self._write_anchor(ledger)
+            return
+        try:
+            data = _mapping(
+                json.loads(self.anchor_path.read_text(encoding="utf-8")),
+                "JOURNAL_INTEGRITY_FAILURE",
+            )
+            payload = {
+                "head_sequence": int(data["head_sequence"]),
+                "ledger_entry_count": int(data["ledger_entry_count"]),
+                "head_record_sha256": str(data["head_record_sha256"]),
+                "head_ledger_sha256": str(data["head_ledger_sha256"]),
+            }
+            if str(data["anchor_sha256"]) != canonical_sha256(payload):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if payload != self._anchor_payload(ledger):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+        except InvariantViolation:
+            raise
+        except Exception as exc:
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE") from exc
+
     def _load(self) -> None:
+        self._ledger = self._read_ledger()
+
+    def _read_ledger(self) -> Ledger:
         previous_sha256 = ""
         expected_sequence = 1
+        candidate = Ledger()
         rows = self._connection.execute(
             "SELECT * FROM ledger_entries ORDER BY ledger_sequence"
         ).fetchall()
@@ -300,9 +475,13 @@ class DurableLedger:
             if str(row["previous_sha256"]) != previous_sha256:
                 raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
             entry = _entry_from_row(row)
-            self._ledger.post(entry)
+            if not candidate.post(entry):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
             previous_sha256 = str(row["record_sha256"])
             expected_sequence += 1
+        self._verify_heads(candidate.entries(), candidate)
+        self._verify_anchor(candidate)
+        return candidate
 
     @staticmethod
     def _checkpoint_from_row(row: sqlite3.Row) -> BookCheckpoint:
@@ -345,14 +524,17 @@ class DurableLedger:
 
     def post(self, entry: JournalEntry) -> bool:
         self._ensure_open()
-        candidate = self._ledger.clone()
-        inserted = candidate.post(entry)
-        if not inserted:
-            return False
-        record_json = canonical_json(entry.canonical_dict())
-        record_sha256 = entry.sha256()
         self._connection.execute("BEGIN IMMEDIATE")
         try:
+            current = self._read_ledger()
+            candidate = current.clone()
+            inserted = candidate.post(entry)
+            if not inserted:
+                self._connection.execute("COMMIT")
+                self._ledger = current
+                return False
+            record_json = canonical_json(entry.canonical_dict())
+            record_sha256 = entry.sha256()
             previous = self._connection.execute(
                 "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
             ).fetchone()
@@ -395,28 +577,34 @@ class DurableLedger:
                     previous_head_sha256,
                 ),
             )
+            self._write_anchor(candidate)
             self._connection.execute("COMMIT")
         except Exception:
             self._connection.execute("ROLLBACK")
             raise
+        if self._authoritative_book is not None and self._book_operation_owner is None:
+            self._book_tainted = True
         self._ledger = candidate
         return True
 
     def post_many(self, entries: Iterable[JournalEntry]) -> tuple[bool, ...]:
         self._ensure_open()
         pending = tuple(entries)
-        candidate = self._ledger.clone()
-        results: list[bool] = []
-        new_entries: list[JournalEntry] = []
-        for entry in pending:
-            inserted = candidate.post(entry)
-            results.append(inserted)
-            if inserted:
-                new_entries.append(entry)
-        if not new_entries:
-            return tuple(results)
         self._connection.execute("BEGIN IMMEDIATE")
         try:
+            current = self._read_ledger()
+            candidate = current.clone()
+            results: list[bool] = []
+            new_entries: list[JournalEntry] = []
+            for entry in pending:
+                inserted = candidate.post(entry)
+                results.append(inserted)
+                if inserted:
+                    new_entries.append(entry)
+            if not new_entries:
+                self._connection.execute("COMMIT")
+                self._ledger = current
+                return tuple(results)
             previous = self._connection.execute(
                 "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
             ).fetchone()
@@ -466,10 +654,13 @@ class DurableLedger:
                     ),
                 )
                 previous_head_sha256 = entry.sha256()
+            self._write_anchor(candidate)
             self._connection.execute("COMMIT")
         except Exception:
             self._connection.execute("ROLLBACK")
             raise
+        if self._authoritative_book is not None and self._book_operation_owner is None:
+            self._book_tainted = True
         self._ledger = candidate
         return tuple(results)
 
@@ -482,10 +673,12 @@ class DurableLedger:
         description: str | None = None,
     ) -> JournalEntry:
         self._ensure_open()
-        if any(entry.reversal_of == entry_id for entry in self._ledger.entries()):
+        current = self._read_ledger()
+        self._ledger = current
+        if any(entry.reversal_of == entry_id for entry in current.entries()):
             raise InvariantViolation(f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry_id}")
         original = next(
-            (entry for entry in self._ledger.entries() if entry.entry_id == entry_id),
+            (entry for entry in current.entries() if entry.entry_id == entry_id),
             None,
         )
         if original is None:
@@ -511,10 +704,21 @@ class DurableLedger:
         captured_at_ns: int,
     ) -> bool:
         self._ensure_open()
-        if not isinstance(book, PortfolioBook) or book.ledger is not self:
+        if (
+            not isinstance(book, AuthoritativePortfolioBook)
+            or book is not self._authoritative_book
+            or book.ledger is not self
+        ):
             raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
+        if self._book_tainted:
+            raise InvariantViolation("BOOK_SOURCE_TAINTED")
+        current = self._read_ledger()
+        self._ledger = current
+        if book._last_book_ledger_sha256 != current.sha256():
+            self._book_tainted = True
+            raise InvariantViolation("BOOK_SOURCE_TAINTED")
         snapshot = book.snapshot()
-        if snapshot.ledger_sha256 != self.sha256():
+        if snapshot.ledger_sha256 != current.sha256():
             raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
         checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
         existing = next(
@@ -557,23 +761,7 @@ class DurableLedger:
 
     def verify(self) -> bool:
         self._ensure_open()
-        previous_sha256 = ""
-        expected_sequence = 1
-        candidate = Ledger()
-        rows = self._connection.execute(
-            "SELECT * FROM ledger_entries ORDER BY ledger_sequence"
-        ).fetchall()
-        for row in rows:
-            if int(row["ledger_sequence"]) != expected_sequence:
-                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-            if str(row["previous_sha256"]) != previous_sha256:
-                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-            entry = _entry_from_row(row)
-            if not candidate.post(entry):
-                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-            previous_sha256 = str(row["record_sha256"])
-            expected_sequence += 1
-        self._verify_heads(candidate.entries(), candidate)
+        candidate = self._read_ledger()
         previous_sha256 = ""
         expected_sequence = 1
         checkpoint_rows = self._connection.execute(
@@ -587,8 +775,7 @@ class DurableLedger:
             self._checkpoint_from_row(row)
             previous_sha256 = str(row["record_sha256"])
             expected_sequence += 1
-        if candidate.sha256() != self._ledger.sha256():
-            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+        self._ledger = candidate
         return True
 
     def _verify_heads(
@@ -688,9 +875,7 @@ def reconcile_book(
     )
     status = ReconciliationStatus.RECONCILED if not reasons else ReconciliationStatus.DIVERGENT
     return BookReconciliation._from_reconciler(
-        status=(
-            status
-        ),
+        status=status,
         journal_sha256=journal_sha256,
         book_sha256=book_sha256,
         expected_sha256=expected_sha256,
@@ -801,12 +986,26 @@ class C13RiskGate:
             if not self._reconciliation_is_intact(reconciliation):
                 reasons.append("RECONCILIATION_INTEGRITY_FAILURE")
         reasons_tuple = tuple(reasons)
+        intent_id = (
+            decision.intent_id
+            if decision_valid and isinstance(decision.intent_id, str)
+            else ""
+        )
+        upstream_decision_sha256 = (
+            decision.decision_sha256
+            if decision_valid and isinstance(decision.decision_sha256, str)
+            else ""
+        )
+        reconciliation_sha256 = ""
+        if reconciliation_valid:
+            try:
+                reconciliation_sha256 = reconciliation.sha256()
+            except Exception:
+                reconciliation_sha256 = ""
         return self._build_decision(
             action=RiskAction.NO_TRADE if reasons_tuple else RiskAction.ALLOW,
-            intent_id=decision.intent_id if decision_valid else "",
+            intent_id=intent_id,
             reasons=reasons_tuple,
-            upstream_decision_sha256=(decision.decision_sha256 if decision_valid else ""),
-            reconciliation_sha256=(
-                reconciliation.sha256() if reconciliation_valid else ""
-            ),
+            upstream_decision_sha256=upstream_decision_sha256,
+            reconciliation_sha256=reconciliation_sha256,
         )
