@@ -2,23 +2,7 @@ name: claude-pack-green
 
 on:
   push:
-    paths:
-      - "tools/build_claude_pack.py"
-      - "tools/validate_repository.py"
-      - "tools/verify_proof_engine.py"
-      - "tools/verify_requirements_reconciliation.py"
-      - "tests/test_final_pack.py"
-      - "MANIFEST.json"
-      - ".github/workflows/claude-pack-green.yml"
   pull_request:
-    paths:
-      - "tools/build_claude_pack.py"
-      - "tools/validate_repository.py"
-      - "tools/verify_proof_engine.py"
-      - "tools/verify_requirements_reconciliation.py"
-      - "tests/test_final_pack.py"
-      - "MANIFEST.json"
-      - ".github/workflows/claude-pack-green.yml"
 
 permissions:
   contents: read

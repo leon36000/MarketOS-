@@ -88,11 +88,11 @@
 
 **Interfaces:**
 - Consumes: `verify_proof_binding(root)` and the existing architecture verifier.
-- Produces: a thirteen-check Proof Engine report with `PROOF_BINDING` as a required check and a reconciliation report whose remaining critical gaps are C13, C14, C15, C16, and 119↔108 only.
+- Produces: a fourteen-check Proof Engine report with `MANIFEST_INTEGRITY` and `PROOF_BINDING` as required checks and a reconciliation report whose remaining critical gaps are C13, C14, C15, C16, and 119↔108 only.
 
 - [ ] **Step 1: Add the failing integration assertions**
 
-  Extend the proof-engine tests to require `checks_total == 13`, `checks_passed == 13`, and `checks["PROOF_BINDING"] == True`; add a missing/tampered binding regression. Update the architecture acceptance test to assert `PROOF_BINDING` is absent from `critical_open_gaps` while the other safety gaps remain present.
+  Extend the proof-engine tests to require `checks_total == 14`, `checks_passed == 14`, and `checks["PROOF_BINDING"] == True`; add missing/tampered binding and MANIFEST-integrity regressions. Update the architecture acceptance test to assert `PROOF_BINDING` is absent from `critical_open_gaps` while the other safety gaps remain present.
 
 - [ ] **Step 2: Implement the smallest integration**
 
@@ -106,7 +106,7 @@
   PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_proof_binding tests.test_proof_engine tests.test_proof_engine_acceptance tests.test_architecture_reconciliation_acceptance -v
   ```
 
-  Expected: all focused tests pass and the proof report returns 13/13 without changing locks or completion state.
+  Expected: all focused tests pass and the proof report returns 14/14 without changing locks or completion state.
 
 ### Task 4: Update CI, documentation, manifest, and packaging evidence
 
@@ -119,11 +119,11 @@
 
 **Interfaces:**
 - Consumes: the integrated binding verifier and existing deterministic pack builder.
-- Produces: CI coverage for the binding ledger, documentation of thirteen checks, and a manifest-consistent source tree.
+- Produces: CI coverage for the binding ledger, documentation of fourteen checks, and a manifest-consistent source tree.
 
 - [ ] **Step 1: Add the binding paths to CI and docs**
 
-  Run `python tools/verify_proof_binding.py --json` in the Proof Engine workflow, include all binding paths in both workflow triggers, document the thirteen checks and the non-promotable partial receipts, and preserve the C16 statement that C13–C15 are still required.
+  Run `python tools/verify_proof_binding.py --json` in the Proof Engine workflow, include all binding paths in both workflow triggers, document the fourteen checks and the non-promotable partial receipts, preserve the C16 statement that C13–C15 are still required, and state that archive verification is structural-only.
 
 - [ ] **Step 2: Regenerate derived files and run the full verification chain**
 
@@ -147,4 +147,4 @@
 
 ## Completion evidence
 
-The lot is complete only when the focused RED/GREEN history, thirteen Proof Engine checks, architecture reconciliation, full test suite, derived-manifest check, repository validator, clean deterministic pack verification, and exact output checksums are all fresh and mutually consistent. It is not complete if C13–C15 or the 119↔108 row-level export is inferred from this binding ledger.
+The lot is complete only when the focused RED/GREEN history, fourteen Proof Engine checks, architecture reconciliation, full test suite, derived-manifest check, repository validator, clean deterministic pack verification, and exact output checksums are all fresh and mutually consistent. It is not complete if C13–C15 or the 119↔108 row-level export is inferred from this binding ledger.

@@ -24,8 +24,8 @@ class ProofEngineTests(unittest.TestCase):
         report = verify_proof_engine(ROOT)
 
         self.assertTrue(report["ok"], report["errors"])
-        self.assertEqual(report["checks_total"], 13)
-        self.assertEqual(report["checks_passed"], 13)
+        self.assertEqual(report["checks_total"], 14)
+        self.assertEqual(report["checks_passed"], 14)
 
     def test_missing_policy_fails_closed(self) -> None:
         repo = self._copy_repo()
@@ -78,6 +78,19 @@ class ProofEngineTests(unittest.TestCase):
         self.assertFalse(report["ok"])
         self.assertFalse(report["checks"]["PROOF_BINDING"])
         self.assertIn("PROOF_BINDING_INVALID", report["errors"])
+
+    def test_manifest_tamper_fails_closed(self) -> None:
+        repo = self._copy_repo()
+        manifest_path = repo / "MANIFEST.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"][0]["sha256"] = "0" * 64
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+        report = verify_proof_engine(repo)
+
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["checks"]["MANIFEST_INTEGRITY"])
+        self.assertIn("MANIFEST_INTEGRITY_INVALID", report["errors"])
 
 
 if __name__ == "__main__":

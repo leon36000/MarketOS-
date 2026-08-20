@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -101,6 +102,22 @@ class ProofBindingTests(unittest.TestCase):
 
         self.assertFalse(report["ok"])
         self.assertIn("PROMOTION_FLAG_ENABLED", report["errors"])
+
+    def test_bound_artifact_symlink_is_rejected(self) -> None:
+        repo = self._copy_repo()
+        external = repo.parent / "external-current-state.json"
+        external.write_text((repo / "authority/CURRENT_STATE.json").read_text(encoding="utf-8"), encoding="utf-8")
+        artifact = repo / "authority/CURRENT_STATE.json"
+        artifact.unlink()
+        try:
+            os.symlink(external, artifact)
+        except OSError:
+            self.skipTest("symbolic links are unavailable on this platform")
+
+        report = verify_proof_binding(repo)
+
+        self.assertFalse(report["ok"])
+        self.assertIn("SOURCE_ARTIFACT_SYMLINK_FORBIDDEN:authority/CURRENT_STATE.json", report["errors"])
 
 
 if __name__ == "__main__":

@@ -107,6 +107,14 @@ def verify_proof_binding(root: Path | str = ".") -> dict[str, object]:
             errors.append(f"ARTIFACT_BINDING_SHA_INVALID:{relative}")
             continue
         artifact_path = root / relative
+        if artifact_path.is_symlink():
+            errors.append(f"SOURCE_ARTIFACT_SYMLINK_FORBIDDEN:{relative}")
+            continue
+        try:
+            artifact_path.resolve().relative_to(root)
+        except ValueError:
+            errors.append(f"SOURCE_ARTIFACT_OUTSIDE_ROOT:{relative}")
+            continue
         if not artifact_path.is_file():
             errors.append(f"SOURCE_ARTIFACT_MISSING:{relative}")
         elif _sha256(artifact_path) != expected_hash:

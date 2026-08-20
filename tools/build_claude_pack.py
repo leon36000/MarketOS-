@@ -332,7 +332,14 @@ def build_pack(root: Path, output: Path, *, validate: bool = True, require_clean
     }
 
 
-def verify_archive(archive_path: Path, *, run_repository_checks: bool = True) -> dict[str, Any]:
+def verify_archive(archive_path: Path, *, run_repository_checks: bool = False) -> dict[str, Any]:
+    """Verify archive structure and hashes without executing archive contents.
+
+    ``run_repository_checks`` remains as a compatibility argument for callers
+    that used the old API. It is intentionally ignored: validators extracted
+    from an untrusted archive must never be executed. Source validators run
+    before packaging in :func:`build_pack`.
+    """
     archive_path = archive_path.resolve()
     with zipfile.ZipFile(archive_path, "r") as archive:
         infos = archive.infolist()
@@ -364,35 +371,21 @@ def verify_archive(archive_path: Path, *, run_repository_checks: bool = True) ->
             if _sha256(data) != item.get("sha256"):
                 raise PackError(f"pack hash mismatch: {name}")
 
-        reports: dict[str, Any] = {}
-        with tempfile.TemporaryDirectory(prefix="marketos-pack-verify-") as temp_dir:
-            extraction = Path(temp_dir)
-            for info in infos:
-                destination = extraction / PurePosixPath(info.filename)
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(archive.read(info.filename))
-                mode = (info.external_attr >> 16) & 0o777
-                if mode:
-                    destination.chmod(mode)
-            repository_root = extraction / "repository"
-            if run_repository_checks:
-                reports["repository"] = _run_json_validator(repository_root, "tools/validate_repository.py")
-                reports["requirements_boundary"] = _run_json_validator(repository_root, "tools/verify_requirements_reconciliation.py")
-                reports["proof_engine"] = _run_json_validator(repository_root, "tools/verify_proof_engine.py")
-
     return {
         "ok": True,
         "archive_sha256": _sha256(archive_path.read_bytes()),
         "manifest_sha256": _sha256(manifest_bytes),
         "member_count": len(names),
         "source_commit": manifest.get("source_commit"),
-        "validator_reports": reports,
+        "verification_mode": "structural-only",
+        "requested_repository_checks": bool(run_repository_checks),
+        "validator_reports": "NOT_RUN_ON_UNTRUSTED_ARCHIVE",
     }
 
 
 def build_and_verify(root: Path, output: Path, *, require_clean: bool = True) -> dict[str, Any]:
     first = build_pack(root, output, validate=True, require_clean=require_clean)
-    verification = verify_archive(output, run_repository_checks=True)
+    verification = verify_archive(output, run_repository_checks=False)
     with tempfile.TemporaryDirectory(prefix="marketos-pack-rebuild-") as temp_dir:
         second_path = Path(temp_dir) / output.name
         second = build_pack(root, second_path, validate=True, require_clean=require_clean)

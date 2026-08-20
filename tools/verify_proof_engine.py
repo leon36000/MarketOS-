@@ -28,11 +28,17 @@ try:
 except ModuleNotFoundError:  # Direct ``python tools/verify_proof_engine.py`` execution.
     from verify_proof_binding import verify_proof_binding
 
+try:
+    from tools.validate_repository import validate_repository
+except ModuleNotFoundError:  # Direct ``python tools/verify_proof_engine.py`` execution.
+    from validate_repository import validate_repository
+
 
 POLICY_PATH = Path("planning/architecture/PROOF_ENGINE_POLICY.json")
 REQUIRED_CHECKS = (
     "POLICY_FLAGS",
     "SOURCE_AUTHORITY_PATHS",
+    "MANIFEST_INTEGRITY",
     "RECONCILIATION_EVIDENCE",
     "CURRENT_STATE_BINDING",
     "CANONICAL_REQUIREMENT_ORACLE",
@@ -136,6 +142,11 @@ def verify_proof_engine(root: Path | str = ".") -> dict[str, object]:
                 errors.append(f"SOURCE_AUTHORITY_PATH_MISSING:{relative}")
                 paths_ok = False
         checks["SOURCE_AUTHORITY_PATHS"] = paths_ok
+
+    repository_validation = validate_repository(root)
+    checks["MANIFEST_INTEGRITY"] = repository_validation.get("ok") is True
+    if not checks["MANIFEST_INTEGRITY"]:
+        errors.append("MANIFEST_INTEGRITY_INVALID")
 
     reconciliation = verify_architecture_reconciliation(root)
     checks["RECONCILIATION_EVIDENCE"] = reconciliation.get("ok") is True

@@ -18,27 +18,28 @@ and the local memory snapshot exposes 111 rows without a row-level export.
 promotion disabled; it does not invent the missing eight rows or silently
 promote the memory set.
 
-## Thirteen checks
+## Fourteen checks
 
-The verifier requires all thirteen checks to pass:
+The verifier requires all fourteen checks to pass:
 
 1. policy flags are versioned and complete;
 2. every source authority path resolves inside the repository;
-3. architecture reconciliation is independently valid;
-4. current state matches the reconciliation candidate and locks;
-5. the repository oracle contains 108 canonical requirements;
-6. the memory observation set remains a separate 119-row superset;
-7. zero broad implementation nodes are falsely promoted complete;
-8. live trading remains `HARD_LOCKED`;
-9. profitability remains `UNPROVEN`;
-10. stale or failed evidence cannot be promoted;
-11. the proof ledger is append-only by policy;
-12. the pinned PR14 and PR20 SHA bindings match the reconciliation evidence;
-13. the complete PR14–PR20 proof-binding ledger matches artifact hashes, exact
+3. the repository MANIFEST hashes, byte counts and coverage remain valid;
+4. architecture reconciliation is independently valid;
+5. current state matches the reconciliation candidate and locks;
+6. the repository oracle contains 108 canonical requirements;
+7. the memory observation set remains a separate 119-row superset;
+8. zero broad implementation nodes are falsely promoted complete;
+9. live trading remains `HARD_LOCKED`;
+10. profitability remains `UNPROVEN`;
+11. stale or failed evidence cannot be promoted;
+12. the proof ledger is append-only by policy;
+13. the pinned PR14 and PR20 SHA bindings match the reconciliation evidence;
+14. the complete PR14–PR20 proof-binding ledger matches artifact hashes, exact
     SHAs, receipts and current state.
 
 Any missing path, changed authority value, stale reconciliation or weakened
-lock produces a non-zero result. A report with fewer than thirteen passed checks
+lock produces a non-zero result. A report with fewer than fourteen passed checks
 is never accepted. A passing binding ledger still describes partial evidence;
 it does not make C13–C15 complete or reconcile the 119 observed memory rows
 with the 108 canonical requirements.

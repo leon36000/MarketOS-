@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/claude-pack-green.yml",
-      "sha256": "428d654a3e78d33bc299cbc61c468892192ba788d452390eafa42e95a049eca6",
-      "bytes": 1316
+      "sha256": "9c2a93dae1dddf318a06419e478a8b395af9fa40b59d1801380738a2dbfa31e9",
+      "bytes": 738
     },
     {
       "path": ".github/workflows/data-foundation.yml",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/proof-engine-green.yml",
-      "sha256": "cb5de680ed02b989b0e938b99c9a364e1e515b17ec6cf672525cb2a1decc53cb",
-      "bytes": 3597
+      "sha256": "a2bb863e233761ab6148ca0dedcb67e7e40ea85a22f7d29a096b0e6c91060eec",
+      "bytes": 3622
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -353,8 +353,8 @@
     },
     {
       "path": "docs/implementation/C16_PACK_BUILDER.md",
-      "sha256": "7221d2604fbffe72a700b3463c67fd7d76a4bb30b0ab3f3404c7e7d1c52843a3",
-      "bytes": 1256
+      "sha256": "92ef9d853d52dff0551673d4fee39f18d2cd584dcab9e3b99147ef35e14f67e4",
+      "bytes": 1373
     },
     {
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
@@ -393,8 +393,8 @@
     },
     {
       "path": "docs/implementation/PROOF_ENGINE_V2.md",
-      "sha256": "497d0995d5a0dee97c8e4d6ebe71cd2b60f25bc3eac94b6c40e26c5e1de941c2",
-      "bytes": 2741
+      "sha256": "9b9c926db34fbda15dfe5f105a028fe3f73d0d99f5d60a1e9bc1e9744b544fc9",
+      "bytes": 2816
     },
     {
       "path": "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md",
@@ -508,8 +508,8 @@
     },
     {
       "path": "docs/superpowers/plans/2026-08-20-proof-binding.md",
-      "sha256": "481db3c932c2f04e5dcd2a92b413b2f697c116f090e34fa9d004c7ce3555fd9a",
-      "bytes": 8945
+      "sha256": "95c523b59f392f9e49e017c7938a9748992f366edd29bf546ea7f0acc81da6f5",
+      "bytes": 9043
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -643,8 +643,8 @@
     },
     {
       "path": "planning/architecture/PROOF_ENGINE_POLICY.json",
-      "sha256": "e29415b6c380d2f35d34ef7105389ef3d1e62ee3eaaaa6a15a70ba21a21f49c6",
-      "bytes": 1294
+      "sha256": "cb478acaee2c80ccf01f91162dcffdc5537dd9a757b1804d89419b1e8a73083f",
+      "bytes": 1320
     },
     {
       "path": "planning/architecture/REQUIREMENTS_108_119_RECONCILIATION.json",
@@ -1238,8 +1238,8 @@
     },
     {
       "path": "tests/test_final_pack.py",
-      "sha256": "4dd2866ec22e2f163833704086cd7fe3228a83b7f0efcb9735757aa7f64196dd",
-      "bytes": 3168
+      "sha256": "245ffcdc861f5e3cebbc109d39914330687eea97501b6dd59e678fe1ed0f55fa",
+      "bytes": 4585
     },
     {
       "path": "tests/test_foundation_acceptance.py",
@@ -1298,17 +1298,17 @@
     },
     {
       "path": "tests/test_proof_binding.py",
-      "sha256": "f842e5d532236dd783352277bbbc71811c8aa50a8473af63b247c0633dd6a974",
-      "bytes": 4160
+      "sha256": "044c0c26140d146b5f1dcb8e0b47ae8ebc035e1419f14b07ba425d5d39db3c08",
+      "bytes": 4876
     },
     {
       "path": "tests/test_proof_engine.py",
-      "sha256": "7252772317099a3809b83f95855a046964fc880baf157471118d04f76ab9f5a8",
-      "bytes": 2990
+      "sha256": "9d7f1e4fae93f9721cd2cb64a25845718e6bd9b9aff56b8045c52b68fb12c5ea",
+      "bytes": 3560
     },
     {
       "path": "tests/test_proof_engine_acceptance.py",
-      "sha256": "d3c0c5d9d9b7cb23e5b9acf14053acc120af4db6bf20d0eb29c837582401bb01",
+      "sha256": "7afa6b300ae3c1a580ec50a0b8c566e4388b6765e993886f47e473c5e9679a93",
       "bytes": 1219
     },
     {
@@ -1388,8 +1388,8 @@
     },
     {
       "path": "tools/build_claude_pack.py",
-      "sha256": "56549898ae75ddcd2d9f216133327220099bda96a33ab109a6a411dd437ddf42",
-      "bytes": 18257
+      "sha256": "67f12266761c16cc3de0c29554c0e718cbcc8b5e7bd054aabee7b6186356314e",
+      "bytes": 17779
     },
     {
       "path": "tools/ingest_requirements.py",
@@ -1453,13 +1453,13 @@
     },
     {
       "path": "tools/verify_proof_binding.py",
-      "sha256": "4efea61beaeedee6988bb9dc129a257707ffd8d9904f2aaa7ca38a67ab6b0a87",
-      "bytes": 8476
+      "sha256": "685e00f0a7039d068ff30319a38f16527a3acccf4d50a089ca5115695840eeb3",
+      "bytes": 8796
     },
     {
       "path": "tools/verify_proof_engine.py",
-      "sha256": "bb2852279d390a01826df5dbc1e2f113c3e9ea65bb0ab99501accfdeb904c4da",
-      "bytes": 9902
+      "sha256": "863b2876d9b3612e6d0f9c2e558107e8de93d67579bfdc80ec4302e3c3340ce8",
+      "bytes": 10364
     },
     {
       "path": "tools/verify_requirements_reconciliation.py",

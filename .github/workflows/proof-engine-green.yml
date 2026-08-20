@@ -54,7 +54,7 @@ jobs:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
-          python -m unittest tests.test_proof_engine tests.test_proof_engine_acceptance tests.test_requirements_reconciliation -v
+          python -m unittest tests.test_proof_engine tests.test_proof_engine_acceptance tests.test_proof_binding tests.test_requirements_reconciliation -v
           python tools/verify_proof_binding.py --json
           python tools/verify_requirements_reconciliation.py --json
           python tools/verify_proof_engine.py --json

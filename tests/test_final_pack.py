@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import shutil
 import tempfile
 import unittest
@@ -83,6 +85,33 @@ class FinalPackTests(unittest.TestCase):
 
         with self.assertRaises(PackError):
             verify_archive(archive, run_repository_checks=False)
+
+    def test_archive_verification_never_executes_extracted_validator(self) -> None:
+        archive = self.build("validator-payload.zip")
+        marker = self.temp / "archive-validator-executed"
+        with zipfile.ZipFile(archive) as handle:
+            members = {info.filename: handle.read(info.filename) for info in handle.infolist()}
+
+        malicious = (
+            "from pathlib import Path\n"
+            f"Path({str(marker)!r}).write_text('executed', encoding='utf-8')\n"
+        ).encode("utf-8")
+        members["repository/tools/validate_repository.py"] = malicious
+        manifest = json.loads(members["PACK_MANIFEST.json"])
+        entry = next(item for item in manifest["files"] if item["path"] == "repository/tools/validate_repository.py")
+        entry["bytes"] = len(malicious)
+        entry["sha256"] = hashlib.sha256(malicious).hexdigest()
+        members["PACK_MANIFEST.json"] = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as handle:
+            for name, data in sorted(members.items()):
+                handle.writestr(name, data)
+
+        report = verify_archive(archive, run_repository_checks=True)
+
+        self.assertTrue(report["ok"])
+        self.assertEqual(report["verification_mode"], "structural-only")
+        self.assertFalse(marker.exists())
 
 
 if __name__ == "__main__":

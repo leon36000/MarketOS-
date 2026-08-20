@@ -10,8 +10,8 @@ class ProofEngineAcceptanceTests(unittest.TestCase):
         report = verify_proof_engine()
 
         self.assertTrue(report["ok"], report["errors"])
-        self.assertEqual(report["checks_total"], 13)
-        self.assertEqual(report["checks_passed"], 13)
+        self.assertEqual(report["checks_total"], 14)
+        self.assertEqual(report["checks_passed"], 14)
         self.assertTrue(report["checks"]["PROOF_BINDING"])
         self.assertTrue(report["exact_sha_binding_required"])
         self.assertTrue(report["artifact_resolution_required"])
