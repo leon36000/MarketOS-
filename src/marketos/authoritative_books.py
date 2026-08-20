@@ -13,7 +13,9 @@ from .canonical import canonical_json, canonical_sha256
 from .errors import DuplicateConflict, InvariantViolation
 from .ledger import JournalEntry, Ledger, Posting, PostingSide
 from .money import Money, Quantity
+from .orders import ExecutionMode
 from .portfolio import PortfolioSnapshot, Position
+from .risk import RiskAction, RiskDecision
 
 
 def _decode_canonical(value: Any) -> Any:
@@ -108,6 +110,30 @@ class BookReconciliation:
             "book_sha256": self.book_sha256,
             "expected_sha256": self.expected_sha256,
             "reasons": self.reasons,
+        }
+
+    def sha256(self) -> str:
+        return canonical_sha256(self.canonical_dict())
+
+
+@dataclass(frozen=True, slots=True)
+class C13GateDecision:
+    action: RiskAction
+    intent_id: str
+    reasons: tuple[str, ...]
+    upstream_decision_sha256: str
+    reconciliation_sha256: str
+    decision_sha256: str
+    live_trading_state: str = "HARD_LOCKED"
+
+    def canonical_dict(self) -> dict[str, object]:
+        return {
+            "action": self.action,
+            "intent_id": self.intent_id,
+            "reasons": self.reasons,
+            "upstream_decision_sha256": self.upstream_decision_sha256,
+            "reconciliation_sha256": self.reconciliation_sha256,
+            "live_trading_state": self.live_trading_state,
         }
 
     def sha256(self) -> str:
@@ -527,3 +553,71 @@ def reconcile_book(
         expected_sha256=expected_sha256,
         reasons=tuple(reasons),
     )
+
+
+class C13RiskGate:
+    """Final non-live veto boundary for the C13 book slice."""
+
+    LIVE_TRADING_STATE = "HARD_LOCKED"
+
+    @staticmethod
+    def _decision_is_intact(decision: RiskDecision) -> bool:
+        payload = decision.canonical_dict()
+        stored = payload.pop("decision_sha256", None)
+        return isinstance(stored, str) and canonical_sha256(payload) == stored
+
+    @staticmethod
+    def _reconciliation_is_intact(reconciliation: BookReconciliation) -> bool:
+        expected = canonical_sha256(
+            {
+                "journal_sha256": reconciliation.journal_sha256,
+                "book_sha256": reconciliation.book_sha256,
+                "reasons": reconciliation.reasons,
+            }
+        )
+        return expected == reconciliation.expected_sha256
+
+    def evaluate(
+        self,
+        decision: RiskDecision,
+        reconciliation: BookReconciliation,
+        mode: ExecutionMode | str,
+    ) -> C13GateDecision:
+        if not isinstance(decision, RiskDecision):
+            raise InvariantViolation("INVALID_RISK_DECISION")
+        if not isinstance(reconciliation, BookReconciliation):
+            raise InvariantViolation("INVALID_BOOK_RECONCILIATION")
+        reasons: list[str] = []
+        if not isinstance(mode, ExecutionMode) or mode not in {
+            ExecutionMode.PAPER,
+            ExecutionMode.SHADOW,
+        }:
+            reasons.append("EXECUTION_MODE_NOT_ALLOWED")
+        if decision.action is not RiskAction.ALLOW:
+            reasons.append("UPSTREAM_NO_TRADE")
+        if not self._decision_is_intact(decision):
+            reasons.append("UPSTREAM_DECISION_INTEGRITY_FAILURE")
+        if decision.live_trading_state != self.LIVE_TRADING_STATE:
+            reasons.append("LIVE_TRADING_LOCK_WEAKENED")
+        if reconciliation.status is not ReconciliationStatus.RECONCILED:
+            reasons.append("BOOKS_UNRECONCILED")
+        if not self._reconciliation_is_intact(reconciliation):
+            reasons.append("RECONCILIATION_INTEGRITY_FAILURE")
+        reasons_tuple = tuple(reasons)
+        payload = {
+            "action": RiskAction.NO_TRADE if reasons_tuple else RiskAction.ALLOW,
+            "intent_id": decision.intent_id,
+            "reasons": reasons_tuple,
+            "upstream_decision_sha256": decision.decision_sha256,
+            "reconciliation_sha256": reconciliation.sha256(),
+            "live_trading_state": self.LIVE_TRADING_STATE,
+        }
+        return C13GateDecision(
+            action=payload["action"],
+            intent_id=decision.intent_id,
+            reasons=reasons_tuple,
+            upstream_decision_sha256=decision.decision_sha256,
+            reconciliation_sha256=reconciliation.sha256(),
+            decision_sha256=canonical_sha256(payload),
+            live_trading_state=self.LIVE_TRADING_STATE,
+        )
