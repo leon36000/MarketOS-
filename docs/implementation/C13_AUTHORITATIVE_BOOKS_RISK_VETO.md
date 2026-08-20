@@ -10,13 +10,18 @@ is complete.
 double-entry `Ledger` and persists canonical journal entries in SQLite. The
 database is configured for WAL and full synchronous writes. Each row contains
 an arrival sequence, stable entry ID, canonical record, record digest and
-previous-record digest. SQL update/delete triggers enforce append-only writes.
+previous-record digest. A second append-only head chain anchors the expected
+tail. SQL update/delete triggers enforce append-only writes for both chains.
 
 `BookCheckpoint` persists a full `PortfolioSnapshot` and its ledger digest.
+`DurableLedger.checkpoint` accepts a `PortfolioBook` bound to that ledger and
+derives the snapshot itself, so an arbitrary financial snapshot cannot become
+authoritative.
 `reconcile_book` validates both stores, compares the current snapshot with the
 latest checkpoint and returns deterministic reasons such as
 `BOOK_SNAPSHOT_MISMATCH`, `CHECKPOINT_STALE` and
-`JOURNAL_INTEGRITY_FAILURE`.
+`JOURNAL_INTEGRITY_FAILURE`. Its expected digest includes reconciliation
+status, preventing a forged `DIVERGENT` → `RECONCILED` replacement.
 
 `C13RiskGate` is the final boundary in this slice. It accepts only an intact
 `RiskDecision.ALLOW`, a `RECONCILED` book, an actual `PAPER` or `SHADOW`
@@ -33,7 +38,7 @@ with DurableLedger("paper-books.sqlite") as ledger:
     book = PortfolioBook(base_currency="USD", ledger=ledger)
     book.fund("funding-1", amount, occurred_at_ns=100)
     snapshot = book.snapshot()
-    ledger.checkpoint("checkpoint-1", snapshot, captured_at_ns=200)
+    ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
     reconciliation = reconcile_book(ledger, snapshot)
     gate = C13RiskGate().evaluate(risk_decision, reconciliation, execution_mode)
 ```

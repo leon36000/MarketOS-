@@ -48,10 +48,17 @@ Add `DurableLedger` in a focused C13 runtime module. It wraps the existing
 - `verify()`
 - `close()` and context-manager support
 
+`checkpoint(checkpoint_id, book, captured_at_ns=...)` accepts only a real
+`PortfolioBook` whose `ledger` is this `DurableLedger`; it derives the snapshot
+itself. An arbitrary caller-supplied snapshot cannot become authoritative.
+
 SQLite is used only as a local paper/shadow persistence boundary. The database
 uses `journal_mode = WAL` and `synchronous = FULL`. Each row stores its
 sequence, stable entry ID, canonical JSON, entry SHA-256 and the previous row
-SHA-256. Update and delete triggers make the table append-only.
+SHA-256. A second append-only head chain stores the entry count, current record
+digest and cumulative ledger digest in the same transaction. Update and delete
+triggers make both tables append-only; a missing tail row therefore disagrees
+with the durable head chain.
 
 On open, every row is decoded and replayed through the existing in-memory
 `Ledger`. The stored canonical JSON, entry digest, sequence and previous-digest
@@ -69,6 +76,8 @@ Add an immutable `BookReconciliation` result with:
 
 - `status`: `RECONCILED` or `DIVERGENT`;
 - `journal_sha256`, `book_sha256` and `expected_sha256`;
+- `expected_sha256` covers the status as well as the source fingerprints and
+  reasons;
 - ordered stable reason codes;
 - a deterministic result SHA-256.
 

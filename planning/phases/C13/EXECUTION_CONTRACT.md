@@ -45,10 +45,18 @@ authorize a broker, capital, live trading or profitability claims.
 
 `DurableLedger(path)` preserves the book-facing operations `post`,
 `post_many`, `reverse`, `entries`, `balance` and `sha256`, and adds
-`checkpoint`, `latest_checkpoint`, `verify` and `close`.
+`checkpoint(checkpoint_id, book, captured_at_ns=...)`, `latest_checkpoint`,
+`verify` and `close`. The checkpoint derives its snapshot from a
+`PortfolioBook` bound to the durable ledger; a caller-supplied snapshot is not
+accepted as authoritative. A second append-only ledger-head chain detects
+tail truncation.
 
 `reconcile_book(ledger, snapshot)` returns `BookReconciliation` with status
-`RECONCILED` or `DIVERGENT`, both source fingerprints and stable reasons.
+`RECONCILED` or `DIVERGENT`, both source fingerprints and stable reasons. Its
+expected digest includes the status, and reason order is
+`JOURNAL_INTEGRITY_FAILURE`, `MISSING_BOOK_CHECKPOINT`,
+`BOOK_LEDGER_HASH_MISMATCH`, `CHECKPOINT_STALE`,
+`BOOK_SNAPSHOT_MISMATCH`.
 
 `C13RiskGate.evaluate(decision, reconciliation, mode)` returns
 `C13GateDecision`. It returns `ALLOW` only for an intact upstream allow,

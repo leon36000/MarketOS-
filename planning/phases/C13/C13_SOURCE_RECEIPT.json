@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "authority": "C13_SOURCE_RECEIPT",
+  "slice": "C13-0",
+  "content_addressed": true,
+  "promotion_allowed": false,
+  "source_paths": [
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+    "planning/PHASE_INDEX.json",
+    "planning/phases/C13/C13_DECISIONS.json",
+    "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
+    "planning/phases/C13/EXECUTION_CONTRACT.md",
+    "src/marketos/authoritative_books.py",
+    "tests/test_c13_authoritative_books.py",
+    "tools/verify_c13_contract.py"
+  ],
+  "source_sha256": {
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md": "8efefe1f6c9ffa3ca7ca15c502a70306e925c11546d7685aabf4612c42cf89d6",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md": "07e1decdc392dce489c1e223e1fdf6fa75cb57d983fe69ce119e6c0f8e2df3f7",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md": "160c909f17cfc9dd9dff02751ae00b9c6fa46f1a7754dbf806bf8339dd7abaea",
+    "planning/PHASE_INDEX.json": "97a28e11538c6ca3e7451e008f0d1504f6dad6c440841ff9229f8fe969913011",
+    "planning/phases/C13/C13_DECISIONS.json": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
+    "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
+    "planning/phases/C13/EXECUTION_CONTRACT.md": "ee60ba27e9f7ef50d3b2ffeeef5b118a8792847e2676da8b7effb03eab2b2b78",
+    "src/marketos/authoritative_books.py": "15178422d53a819f30c6650390c1f06ac451449ee3d5bebb29bcb492e8964df6",
+    "tests/test_c13_authoritative_books.py": "e964359078901842490ef3ca87f2eec586056e9cc920e6d0f293d6d32aa2fcd3",
+    "tools/verify_c13_contract.py": "f4a67a46be2429a74a8999c0aeb3488719a08a1fb3e758b6e992efc4ac464c7f"
+  },
+  "source_tree_sha256": "224fdd3726acd3872cb4212a145036efeddea6c05510ff0651c83b0d77b47761"
+}

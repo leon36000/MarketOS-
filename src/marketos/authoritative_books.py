@@ -14,7 +14,7 @@ from .errors import DuplicateConflict, InvariantViolation
 from .ledger import JournalEntry, Ledger, Posting, PostingSide
 from .money import Money, Quantity
 from .orders import ExecutionMode
-from .portfolio import PortfolioSnapshot, Position
+from .portfolio import PortfolioBook, PortfolioSnapshot, Position
 from .risk import RiskAction, RiskDecision
 
 
@@ -207,6 +207,23 @@ class DurableLedger:
             BEGIN
                 SELECT RAISE(ABORT, 'APPEND_ONLY_LEDGER');
             END;
+            CREATE TABLE IF NOT EXISTS ledger_heads (
+                head_sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                ledger_entry_count INTEGER NOT NULL,
+                head_record_sha256 TEXT NOT NULL,
+                head_ledger_sha256 TEXT NOT NULL,
+                previous_head_sha256 TEXT NOT NULL
+            );
+            CREATE TRIGGER IF NOT EXISTS ledger_heads_no_update
+            BEFORE UPDATE ON ledger_heads
+            BEGIN
+                SELECT RAISE(ABORT, 'APPEND_ONLY_LEDGER_HEAD');
+            END;
+            CREATE TRIGGER IF NOT EXISTS ledger_heads_no_delete
+            BEFORE DELETE ON ledger_heads
+            BEGIN
+                SELECT RAISE(ABORT, 'APPEND_ONLY_LEDGER_HEAD');
+            END;
             CREATE TABLE IF NOT EXISTS book_checkpoints (
                 checkpoint_sequence INTEGER PRIMARY KEY AUTOINCREMENT,
                 checkpoint_id TEXT NOT NULL UNIQUE,
@@ -229,6 +246,7 @@ class DurableLedger:
         self._ledger = Ledger()
         self._checkpoints: list[BookCheckpoint] = []
         self._load()
+        self._verify_heads(self._ledger.entries(), self._ledger)
         self._load_checkpoints()
 
     def _ensure_open(self) -> None:
@@ -318,6 +336,30 @@ class DurableLedger:
                     previous_sha256,
                 ),
             )
+            previous_head = self._connection.execute(
+                "SELECT head_record_sha256 FROM ledger_heads "
+                "ORDER BY head_sequence DESC LIMIT 1"
+            ).fetchone()
+            previous_head_sha256 = (
+                "" if previous_head is None else str(previous_head["head_record_sha256"])
+            )
+            entry_count = int(
+                self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
+            )
+            self._connection.execute(
+                """
+                INSERT INTO ledger_heads(
+                    ledger_entry_count, head_record_sha256,
+                    head_ledger_sha256, previous_head_sha256
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (
+                    entry_count,
+                    record_sha256,
+                    candidate.sha256(),
+                    previous_head_sha256,
+                ),
+            )
             self._connection.execute("COMMIT")
         except Exception:
             self._connection.execute("ROLLBACK")
@@ -344,6 +386,17 @@ class DurableLedger:
                 "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
             ).fetchone()
             previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+            previous_head = self._connection.execute(
+                "SELECT head_record_sha256 FROM ledger_heads "
+                "ORDER BY head_sequence DESC LIMIT 1"
+            ).fetchone()
+            previous_head_sha256 = (
+                "" if previous_head is None else str(previous_head["head_record_sha256"])
+            )
+            entry_count = int(
+                self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
+            )
+            running = self._ledger.clone()
             for entry in new_entries:
                 self._connection.execute(
                     """
@@ -360,6 +413,24 @@ class DurableLedger:
                     ),
                 )
                 previous_sha256 = entry.sha256()
+                if not running.post(entry):
+                    raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+                entry_count += 1
+                self._connection.execute(
+                    """
+                    INSERT INTO ledger_heads(
+                        ledger_entry_count, head_record_sha256,
+                        head_ledger_sha256, previous_head_sha256
+                    ) VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        entry_count,
+                        entry.sha256(),
+                        running.sha256(),
+                        previous_head_sha256,
+                    ),
+                )
+                previous_head_sha256 = entry.sha256()
             self._connection.execute("COMMIT")
         except Exception:
             self._connection.execute("ROLLBACK")
@@ -400,13 +471,14 @@ class DurableLedger:
     def checkpoint(
         self,
         checkpoint_id: str,
-        snapshot: PortfolioSnapshot,
+        book: PortfolioBook,
         *,
         captured_at_ns: int,
     ) -> bool:
         self._ensure_open()
-        if not isinstance(snapshot, PortfolioSnapshot):
-            raise InvariantViolation("INVALID_BOOK_SNAPSHOT")
+        if not isinstance(book, PortfolioBook) or book.ledger is not self:
+            raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
+        snapshot = book.snapshot()
         if snapshot.ledger_sha256 != self.sha256():
             raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
         checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
@@ -466,6 +538,7 @@ class DurableLedger:
                 raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
             previous_sha256 = str(row["record_sha256"])
             expected_sequence += 1
+        self._verify_heads(candidate.entries(), candidate)
         previous_sha256 = ""
         expected_sequence = 1
         checkpoint_rows = self._connection.execute(
@@ -482,6 +555,35 @@ class DurableLedger:
         if candidate.sha256() != self._ledger.sha256():
             raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
         return True
+
+    def _verify_heads(
+        self,
+        entries: tuple[JournalEntry, ...],
+        ledger: Ledger,
+    ) -> None:
+        rows = self._connection.execute(
+            "SELECT * FROM ledger_heads ORDER BY head_sequence"
+        ).fetchall()
+        if len(rows) != len(entries):
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+        previous_head_sha256 = ""
+        running = Ledger()
+        for index, (row, entry) in enumerate(zip(rows, entries), start=1):
+            if int(row["head_sequence"]) != index:
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if int(row["ledger_entry_count"]) != index:
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if str(row["previous_head_sha256"]) != previous_head_sha256:
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if str(row["head_record_sha256"]) != entry.sha256():
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if not running.post(entry):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if str(row["head_ledger_sha256"]) != running.sha256():
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            previous_head_sha256 = str(row["head_record_sha256"])
+        if running.sha256() != ledger.sha256():
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
 
     def entries(self) -> tuple[JournalEntry, ...]:
         self._ensure_open()
@@ -526,18 +628,23 @@ def reconcile_book(
     except InvariantViolation:
         reasons.append("JOURNAL_INTEGRITY_FAILURE")
     if not reasons:
-        if snapshot.ledger_sha256 != journal_sha256:
-            reasons.append("BOOK_LEDGER_HASH_MISMATCH")
         checkpoint = ledger.latest_checkpoint()
         if checkpoint is None:
             reasons.append("MISSING_BOOK_CHECKPOINT")
-        else:
+        if snapshot.ledger_sha256 != journal_sha256:
+            reasons.append("BOOK_LEDGER_HASH_MISMATCH")
+        if checkpoint is not None:
             if checkpoint.snapshot.ledger_sha256 != journal_sha256:
                 reasons.append("CHECKPOINT_STALE")
             if checkpoint.snapshot != snapshot:
                 reasons.append("BOOK_SNAPSHOT_MISMATCH")
     expected_sha256 = canonical_sha256(
         {
+            "status": (
+                ReconciliationStatus.RECONCILED
+                if not reasons
+                else ReconciliationStatus.DIVERGENT
+            ),
             "journal_sha256": journal_sha256,
             "book_sha256": book_sha256,
             "reasons": tuple(reasons),
@@ -563,20 +670,54 @@ class C13RiskGate:
 
     @staticmethod
     def _decision_is_intact(decision: RiskDecision) -> bool:
-        payload = decision.canonical_dict()
-        stored = payload.pop("decision_sha256", None)
-        return isinstance(stored, str) and canonical_sha256(payload) == stored
+        try:
+            payload = decision.canonical_dict()
+            stored = payload.pop("decision_sha256", None)
+            return isinstance(stored, str) and canonical_sha256(payload) == stored
+        except Exception:
+            return False
 
     @staticmethod
     def _reconciliation_is_intact(reconciliation: BookReconciliation) -> bool:
-        expected = canonical_sha256(
-            {
-                "journal_sha256": reconciliation.journal_sha256,
-                "book_sha256": reconciliation.book_sha256,
-                "reasons": reconciliation.reasons,
-            }
+        try:
+            expected = canonical_sha256(
+                {
+                    "status": reconciliation.status,
+                    "journal_sha256": reconciliation.journal_sha256,
+                    "book_sha256": reconciliation.book_sha256,
+                    "reasons": reconciliation.reasons,
+                }
+            )
+            return expected == reconciliation.expected_sha256
+        except Exception:
+            return False
+
+    @staticmethod
+    def _build_decision(
+        *,
+        action: RiskAction,
+        intent_id: str,
+        reasons: tuple[str, ...],
+        upstream_decision_sha256: str,
+        reconciliation_sha256: str,
+    ) -> C13GateDecision:
+        payload = {
+            "action": action,
+            "intent_id": intent_id,
+            "reasons": reasons,
+            "upstream_decision_sha256": upstream_decision_sha256,
+            "reconciliation_sha256": reconciliation_sha256,
+            "live_trading_state": "HARD_LOCKED",
+        }
+        return C13GateDecision(
+            action=action,
+            intent_id=intent_id,
+            reasons=reasons,
+            upstream_decision_sha256=upstream_decision_sha256,
+            reconciliation_sha256=reconciliation_sha256,
+            decision_sha256=canonical_sha256(payload),
+            live_trading_state="HARD_LOCKED",
         )
-        return expected == reconciliation.expected_sha256
 
     def evaluate(
         self,
@@ -584,41 +725,37 @@ class C13RiskGate:
         reconciliation: BookReconciliation,
         mode: ExecutionMode | str,
     ) -> C13GateDecision:
-        if not isinstance(decision, RiskDecision):
-            raise InvariantViolation("INVALID_RISK_DECISION")
-        if not isinstance(reconciliation, BookReconciliation):
-            raise InvariantViolation("INVALID_BOOK_RECONCILIATION")
         reasons: list[str] = []
+        decision_valid = isinstance(decision, RiskDecision)
+        reconciliation_valid = isinstance(reconciliation, BookReconciliation)
+        if not decision_valid:
+            reasons.append("INVALID_RISK_DECISION")
+        if not reconciliation_valid:
+            reasons.append("INVALID_BOOK_RECONCILIATION")
         if not isinstance(mode, ExecutionMode) or mode not in {
             ExecutionMode.PAPER,
             ExecutionMode.SHADOW,
         }:
             reasons.append("EXECUTION_MODE_NOT_ALLOWED")
-        if decision.action is not RiskAction.ALLOW:
-            reasons.append("UPSTREAM_NO_TRADE")
-        if not self._decision_is_intact(decision):
-            reasons.append("UPSTREAM_DECISION_INTEGRITY_FAILURE")
-        if decision.live_trading_state != self.LIVE_TRADING_STATE:
-            reasons.append("LIVE_TRADING_LOCK_WEAKENED")
-        if reconciliation.status is not ReconciliationStatus.RECONCILED:
-            reasons.append("BOOKS_UNRECONCILED")
-        if not self._reconciliation_is_intact(reconciliation):
-            reasons.append("RECONCILIATION_INTEGRITY_FAILURE")
+        if decision_valid:
+            if decision.action is not RiskAction.ALLOW:
+                reasons.append("UPSTREAM_NO_TRADE")
+            if not self._decision_is_intact(decision):
+                reasons.append("UPSTREAM_DECISION_INTEGRITY_FAILURE")
+            if decision.live_trading_state != self.LIVE_TRADING_STATE:
+                reasons.append("LIVE_TRADING_LOCK_WEAKENED")
+        if reconciliation_valid:
+            if reconciliation.status is not ReconciliationStatus.RECONCILED:
+                reasons.append("BOOKS_UNRECONCILED")
+            if not self._reconciliation_is_intact(reconciliation):
+                reasons.append("RECONCILIATION_INTEGRITY_FAILURE")
         reasons_tuple = tuple(reasons)
-        payload = {
-            "action": RiskAction.NO_TRADE if reasons_tuple else RiskAction.ALLOW,
-            "intent_id": decision.intent_id,
-            "reasons": reasons_tuple,
-            "upstream_decision_sha256": decision.decision_sha256,
-            "reconciliation_sha256": reconciliation.sha256(),
-            "live_trading_state": self.LIVE_TRADING_STATE,
-        }
-        return C13GateDecision(
-            action=payload["action"],
-            intent_id=decision.intent_id,
+        return self._build_decision(
+            action=RiskAction.NO_TRADE if reasons_tuple else RiskAction.ALLOW,
+            intent_id=decision.intent_id if decision_valid else "",
             reasons=reasons_tuple,
-            upstream_decision_sha256=decision.decision_sha256,
-            reconciliation_sha256=reconciliation.sha256(),
-            decision_sha256=canonical_sha256(payload),
-            live_trading_state=self.LIVE_TRADING_STATE,
+            upstream_decision_sha256=(decision.decision_sha256 if decision_valid else ""),
+            reconciliation_sha256=(
+                reconciliation.sha256() if reconciliation_valid else ""
+            ),
         )

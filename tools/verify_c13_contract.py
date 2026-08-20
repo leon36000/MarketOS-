@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
+import hashlib
 import json
 from pathlib import Path
+import sqlite3
 import sys
 import tempfile
 from typing import Any
@@ -12,6 +15,24 @@ from typing import Any
 
 def _load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _source_tree_sha256(source_hashes: dict[str, str]) -> str:
+    encoded = json.dumps(
+        source_hashes,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _runtime_checks(root: Path) -> dict[str, bool]:
@@ -27,6 +48,7 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
     from marketos.portfolio import PortfolioBook
     from marketos.risk import RiskAction, RiskContext, RiskKernel, RiskLimits
     from marketos.time import ClockQuality
+    from marketos.errors import InvariantViolation
 
     with tempfile.TemporaryDirectory(prefix="marketos-c13-verify-") as directory:
         path = Path(directory) / "books.sqlite"
@@ -38,9 +60,15 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
                 occurred_at_ns=100,
             )
             snapshot = book.snapshot()
-            ledger.checkpoint("checkpoint-1", snapshot, captured_at_ns=200)
+            ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
             ledger_verified = ledger.verify()
             reconciliation = reconcile_book(ledger, snapshot)
+            fake_snapshot = replace(snapshot, cash=Money.from_decimal("USD", "4999.00"))
+            try:
+                ledger.checkpoint("fake-checkpoint", fake_snapshot, captured_at_ns=201)
+                snapshot_provenance = False
+            except InvariantViolation:
+                snapshot_provenance = True
             limits = RiskLimits(
                 currency="USD",
                 allowed_instruments=frozenset({"AAPL"}),
@@ -91,14 +119,51 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
             )
             divergent = reconcile_book(ledger, altered)
             veto = C13RiskGate().evaluate(decision, divergent, ExecutionMode.SHADOW)
-            return {
+            forged_status = replace(divergent, status=ReconciliationStatus.RECONCILED)
+            status_veto = C13RiskGate().evaluate(
+                decision,
+                forged_status,
+                ExecutionMode.PAPER,
+            )
+            malformed_decision = C13RiskGate().evaluate(
+                object(),
+                reconciliation,
+                ExecutionMode.PAPER,
+            )
+            malformed_reconciliation = C13RiskGate().evaluate(
+                decision,
+                object(),
+                ExecutionMode.PAPER,
+            )
+            runtime_checks = {
                 "ledger_replays": bool(ledger_verified and ledger.entries()),
                 "reconciled_checkpoint": reconciliation.status is ReconciliationStatus.RECONCILED,
                 "paper_allow": gate.action is RiskAction.ALLOW,
                 "divergence_veto": veto.action is RiskAction.NO_TRADE
                 and "BOOKS_UNRECONCILED" in veto.reasons,
                 "live_lock": gate.live_trading_state == "HARD_LOCKED",
+                "snapshot_provenance": snapshot_provenance,
+                "status_integrity_veto": status_veto.action is RiskAction.NO_TRADE
+                and "RECONCILIATION_INTEGRITY_FAILURE" in status_veto.reasons,
+                "malformed_decision_veto": malformed_decision.action is RiskAction.NO_TRADE
+                and "INVALID_RISK_DECISION" in malformed_decision.reasons,
+                "malformed_reconciliation_veto": malformed_reconciliation.action is RiskAction.NO_TRADE
+                and "INVALID_BOOK_RECONCILIATION" in malformed_reconciliation.reasons,
             }
+        connection = sqlite3.connect(path)
+        connection.execute("DROP TRIGGER ledger_entries_no_delete")
+        connection.execute(
+            "DELETE FROM ledger_entries WHERE entry_id = ?",
+            ("funding-1",),
+        )
+        connection.commit()
+        connection.close()
+        try:
+            DurableLedger(path)
+            runtime_checks["tail_anchor"] = False
+        except InvariantViolation:
+            runtime_checks["tail_anchor"] = True
+        return runtime_checks
 
 
 def verify_c13_contract(root: Path) -> dict[str, Any]:
@@ -114,6 +179,7 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
         "planning/phases/C13/C13_DECISIONS.json",
         "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
         "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+        "planning/phases/C13/C13_SOURCE_RECEIPT.json",
     ]
     checks["required_artifacts"] = all((root / path).is_file() for path in required)
     if not checks["required_artifacts"]:
@@ -123,11 +189,13 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
     closure: dict[str, Any] = {}
     state: dict[str, Any] = {}
     reconciliation: dict[str, Any] = {}
+    source_receipt: dict[str, Any] = {}
     try:
         decisions = _load(root / "planning/phases/C13/C13_DECISIONS.json")
         closure = _load(root / "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json")
         state = _load(root / "authority/CURRENT_STATE.json")
         reconciliation = _load(root / "planning/architecture/PR14_PR20_RECONCILIATION.json")
+        source_receipt = _load(root / "planning/phases/C13/C13_SOURCE_RECEIPT.json")
     except Exception as exc:
         errors.append(f"INVALID_AUTHORITY_JSON:{exc}")
 
@@ -183,6 +251,33 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
         "C16_PACKAGING_AND_INTEGRATION",
         "REQUIREMENTS_119_VS_108",
     }
+    source_paths = source_receipt.get("source_paths", [])
+    source_hashes = source_receipt.get("source_sha256", {})
+    source_paths_valid = (
+        isinstance(source_paths, list)
+        and source_paths == sorted(source_paths)
+        and isinstance(source_hashes, dict)
+        and list(source_hashes) == source_paths
+        and "planning/phases/C13/C13_SOURCE_RECEIPT.json" not in source_paths
+    )
+    source_hashes_match = source_paths_valid
+    if source_paths_valid:
+        for relative in source_paths:
+            candidate = root / relative
+            if not candidate.is_file() or _sha256(candidate) != source_hashes.get(relative):
+                source_hashes_match = False
+                errors.append(f"C13_SOURCE_HASH_MISMATCH:{relative}")
+    checks["source_content_receipt"] = (
+        source_receipt.get("version") == "1.0.0"
+        and source_receipt.get("authority") == "C13_SOURCE_RECEIPT"
+        and source_receipt.get("slice") == "C13-0"
+        and source_receipt.get("content_addressed") is True
+        and source_receipt.get("promotion_allowed") is False
+        and source_hashes_match
+        and source_receipt.get("source_tree_sha256") == _source_tree_sha256(source_hashes)
+    )
+    if not checks["source_content_receipt"]:
+        errors.append("C13_SOURCE_RECEIPT_INVALID")
     try:
         runtime = _runtime_checks(root)
         checks.update(runtime)
