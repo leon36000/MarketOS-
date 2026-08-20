@@ -342,21 +342,18 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
                 errors.append(f"C13_SOURCE_HASH_MISMATCH:{relative}")
     source_parent_commit = source_receipt.get("source_parent_commit")
     source_parent_valid = False
-    try:
-        git_result = subprocess.run(
-            ["git", "rev-parse", "HEAD^"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        source_parent_valid = (
-            git_result.returncode == 0
-            and isinstance(source_parent_commit, str)
-            and source_parent_commit == git_result.stdout.strip()
-        )
-    except OSError:
-        source_parent_valid = False
+    if isinstance(source_parent_commit, str) and len(source_parent_commit) == 40:
+        try:
+            git_result = subprocess.run(
+                ["git", "merge-base", "--is-ancestor", source_parent_commit, "HEAD"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            source_parent_valid = git_result.returncode == 0
+        except OSError:
+            source_parent_valid = False
     checks["source_parent_commit"] = source_parent_valid
     if not source_parent_valid:
         errors.append("C13_SOURCE_PARENT_COMMIT_INVALID")

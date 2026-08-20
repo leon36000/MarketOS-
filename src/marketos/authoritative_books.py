@@ -522,6 +522,10 @@ class DurableLedger:
             previous_sha256 = str(row["record_sha256"])
             expected_sequence += 1
 
+    def _refresh_checkpoints(self) -> None:
+        self._checkpoints = []
+        self._load_checkpoints()
+
     def post(self, entry: JournalEntry) -> bool:
         self._ensure_open()
         self._connection.execute("BEGIN IMMEDIATE")
@@ -712,29 +716,32 @@ class DurableLedger:
             raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
         if self._book_tainted:
             raise InvariantViolation("BOOK_SOURCE_TAINTED")
-        current = self._read_ledger()
-        self._ledger = current
-        if book._last_book_ledger_sha256 != current.sha256():
-            self._book_tainted = True
-            raise InvariantViolation("BOOK_SOURCE_TAINTED")
-        snapshot = book.snapshot()
-        if snapshot.ledger_sha256 != current.sha256():
-            raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
-        checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
-        existing = next(
-            (item for item in self._checkpoints if item.checkpoint_id == checkpoint_id),
-            None,
-        )
-        if existing is not None:
-            if existing.sha256() != checkpoint.sha256():
-                raise DuplicateConflict(
-                    f"BOOK_CHECKPOINT_ID_CONFLICT:{checkpoint_id}"
-                )
-            return False
-        record_json = canonical_json(checkpoint.canonical_dict())
-        record_sha256 = checkpoint.sha256()
         self._connection.execute("BEGIN IMMEDIATE")
         try:
+            current = self._read_ledger()
+            self._ledger = current
+            if book._last_book_ledger_sha256 != current.sha256():
+                self._book_tainted = True
+                raise InvariantViolation("BOOK_SOURCE_TAINTED")
+            snapshot = book.snapshot()
+            if snapshot.ledger_sha256 != current.sha256():
+                raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
+            checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
+            existing_row = self._connection.execute(
+                "SELECT * FROM book_checkpoints WHERE checkpoint_id = ?",
+                (checkpoint_id,),
+            ).fetchone()
+            if existing_row is not None:
+                existing = self._checkpoint_from_row(existing_row)
+                if existing.sha256() != checkpoint.sha256():
+                    raise DuplicateConflict(
+                        f"BOOK_CHECKPOINT_ID_CONFLICT:{checkpoint_id}"
+                    )
+                self._connection.execute("COMMIT")
+                self._refresh_checkpoints()
+                return False
+            record_json = canonical_json(checkpoint.canonical_dict())
+            record_sha256 = checkpoint.sha256()
             previous = self._connection.execute(
                 "SELECT record_sha256 FROM book_checkpoints "
                 "ORDER BY checkpoint_sequence DESC LIMIT 1"
@@ -752,11 +759,12 @@ class DurableLedger:
         except Exception:
             self._connection.execute("ROLLBACK")
             raise
-        self._checkpoints.append(checkpoint)
+        self._refresh_checkpoints()
         return True
 
     def latest_checkpoint(self) -> BookCheckpoint | None:
         self._ensure_open()
+        self._refresh_checkpoints()
         return self._checkpoints[-1] if self._checkpoints else None
 
     def verify(self) -> bool:
