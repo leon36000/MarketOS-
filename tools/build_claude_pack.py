@@ -176,21 +176,22 @@ def _sidecar_path(output: Path, suffix: str) -> Path:
 
 
 def _write_sidecar(path: Path, data: bytes) -> None:
-    nofollow = getattr(os, "O_NOFOLLOW", None)
-    if nofollow is None:
-        raise PackError("pack sidecar writes require O_NOFOLLOW support")
-    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | nofollow
-    try:
-        descriptor = os.open(path, flags, 0o644)
-    except OSError as exc:
-        if path.is_symlink():
-            raise PackError(f"pack sidecar symlinks are forbidden: {path.name}") from exc
-        raise PackError(f"could not write pack sidecar: {path.name}") from exc
+    if path.is_symlink():
+        raise PackError(f"pack sidecar symlinks are forbidden: {path.name}")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
+    temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "wb") as handle:
             handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
     except OSError as exc:
         raise PackError(f"could not write pack sidecar: {path.name}") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def _run_json_validator(root: Path, relative: str) -> dict[str, Any]:
@@ -354,15 +355,26 @@ def _members(root: Path, tracked: Iterable[tuple[str, int]], info: dict[str, Any
 def _write_zip(output: Path, members: dict[str, bytes], modes: dict[str, int], epoch: int) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     timestamp = _zip_time(epoch)
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
-        for name in sorted(members):
-            _safe_name(name)
-            info = zipfile.ZipInfo(name, date_time=timestamp)
-            info.create_system = 3
-            info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.flag_bits |= 0x800
-            archive.writestr(info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{output.name}.", suffix=".tmp", dir=output.parent
+    )
+    temporary = Path(temporary_name)
+    os.close(descriptor)
+    try:
+        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+            for name in sorted(members):
+                _safe_name(name)
+                info = zipfile.ZipInfo(name, date_time=timestamp)
+                info.create_system = 3
+                info.external_attr = ((stat.S_IFREG | modes.get(name, 0o644)) << 16)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.flag_bits |= 0x800
+                archive.writestr(info, members[name], compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+        os.replace(temporary, output)
+    except OSError as exc:
+        raise PackError(f"could not write pack archive: {output.name}") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def build_pack(root: Path, output: Path, *, validate: bool = True, require_clean: bool = True) -> dict[str, Any]:

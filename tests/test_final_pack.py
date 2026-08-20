@@ -94,6 +94,32 @@ class FinalPackTests(unittest.TestCase):
             build_and_verify(self.source, output, require_clean=False)
         self.assertEqual(target.read_text(encoding="utf-8"), "keep")
 
+    def test_sha_sidecar_hardlink_does_not_truncate_target(self) -> None:
+        output = self.temp / "hardlink-sidecar.zip"
+        target = self.temp / "hardlink-sidecar-target.txt"
+        target.write_text("keep", encoding="utf-8")
+        try:
+            os.link(target, Path(str(output) + ".sha256"))
+        except OSError:
+            self.skipTest("hard links are unavailable on this platform")
+
+        build_and_verify(self.source, output, require_clean=False)
+
+        self.assertEqual(target.read_text(encoding="utf-8"), "keep")
+
+    def test_zip_hardlink_does_not_truncate_target(self) -> None:
+        output = self.temp / "hardlink-output.zip"
+        target = self.temp / "hardlink-output-target.bin"
+        target.write_bytes(b"keep")
+        try:
+            os.link(target, output)
+        except OSError:
+            self.skipTest("hard links are unavailable on this platform")
+
+        build_pack(self.source, output, validate=False, require_clean=False)
+
+        self.assertEqual(target.read_bytes(), b"keep")
+
     def test_two_builds_are_byte_identical(self) -> None:
         first = self.build("one.zip")
         second = self.build("two.zip")
