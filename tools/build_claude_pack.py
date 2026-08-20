@@ -163,6 +163,36 @@ def _validated_output_path(root: Path, output: Path) -> Path:
     return validated
 
 
+def _sidecar_path(output: Path, suffix: str) -> Path:
+    if suffix not in {".sha256", ".verification.json"}:
+        raise PackError("unsupported pack sidecar")
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    parent = output.parent.resolve()
+    try:
+        parent.relative_to(temp_root)
+    except ValueError as exc:
+        raise PackError("pack sidecar must be under the system temporary directory") from exc
+    return parent / f"{output.name}{suffix}"
+
+
+def _write_sidecar(path: Path, data: bytes) -> None:
+    nofollow = getattr(os, "O_NOFOLLOW", None)
+    if nofollow is None:
+        raise PackError("pack sidecar writes require O_NOFOLLOW support")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | nofollow
+    try:
+        descriptor = os.open(path, flags, 0o644)
+    except OSError as exc:
+        if path.is_symlink():
+            raise PackError(f"pack sidecar symlinks are forbidden: {path.name}") from exc
+        raise PackError(f"could not write pack sidecar: {path.name}") from exc
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(data)
+    except OSError as exc:
+        raise PackError(f"could not write pack sidecar: {path.name}") from exc
+
+
 def _run_json_validator(root: Path, relative: str) -> dict[str, Any]:
     result = _run([sys.executable, relative, "--root", ".", "--json"], cwd=root)
     try:
@@ -429,10 +459,11 @@ def build_and_verify(root: Path, output: Path, *, require_clean: bool = True) ->
         "verification": verification,
         "deterministic_rebuild_match": True,
     }
-    output.with_name(output.name + ".sha256").write_text(
-        f"{first['archive_sha256']}  {output.name}\n", encoding="utf-8"
+    _write_sidecar(
+        _sidecar_path(output, ".sha256"),
+        f"{first['archive_sha256']}  {output.name}\n".encode("utf-8"),
     )
-    output.with_name(output.name + ".verification.json").write_bytes(_canonical_json(report))
+    _write_sidecar(_sidecar_path(output, ".verification.json"), _canonical_json(report))
     return report
 
 
