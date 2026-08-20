@@ -512,6 +512,11 @@
       "bytes": 9043
     },
     {
+      "path": "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+      "sha256": "1a1e670a6f5989edf912f121574bf3b0f1d14310e8053d310744b6ed7121ef73",
+      "bytes": 6304
+    },
+    {
       "path": "examples/paper_scenario.jsonl",
       "sha256": "5c91680060b7f2c2162f79fa8a18419dbfa57f01f4c288abfb55783442ca1b70",
       "bytes": 1901
