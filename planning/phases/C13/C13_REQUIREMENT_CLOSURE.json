@@ -1,0 +1,71 @@
+{
+  "phase": "C13",
+  "slice": "C13-0",
+  "status": "VERIFIED_SLICE",
+  "requirements": [
+    {
+      "id": "AUD-RSK-001",
+      "state": "PARTIAL_VERIFIED_C13_0",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "tools/verify_c13_contract.py"
+      ],
+      "boundary": "Deterministic reconciliation and absolute paper/shadow veto; optimizer and full C13 risk surface remain open."
+    },
+    {
+      "id": "AUD-RSK-004",
+      "state": "PARTIAL_VERIFIED_C13_0",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "tools/verify_c13_contract.py"
+      ],
+      "boundary": "Book divergence halts the C13 gate; operational kill-switch and cancel-all routing remain open."
+    },
+    {
+      "id": "AUD-RSK-005",
+      "state": "PARTIAL_VERIFIED_C13_0",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md"
+      ],
+      "boundary": "Exact double-entry persistence and book checkpoints are covered; FX, tax lots, corporate actions and production accounting remain open."
+    },
+    {
+      "id": "AUD-RSK-006",
+      "state": "PARTIAL_VERIFIED_C13_0",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "planning/phases/C13/EXECUTION_CONTRACT.md"
+      ],
+      "boundary": "Tamper evidence and append-only behavior are covered; secrets, chaos and disaster-recovery gates remain open."
+    },
+    {
+      "id": "AUD-RSK-009",
+      "state": "PARTIAL_VERIFIED_C13_0",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "tools/verify_c13_contract.py"
+      ],
+      "boundary": "Book journal and gate fingerprints are append-only; the all-domain evidence ledger remains open."
+    }
+  ],
+  "hard_boundary": {
+    "phase_complete": false,
+    "software_implementation_complete": false,
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "promotion_allowed": false
+  },
+  "critical_open_gaps_preserved": [
+    "C13_RUNTIME_CONTRACTS",
+    "C14_COCKPIT_AND_OPERABILITY",
+    "C15_QUALIFICATION",
+    "C16_PACKAGING_AND_INTEGRATION",
+    "REQUIREMENTS_119_VS_108"
+  ]
+}

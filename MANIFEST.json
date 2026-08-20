@@ -352,6 +352,11 @@
       "bytes": 4717
     },
     {
+      "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
+      "sha256": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
+      "bytes": 3061
+    },
+    {
       "path": "docs/implementation/C16_PACK_BUILDER.md",
       "sha256": "92ef9d853d52dff0551673d4fee39f18d2cd584dcab9e3b99147ef35e14f67e4",
       "bytes": 1373
@@ -507,9 +512,19 @@
       "bytes": 8405
     },
     {
+      "path": "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
+      "sha256": "5710a2006d71b023fdadf8ac4eddff8ba9c0d9580f3ba2e22ecb15c55364c5b3",
+      "bytes": 16878
+    },
+    {
       "path": "docs/superpowers/plans/2026-08-20-proof-binding.md",
       "sha256": "95c523b59f392f9e49e017c7938a9748992f366edd29bf546ea7f0acc81da6f5",
       "bytes": 9043
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+      "sha256": "776580d5c94086c3fe337701a78b35648aef35583df9520000c840be73a614b3",
+      "bytes": 7651
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -628,7 +643,7 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "54b489d5e01a982c749af49e5f3988f0da445c604ba13682fceee817fd1e5bcf",
+      "sha256": "97a28e11538c6ca3e7451e008f0d1504f6dad6c440841ff9229f8fe969913011",
       "bytes": 5336
     },
     {
@@ -730,6 +745,26 @@
       "path": "planning/phases/C12/PHASE_BRIEF.md",
       "sha256": "5626a177fb5e95b636ce27b2e53e622ef6e381e5bd44d8398177e157cdbbc306",
       "bytes": 1142
+    },
+    {
+      "path": "planning/phases/C13/C13_DECISIONS.json",
+      "sha256": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
+      "bytes": 1382
+    },
+    {
+      "path": "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
+      "sha256": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
+      "bytes": 2413
+    },
+    {
+      "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
+      "sha256": "4f9ac6618bac333358d38f26bfb709947da15f19c8b047041c5c7fa0691212b5",
+      "bytes": 2102
+    },
+    {
+      "path": "planning/phases/C13/EXECUTION_CONTRACT.md",
+      "sha256": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
+      "bytes": 5530
     },
     {
       "path": "planning/phases/C13/PHASE_BRIEF.md",
@@ -972,6 +1007,11 @@
       "bytes": 48
     },
     {
+      "path": "src/marketos/authoritative_books.py",
+      "sha256": "acb17940dde6993f240f7888e48a3a50785a3cf40ad0b8d0436d532c7285c914",
+      "bytes": 39747
+    },
+    {
       "path": "src/marketos/bars.py",
       "sha256": "b1cbacb8ff4027732f76a542cf721fd7bee0ca0895066456f2c93006831396da",
       "bytes": 9566
@@ -1135,6 +1175,11 @@
       "path": "tests/test_c10_c12_design.py",
       "sha256": "f87a39f945f46771ec740614d39650329048f131571e8ff858694f9411f74695",
       "bytes": 6390
+    },
+    {
+      "path": "tests/test_c13_authoritative_books.py",
+      "sha256": "b22282bff53ea7d57efa27c318c38a25dfff4fce44b452a809dbc9e0a28db956",
+      "bytes": 30537
     },
     {
       "path": "tests/test_c1_design.py",
@@ -1420,6 +1465,11 @@
       "path": "tools/verify_architecture_reconciliation.py",
       "sha256": "84c18cccd6f35ec40efcfec9d3079de95a0c263a8cbf8056617bb8db9ed2e950",
       "bytes": 16744
+    },
+    {
+      "path": "tools/verify_c13_contract.py",
+      "sha256": "326604745076b7ac87e508424951a4a28162a7385f5ce76b2163fc4efecb55c0",
+      "bytes": 17006
     },
     {
       "path": "tools/verify_data_foundation.py",

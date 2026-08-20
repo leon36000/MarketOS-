@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "authority": "C13_SOURCE_RECEIPT",
+  "slice": "C13-0",
+  "content_addressed": true,
+  "promotion_allowed": false,
+  "source_parent_commit": "ab3648d1d7bcf92457f27d4b6f22bf11b3dd07cd",
+  "source_paths": [
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+    "planning/PHASE_INDEX.json",
+    "planning/phases/C13/C13_DECISIONS.json",
+    "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
+    "planning/phases/C13/EXECUTION_CONTRACT.md",
+    "src/marketos/authoritative_books.py",
+    "tests/test_c13_authoritative_books.py",
+    "tools/verify_c13_contract.py"
+  ],
+  "source_sha256": {
+    "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
+    "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md": "5710a2006d71b023fdadf8ac4eddff8ba9c0d9580f3ba2e22ecb15c55364c5b3",
+    "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md": "776580d5c94086c3fe337701a78b35648aef35583df9520000c840be73a614b3",
+    "planning/PHASE_INDEX.json": "97a28e11538c6ca3e7451e008f0d1504f6dad6c440841ff9229f8fe969913011",
+    "planning/phases/C13/C13_DECISIONS.json": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
+    "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
+    "planning/phases/C13/EXECUTION_CONTRACT.md": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
+    "src/marketos/authoritative_books.py": "acb17940dde6993f240f7888e48a3a50785a3cf40ad0b8d0436d532c7285c914",
+    "tests/test_c13_authoritative_books.py": "b22282bff53ea7d57efa27c318c38a25dfff4fce44b452a809dbc9e0a28db956",
+    "tools/verify_c13_contract.py": "326604745076b7ac87e508424951a4a28162a7385f5ce76b2163fc4efecb55c0"
+  },
+  "source_tree_sha256": "2ee39f75be9dde03b75252119c2fb6796a3ef0e07ca9aea201946c98b8f8f243"
+}
