@@ -4,39 +4,7 @@ on:
   push:
     branches:
       - codex/proof-engine-v2-green
-    paths:
-      - "planning/architecture/PROOF_ENGINE_POLICY.json"
-      - "planning/architecture/PROOF_BINDING.json"
-      - "planning/architecture/REQUIREMENTS_108_119_RECONCILIATION.json"
-      - "planning/architecture/PR14_PR20_RECONCILIATION.json"
-      - "authority/CURRENT_STATE.json"
-      - "tools/verify_proof_engine.py"
-      - "tools/verify_proof_binding.py"
-      - "tools/verify_requirements_reconciliation.py"
-      - "tools/verify_architecture_reconciliation.py"
-      - "tests/test_proof_engine.py"
-      - "tests/test_proof_binding.py"
-      - "tests/test_proof_engine_acceptance.py"
-      - "tests/test_requirements_reconciliation.py"
-      - "docs/implementation/PROOF_ENGINE_V2.md"
-      - ".github/workflows/proof-engine-green.yml"
   pull_request:
-    paths:
-      - "planning/architecture/PROOF_ENGINE_POLICY.json"
-      - "planning/architecture/PROOF_BINDING.json"
-      - "planning/architecture/REQUIREMENTS_108_119_RECONCILIATION.json"
-      - "planning/architecture/PR14_PR20_RECONCILIATION.json"
-      - "authority/CURRENT_STATE.json"
-      - "tools/verify_proof_engine.py"
-      - "tools/verify_proof_binding.py"
-      - "tools/verify_requirements_reconciliation.py"
-      - "tools/verify_architecture_reconciliation.py"
-      - "tests/test_proof_engine.py"
-      - "tests/test_proof_binding.py"
-      - "tests/test_proof_engine_acceptance.py"
-      - "tests/test_requirements_reconciliation.py"
-      - "docs/implementation/PROOF_ENGINE_V2.md"
-      - ".github/workflows/proof-engine-green.yml"
 
 permissions:
   contents: read

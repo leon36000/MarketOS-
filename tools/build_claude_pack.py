@@ -180,7 +180,9 @@ def _read_first(commit: str) -> bytes:
         "live_trading: HARD_LOCKED\n"
         f"source_commit: {commit}\n"
         "```\n\n"
-        "Run the validators from `repository/` after extraction. The pack cannot\n"
+        "Run validators only from a trusted checkout after verifying this pack.\n"
+        "Never execute validators or any other code extracted from this pack;\n"
+        "archive verification is structural-only. The pack cannot\n"
         "select providers, authorize capital, enable live trading or prove\n"
         "profitability.\n"
     ).encode("utf-8")

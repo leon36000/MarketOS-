@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/claude-pack-green.yml",
-      "sha256": "9c2a93dae1dddf318a06419e478a8b395af9fa40b59d1801380738a2dbfa31e9",
+      "sha256": "e99bf98c9127c8b92a5d6a9a2a1e148ec874b931f3d16e36a2d6e1a700cc73d5",
       "bytes": 738
     },
     {
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/proof-engine-green.yml",
-      "sha256": "a2bb863e233761ab6148ca0dedcb67e7e40ea85a22f7d29a096b0e6c91060eec",
-      "bytes": 3622
+      "sha256": "f65cde858cb0071af74be4118727202a907deb6cef0e4b9daa3484ae1871d77b",
+      "bytes": 2112
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -1238,8 +1238,8 @@
     },
     {
       "path": "tests/test_final_pack.py",
-      "sha256": "245ffcdc861f5e3cebbc109d39914330687eea97501b6dd59e678fe1ed0f55fa",
-      "bytes": 4585
+      "sha256": "6a7192f31000a0f090535609bd1e4fe6333a1d32714f70bc15ce2360c16161f9",
+      "bytes": 4760
     },
     {
       "path": "tests/test_foundation_acceptance.py",
@@ -1388,8 +1388,8 @@
     },
     {
       "path": "tools/build_claude_pack.py",
-      "sha256": "67f12266761c16cc3de0c29554c0e718cbcc8b5e7bd054aabee7b6186356314e",
-      "bytes": 17779
+      "sha256": "57f791dc49ce4eb2087b823afce451f2cc774095c2afc4e63b8ff338ee82e7cb",
+      "bytes": 17928
     },
     {
       "path": "tools/ingest_requirements.py",

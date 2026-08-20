@@ -62,11 +62,13 @@ class FinalPackTests(unittest.TestCase):
         self.assertTrue(report["ok"])
         with zipfile.ZipFile(archive) as handle:
             names = set(handle.namelist())
+            read_first = handle.read("READ_FIRST.md").decode("utf-8")
         self.assertIn("READ_FIRST.md", names)
         self.assertIn("PACK_MANIFEST.json", names)
         self.assertIn("PACK_PROVENANCE.json", names)
         self.assertIn("PACK_SBOM.spdx.json", names)
         self.assertNotIn("repository/.git", names)
+        self.assertIn("Never execute validators or any other code extracted from this pack", read_first)
 
     def test_duplicate_member_is_rejected(self) -> None:
         archive = self.build("tampered.zip")
