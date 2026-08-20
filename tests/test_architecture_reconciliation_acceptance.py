@@ -30,7 +30,7 @@ class ArchitectureReconciliationAcceptanceTests(unittest.TestCase):
         self.assertIn("C13_RUNTIME_CONTRACTS", report["critical_open_gaps"])
         self.assertIn("C14_COCKPIT_AND_OPERABILITY", report["critical_open_gaps"])
         self.assertIn("C15_QUALIFICATION", report["critical_open_gaps"])
-        self.assertIn("PROOF_BINDING", report["critical_open_gaps"])
+        self.assertNotIn("PROOF_BINDING", report["critical_open_gaps"])
         self.assertEqual(report["live_trading_state"], "HARD_LOCKED")
         self.assertEqual(report["profitability_state"], "UNPROVEN")
 

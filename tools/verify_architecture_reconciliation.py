@@ -14,6 +14,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools.verify_proof_binding import verify_proof_binding
+except ModuleNotFoundError:  # Direct ``python tools/verify_architecture_reconciliation.py`` execution.
+    from verify_proof_binding import verify_proof_binding
+
 
 MATRIX_PATH = Path("planning/architecture/PR14_PR20_RECONCILIATION.json")
 STATE_PATH = Path("authority/CURRENT_STATE.json")
@@ -49,7 +54,6 @@ REQUIRED_GAPS = {
     "C14_COCKPIT_AND_OPERABILITY",
     "C15_QUALIFICATION",
     "C16_PACKAGING_AND_INTEGRATION",
-    "PROOF_BINDING",
     "REQUIREMENTS_119_VS_108",
 }
 ALLOWED_NODE_STATUSES = {"VERIFIED_PARTIAL", "UNVERIFIED_TARGET", "POLICY_BLOCKED"}
@@ -263,6 +267,24 @@ def verify_architecture_reconciliation(root: Path) -> dict[str, object]:
     _require(state.get("live_trading_state") == "HARD_LOCKED", "CURRENT_STATE_LIVE_LOCK_WEAKENED", errors)
     _require(state.get("profitability_state") == "UNPROVEN", "CURRENT_STATE_PROFITABILITY_ESCALATED", errors)
 
+    proof_binding = verify_proof_binding(root)
+    _require(proof_binding.get("ok") is True, "PROOF_BINDING_INVALID", errors)
+    _require(
+        matrix.get("proof_binding", {}).get("path") == "planning/architecture/PROOF_BINDING.json",
+        "PROOF_BINDING_REFERENCE_MISSING",
+        errors,
+    )
+    _require(
+        matrix.get("proof_binding", {}).get("status") == "VERIFIED",
+        "PROOF_BINDING_STATUS_INVALID",
+        errors,
+    )
+    _require(
+        matrix.get("proof_binding", {}).get("promotion_allowed") is False,
+        "PROOF_BINDING_PROMOTION_ESCALATED",
+        errors,
+    )
+
     return {
         "ok": not errors,
         "errors": errors,
@@ -278,6 +300,7 @@ def verify_architecture_reconciliation(root: Path) -> dict[str, object]:
         "critical_open_gaps": critical_open_gaps if isinstance(critical_open_gaps, list) else [],
         "live_trading_state": state.get("live_trading_state"),
         "profitability_state": state.get("profitability_state"),
+        "proof_binding_verified": proof_binding.get("ok") is True,
     }
 
 

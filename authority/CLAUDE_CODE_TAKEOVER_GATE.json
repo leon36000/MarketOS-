@@ -1,9 +1,9 @@
 {
   "artifact_id": "ART-C0.1-TAKEOVER-GATE-001",
-  "version": "1.2.0",
-  "status": "PASS_REPOSITORY_BOOTSTRAP",
+  "version": "1.3.0",
+  "status": "PASS_ACTIVE_PHASE_HANDOFF",
   "claude_code_may_start": true,
-  "start_phase": "C1",
+  "start_phase": "C13",
   "finish_phase": "C16",
   "verify_command": "python tools/validate_repository.py --root . --json",
   "required_exit_code": 0,
@@ -14,6 +14,10 @@
     "authority/CURRENT_STATE.json",
     "planning/C0_1_FINAL_RECONCILIATION.md",
     "planning/PHASE_INDEX.json",
+    "planning/phases/C13/PHASE_BRIEF.md",
+    "planning/phases/C14/PHASE_BRIEF.md",
+    "planning/phases/C15/PHASE_BRIEF.md",
+    "planning/phases/C16/PHASE_BRIEF.md",
     "planning/phases/C1/EXECUTION_CONTRACT.md"
   ],
   "locks": {

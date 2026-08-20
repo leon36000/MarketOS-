@@ -38,7 +38,7 @@ The repository oracle contains **108 canonical requirements**. The MarketOS memo
 
 ### Closure-contract provenance drift is real
 
-Persistent memory referenced C13/C14 closure-contract paths that do not exist on the verified PR20 tree. These references are recorded as unresolved and are forbidden as implementation evidence. A future Proof Engine must require every material closure reference to resolve to an exact repository path, blob/hash and source authority or fail closed.
+Persistent memory referenced C13/C14 closure-contract paths that do not exist on the verified PR20 tree. These references are recorded as unresolved and are forbidden as implementation evidence. The current Proof Binding ledger pins this reconciliation artifact and the exact PR/CI receipts; unresolved closure references remain excluded from evidence.
 
 ## Critical open gaps
 
@@ -46,8 +46,10 @@ Persistent memory referenced C13/C14 closure-contract paths that do not exist on
 - `C14_COCKPIT_AND_OPERABILITY`: candidate architecture exists separately, but cockpit/auth/configuration/observability/alerts/incidents are not implemented as a verified C14 slice.
 - `C15_QUALIFICATION`: historical tournament, real-time shadow qualification, paper qualification, red-team readiness and any canary authorization remain unimplemented as broad qualification gates.
 - `C16_PACKAGING_AND_INTEGRATION`: PR14 packaging claims are not verified at its exact head and need reconstruction only after prerequisites exist.
-- `PROOF_BINDING`: claims, closure refs and memories need mechanical binding to exact SHA/CI/artifact/source authority.
 - `REQUIREMENTS_119_VS_108`: audit-memory additions must be reconciled explicitly with the canonical 108-row oracle.
+
+`PROOF_BINDING` is now a verified control gate, not an open architecture gap. It
+does not promote partial slices or resolve the 119↔108 memory discrepancy.
 
 ## TDD evidence for this reconciliation
 

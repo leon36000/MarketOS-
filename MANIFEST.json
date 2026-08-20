@@ -7,6 +7,11 @@
       "bytes": 3074
     },
     {
+      "path": ".github/workflows/claude-pack-green.yml",
+      "sha256": "e99bf98c9127c8b92a5d6a9a2a1e148ec874b931f3d16e36a2d6e1a700cc73d5",
+      "bytes": 738
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
       "bytes": 2703
@@ -35,6 +40,11 @@
       "path": ".github/workflows/materialize-execution-reality-gap.yml",
       "sha256": "dd0dbc7c15d921c838b3a3ace6f1d4211780ed37201b093ec6c19cf988dca570",
       "bytes": 3001
+    },
+    {
+      "path": ".github/workflows/proof-engine-green.yml",
+      "sha256": "f65cde858cb0071af74be4118727202a907deb6cef0e4b9daa3484ae1871d77b",
+      "bytes": 2112
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -93,8 +103,8 @@
     },
     {
       "path": "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
-      "sha256": "8a4aff66b5fffb0abaa376db33e38f9ca76f2a629251da2821cc92bf871358d5",
-      "bytes": 702
+      "sha256": "77be25a5abd7b1a6a45e8e967722e8e0a79d8ef985fbf1d20e76fd7efb141703",
+      "bytes": 871
     },
     {
       "path": "authority/CURRENT_STATE.json",
@@ -338,8 +348,13 @@
     },
     {
       "path": "docs/audit/PR14_PR20_RECONCILIATION.md",
-      "sha256": "4be8db8601f163f469928276da08c7bf6f1a670851c19da7706f93b9e142289e",
-      "bytes": 4675
+      "sha256": "16801774d0d15491c2f67fa6ebf0d5fcaa87470a00773d9646d808f295ca31cc",
+      "bytes": 4717
+    },
+    {
+      "path": "docs/implementation/C16_PACK_BUILDER.md",
+      "sha256": "92ef9d853d52dff0551673d4fee39f18d2cd584dcab9e3b99147ef35e14f67e4",
+      "bytes": 1373
     },
     {
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
@@ -375,6 +390,11 @@
       "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE_REVIEW.md",
       "sha256": "289c606ad8f1d9bdf987ac86c305894fcdddf5090830049071fd7d23ef919aed",
       "bytes": 1816
+    },
+    {
+      "path": "docs/implementation/PROOF_ENGINE_V2.md",
+      "sha256": "9b9c926db34fbda15dfe5f105a028fe3f73d0d99f5d60a1e9bc1e9744b544fc9",
+      "bytes": 2816
     },
     {
       "path": "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md",
@@ -485,6 +505,11 @@
       "path": "docs/superpowers/plans/2026-08-14-research-governance-kernel.md",
       "sha256": "0945be6d58d9418e0f0d6f1fee65287ee2b099f0ea94e62dc41c5d95e7e29707",
       "bytes": 8405
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-20-proof-binding.md",
+      "sha256": "95c523b59f392f9e49e017c7938a9748992f366edd29bf546ea7f0acc81da6f5",
+      "bytes": 9043
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -608,8 +633,23 @@
     },
     {
       "path": "planning/architecture/PR14_PR20_RECONCILIATION.json",
-      "sha256": "3d1bbab2c68b8d199c6ed547a58cc7f1401cf2b201ef739bb61308d6d214b1f0",
-      "bytes": 9250
+      "sha256": "8989b808a5fb9062adc53b367b1d0462f155246b77ff57f5da6edea2b79afcec",
+      "bytes": 9368
+    },
+    {
+      "path": "planning/architecture/PROOF_BINDING.json",
+      "sha256": "234946e88de08b434ba383371ca83e99d69fc6ffb80dc18eb0f1c91aa5fedc0f",
+      "bytes": 3320
+    },
+    {
+      "path": "planning/architecture/PROOF_ENGINE_POLICY.json",
+      "sha256": "cb478acaee2c80ccf01f91162dcffdc5537dd9a757b1804d89419b1e8a73083f",
+      "bytes": 1320
+    },
+    {
+      "path": "planning/architecture/REQUIREMENTS_108_119_RECONCILIATION.json",
+      "sha256": "95b6a5fa5e86d91c0dbf02f81452c17b6276b951905229d2e6877ee01e9f6333",
+      "bytes": 824
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -1083,8 +1123,8 @@
     },
     {
       "path": "tests/test_architecture_reconciliation_acceptance.py",
-      "sha256": "d2ead5a1a5d5dd09ac6dbb74722d03083b95799f138dc2ce72bc6c095d786e99",
-      "bytes": 1721
+      "sha256": "5d2d46e79a860d48615c9c87f339e029ee8d6367de62499b851dd7ef5b654da4",
+      "bytes": 1724
     },
     {
       "path": "tests/test_bars.py",
@@ -1197,6 +1237,11 @@
       "bytes": 11179
     },
     {
+      "path": "tests/test_final_pack.py",
+      "sha256": "6a7192f31000a0f090535609bd1e4fe6333a1d32714f70bc15ce2360c16161f9",
+      "bytes": 4760
+    },
+    {
       "path": "tests/test_foundation_acceptance.py",
       "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
       "bytes": 2019
@@ -1252,6 +1297,21 @@
       "bytes": 16298
     },
     {
+      "path": "tests/test_proof_binding.py",
+      "sha256": "044c0c26140d146b5f1dcb8e0b47ae8ebc035e1419f14b07ba425d5d39db3c08",
+      "bytes": 4876
+    },
+    {
+      "path": "tests/test_proof_engine.py",
+      "sha256": "9d7f1e4fae93f9721cd2cb64a25845718e6bd9b9aff56b8045c52b68fb12c5ea",
+      "bytes": 3560
+    },
+    {
+      "path": "tests/test_proof_engine_acceptance.py",
+      "sha256": "7afa6b300ae3c1a580ec50a0b8c566e4388b6765e993886f47e473c5e9679a93",
+      "bytes": 1219
+    },
+    {
       "path": "tests/test_regenerate_derived.py",
       "sha256": "7fef99e93c30e823216d8c8ff421fb71fecca893c5e3aabddd385a2cca9f3ab2",
       "bytes": 2027
@@ -1265,6 +1325,11 @@
       "path": "tests/test_repository_contract.py",
       "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
       "bytes": 6935
+    },
+    {
+      "path": "tests/test_requirements_reconciliation.py",
+      "sha256": "45c464bbf2cca35f36fd663533fa6c73529659ffcb43d9b5b053663918e326e3",
+      "bytes": 1816
     },
     {
       "path": "tests/test_research_governance_acceptance.py",
@@ -1302,6 +1367,11 @@
       "bytes": 3896
     },
     {
+      "path": "tests/test_takeover_gate.py",
+      "sha256": "2aa8272d67d3ac1262ccb9a94a9c0ad5253f4ca9e96c8a749fbbb212c5759a7b",
+      "bytes": 1281
+    },
+    {
       "path": "tests/test_validation.py",
       "sha256": "1bbbb8f49c365825f9f0fb7f5b344ab50fcc0a52bfaa8f42b5ab63133d56d895",
       "bytes": 9297
@@ -1315,6 +1385,11 @@
       "path": "tools/__init__.py",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
+    },
+    {
+      "path": "tools/build_claude_pack.py",
+      "sha256": "57f791dc49ce4eb2087b823afce451f2cc774095c2afc4e63b8ff338ee82e7cb",
+      "bytes": 17928
     },
     {
       "path": "tools/ingest_requirements.py",
@@ -1343,8 +1418,8 @@
     },
     {
       "path": "tools/verify_architecture_reconciliation.py",
-      "sha256": "0cf0953503e914a4a3c5d81484547248e5f4deccae4cdcd09482c3bd0fb4ee98",
-      "bytes": 15860
+      "sha256": "84c18cccd6f35ec40efcfec9d3079de95a0c263a8cbf8056617bb8db9ed2e950",
+      "bytes": 16744
     },
     {
       "path": "tools/verify_data_foundation.py",
@@ -1375,6 +1450,21 @@
       "path": "tools/verify_neon_memory.py",
       "sha256": "a4d78d8494040946e47a9d588ff90ea3ef4d798c8d17acfa4d202b98cfc8f22e",
       "bytes": 1258
+    },
+    {
+      "path": "tools/verify_proof_binding.py",
+      "sha256": "685e00f0a7039d068ff30319a38f16527a3acccf4d50a089ca5115695840eeb3",
+      "bytes": 8796
+    },
+    {
+      "path": "tools/verify_proof_engine.py",
+      "sha256": "863b2876d9b3612e6d0f9c2e558107e8de93d67579bfdc80ec4302e3c3340ce8",
+      "bytes": 10364
+    },
+    {
+      "path": "tools/verify_requirements_reconciliation.py",
+      "sha256": "15094bb7f8a5fa2a31c6cef974ba3b57e4895f0181307af667fc30f1f65e2979",
+      "bytes": 4645
     },
     {
       "path": "tools/verify_research_governance.py",

@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "authority": "REQUIREMENT_RECONCILIATION_BOUNDARY",
+  "status": "BLOCKED_EVIDENCE_MISSING",
+  "canonical_source": "requirements/REQUIREMENT_CROSSWALK.csv",
+  "canonical_count": 108,
+  "current_state_source": "authority/CURRENT_STATE.json",
+  "current_state_observed_count": 119,
+  "local_memory_snapshot_source": "authority/NEON_MEMORY_STATE.json",
+  "local_memory_snapshot_count": 111,
+  "row_level_memory_export_present": false,
+  "reconciliation_complete": false,
+  "promotion_allowed": false,
+  "resolution_rule": "The 119 observed memory rows cannot become canonical until an exact row-level export, source authority, validity interval and SHA binding are independently verified.",
+  "blocking_findings": [
+    "MEMORY_ROW_LEVEL_EVIDENCE_MISSING",
+    "MEMORY_COUNT_CONFLICT_119_VS_111"
+  ]
+}
