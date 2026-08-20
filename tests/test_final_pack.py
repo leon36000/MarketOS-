@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -55,6 +56,17 @@ class FinalPackTests(unittest.TestCase):
 
         with self.assertRaises(PackError):
             build_pack(self.source, unsafe, validate=False, require_clean=False)
+
+    def test_broken_output_symlink_is_rejected(self) -> None:
+        target = self.temp / "missing-target.zip"
+        symlink = self.temp / "broken-output.zip"
+        try:
+            os.symlink(target, symlink)
+        except OSError:
+            self.skipTest("symbolic links are unavailable on this platform")
+
+        with self.assertRaises(PackError):
+            build_pack(self.source, symlink, validate=False, require_clean=False)
 
     def test_two_builds_are_byte_identical(self) -> None:
         first = self.build("one.zip")

@@ -143,7 +143,7 @@ def _validated_output_path(root: Path, output: Path) -> Path:
     candidate = output if output.is_absolute() else Path.cwd() / output
     if candidate.name in {"", ".", ".."} or candidate.suffix.lower() != ".zip":
         raise PackError("pack output must be a .zip file path")
-    if candidate.exists() and candidate.is_symlink():
+    if candidate.is_symlink():
         raise PackError("pack output symlinks are forbidden")
 
     temp_root = Path(tempfile.gettempdir()).resolve()
@@ -156,7 +156,7 @@ def _validated_output_path(root: Path, output: Path) -> Path:
     validated = parent / candidate.name
     if validated == root or root in validated.parents:
         raise PackError("pack output must be outside the source repository")
-    if validated.exists() and validated.is_symlink():
+    if validated.is_symlink():
         raise PackError("pack output symlinks are forbidden")
     if validated.exists() and not validated.is_file():
         raise PackError("pack output must not replace a non-file")
