@@ -137,6 +137,32 @@ def _assert_clean(root: Path) -> None:
         raise PackError(f"source repository is not clean:\n{output}")
 
 
+def _validated_output_path(root: Path, output: Path) -> Path:
+    """Return a confined release path suitable for archive and sidecars."""
+    root = root.resolve()
+    candidate = output if output.is_absolute() else Path.cwd() / output
+    if candidate.name in {"", ".", ".."} or candidate.suffix.lower() != ".zip":
+        raise PackError("pack output must be a .zip file path")
+    if candidate.exists() and candidate.is_symlink():
+        raise PackError("pack output symlinks are forbidden")
+
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    parent = candidate.parent.resolve()
+    try:
+        parent.relative_to(temp_root)
+    except ValueError as exc:
+        raise PackError("pack output must be under the system temporary directory") from exc
+
+    validated = parent / candidate.name
+    if validated == root or root in validated.parents:
+        raise PackError("pack output must be outside the source repository")
+    if validated.exists() and validated.is_symlink():
+        raise PackError("pack output symlinks are forbidden")
+    if validated.exists() and not validated.is_file():
+        raise PackError("pack output must not replace a non-file")
+    return validated
+
+
 def _run_json_validator(root: Path, relative: str) -> dict[str, Any]:
     result = _run([sys.executable, relative, "--root", ".", "--json"], cwd=root)
     try:
@@ -311,9 +337,7 @@ def _write_zip(output: Path, members: dict[str, bytes], modes: dict[str, int], e
 
 def build_pack(root: Path, output: Path, *, validate: bool = True, require_clean: bool = True) -> dict[str, Any]:
     root = root.resolve()
-    output = output.resolve()
-    if root == output or root in output.parents:
-        raise PackError("pack output must be outside the source repository")
+    output = _validated_output_path(root, output)
     if require_clean:
         _assert_clean(root)
     reports = validate_source(root, require_clean=require_clean) if validate else None
@@ -386,6 +410,8 @@ def verify_archive(archive_path: Path, *, run_repository_checks: bool = False) -
 
 
 def build_and_verify(root: Path, output: Path, *, require_clean: bool = True) -> dict[str, Any]:
+    root = root.resolve()
+    output = _validated_output_path(root, output)
     first = build_pack(root, output, validate=True, require_clean=require_clean)
     verification = verify_archive(output, run_repository_checks=False)
     with tempfile.TemporaryDirectory(prefix="marketos-pack-rebuild-") as temp_dir:

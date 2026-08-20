@@ -48,6 +48,14 @@ class FinalPackTests(unittest.TestCase):
         with self.assertRaises(PackError):
             build_pack(self.source, self.temp / "dirty.zip", validate=False, require_clean=True)
 
+    def test_output_path_is_confined_to_system_temp_directory(self) -> None:
+        unsafe = ROOT.parent / f".marketos-unsafe-output-{id(self)}.zip"
+        self.assertFalse(unsafe.exists())
+        self.addCleanup(unsafe.unlink, missing_ok=True)
+
+        with self.assertRaises(PackError):
+            build_pack(self.source, unsafe, validate=False, require_clean=False)
+
     def test_two_builds_are_byte_identical(self) -> None:
         first = self.build("one.zip")
         second = self.build("two.zip")
