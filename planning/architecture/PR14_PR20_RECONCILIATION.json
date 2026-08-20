@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "snapshot_date": "2026-08-18",
+  "version": "1.1.0",
+  "snapshot_date": "2026-08-20",
   "authority": "RECONCILIATION_EVIDENCE",
   "purpose": "Reconcile the failed/stale PR14 C16 target architecture with exact executable evidence from PR15 through PR20 without promoting partial slices to completed implementation nodes.",
   "sources": {
@@ -101,6 +101,11 @@
     "memory_is_canonical_repository_set": false,
     "rule": "The 119-row memory set is an audit superset. It must never replace the 108-requirement repository oracle without explicit reconciliation."
   },
+  "proof_binding": {
+    "path": "planning/architecture/PROOF_BINDING.json",
+    "status": "VERIFIED",
+    "promotion_allowed": false
+  },
   "target_dag": {
     "source_pr": 14,
     "source_head_sha": "bd3bf2823d6e731ece5ed8d66570d196be42b560",
@@ -184,7 +189,6 @@
     "C14_COCKPIT_AND_OPERABILITY",
     "C15_QUALIFICATION",
     "C16_PACKAGING_AND_INTEGRATION",
-    "PROOF_BINDING",
     "REQUIREMENTS_119_VS_108"
   ],
   "locks": {

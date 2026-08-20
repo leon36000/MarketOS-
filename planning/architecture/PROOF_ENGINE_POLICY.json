@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "authority": "PROOF_ENGINE_POLICY",
+  "source_authority_paths": [
+    "planning/architecture/PR14_PR20_RECONCILIATION.json",
+    "planning/architecture/PROOF_BINDING.json",
+    "authority/CURRENT_STATE.json",
+    "requirements/REQUIREMENT_CROSSWALK.csv",
+    "MANIFEST.json"
+  ],
+  "exact_sha_binding_required": true,
+  "artifact_resolution_required": true,
+  "source_authority_required": true,
+  "append_only_ledger": true,
+  "promotion_rules": {
+    "stale_or_missing_reference_promotable": false,
+    "failed_or_mismatched_ci_promotable": false,
+    "proof_engine_can_unlock_live_trading": false,
+    "proof_engine_can_prove_profitability": false
+  },
+  "required_state": {
+    "live_trading_state": "HARD_LOCKED",
+    "profitability_state": "UNPROVEN",
+    "implementation_nodes_complete": 0,
+    "canonical_requirements": 108,
+    "memory_requirements_observed": 119
+  },
+  "checks": [
+    "POLICY_FLAGS",
+    "SOURCE_AUTHORITY_PATHS",
+    "RECONCILIATION_EVIDENCE",
+    "CURRENT_STATE_BINDING",
+    "CANONICAL_REQUIREMENT_ORACLE",
+    "MEMORY_SUPERSET_BOUNDARY",
+    "IMPLEMENTATION_COMPLETION_BOUNDARY",
+    "LIVE_TRADING_LOCK",
+    "PROFITABILITY_LOCK",
+    "PROMOTION_FAIL_CLOSED",
+    "APPEND_ONLY_LEDGER",
+    "EXACT_SHA_BINDING",
+    "PROOF_BINDING"
+  ]
+}

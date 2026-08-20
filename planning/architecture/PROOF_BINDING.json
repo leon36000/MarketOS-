@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "authority": "PROOF_BINDING",
+  "append_only": true,
+  "promotion_allowed": false,
+  "artifact_bindings": [
+    {
+      "path": "planning/architecture/PR14_PR20_RECONCILIATION.json",
+      "sha256": "8989b808a5fb9062adc53b367b1d0462f155246b77ff57f5da6edea2b79afcec"
+    },
+    {
+      "path": "authority/CURRENT_STATE.json",
+      "sha256": "fe0839f57442be8fa9bf6501af968ae83df9dcc1186c2d3530f63bda0892cf2f"
+    },
+    {
+      "path": "requirements/REQUIREMENT_CROSSWALK.csv",
+      "sha256": "db56ef91932ece2d6369ca84ff08c2995d572fcd70e4cce5f4060180808c1123"
+    }
+  ],
+  "current_state_binding": {
+    "planning_phase": "C13",
+    "planning_phase_state": "IN_PROGRESS",
+    "reconciliation_candidate_pr": 21,
+    "live_trading_state": "HARD_LOCKED",
+    "profitability_state": "UNPROVEN",
+    "software_implementation_complete": false
+  },
+  "execution_bindings": [
+    {
+      "pr": 14,
+      "head_sha": "bd3bf2823d6e731ece5ed8d66570d196be42b560",
+      "role": "TARGET_ARCHITECTURE_ONLY",
+      "merge_safe": false,
+      "exact_head_ci_green": false,
+      "ci_receipts": [
+        {"id": 31761607472, "name": "validate", "conclusion": "failure"},
+        {"id": 31761607461, "name": "validate-c16", "conclusion": "failure"}
+      ],
+      "promotable": false
+    },
+    {
+      "pr": 15,
+      "head_sha": "fab4c16c048e3216093a43af0c42f5f0c9562c33",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [31774716660],
+      "promotable": false
+    },
+    {
+      "pr": 16,
+      "head_sha": "9b6f9d94de82963a62e07a6183d63cf1a5dea33a",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [31779092103, 31779092043, 31779092084],
+      "promotable": false
+    },
+    {
+      "pr": 17,
+      "head_sha": "e602c17e22caa12bf358743c47a38e90cdaeb8a9",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [31781106036, 31781106037, 31781106039],
+      "promotable": false
+    },
+    {
+      "pr": 18,
+      "head_sha": "ffe23f955770f68bf897f94c7a506dfeb27c09b6",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [31824108505, 31824108427, 31824108478],
+      "promotable": false
+    },
+    {
+      "pr": 19,
+      "head_sha": "ea851564a2a5781cd3627d0dd5eb9ca857001095",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [31827966807, 31827966804, 31827966838],
+      "promotable": false
+    },
+    {
+      "pr": 20,
+      "head_sha": "b05dd6004f60cc20b76c2c5c86c3ba6046401180",
+      "role": "VERIFIED_PARTIAL",
+      "coverage": "VERIFIED_PARTIAL",
+      "target_overlap_only": true,
+      "ci_run_ids": [32189100569, 32189100686, 32189100652],
+      "source_role": "EXECUTABLE_EVIDENCE_BASE",
+      "ci_receipts": [
+        {"id": 32189100569, "name": "validate", "conclusion": "success"},
+        {"id": 32189100686, "name": "implementation-foundation", "conclusion": "success"},
+        {"id": 32189100652, "name": "execution-calibration", "conclusion": "success"}
+      ],
+      "promotable": false
+    }
+  ]
+}

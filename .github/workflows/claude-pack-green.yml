@@ -1,0 +1,42 @@
+name: claude-pack-green
+
+on:
+  push:
+    paths:
+      - "tools/build_claude_pack.py"
+      - "tools/validate_repository.py"
+      - "tools/verify_proof_engine.py"
+      - "tools/verify_requirements_reconciliation.py"
+      - "tests/test_final_pack.py"
+      - "MANIFEST.json"
+      - ".github/workflows/claude-pack-green.yml"
+  pull_request:
+    paths:
+      - "tools/build_claude_pack.py"
+      - "tools/validate_repository.py"
+      - "tools/verify_proof_engine.py"
+      - "tools/verify_requirements_reconciliation.py"
+      - "tests/test_final_pack.py"
+      - "MANIFEST.json"
+      - ".github/workflows/claude-pack-green.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pack-green:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Pack unit tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m unittest tests.test_final_pack -v
+      - name: Deterministic clean pack and offline extraction verification
+        run: python tools/build_claude_pack.py --root . --output /tmp/MARKET-OS-CODEX-PACK.zip --verify --json
