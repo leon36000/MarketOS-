@@ -5,6 +5,9 @@ import sqlite3
 import tempfile
 import unittest
 from dataclasses import replace
+import json
+import subprocess
+import sys
 
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.ledger import JournalEntry, Posting, PostingSide
@@ -334,6 +337,32 @@ class C13RiskGateTests(unittest.TestCase):
         self.assertEqual(result.action, RiskAction.NO_TRADE)
         self.assertIn("EXECUTION_MODE_NOT_ALLOWED", result.reasons)
         self.assertIn("UPSTREAM_NO_TRADE", result.reasons)
+
+
+class C13VerifierTests(unittest.TestCase):
+    def test_c13_validator_reports_non_promotable_verified_slice(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(root / "tools" / "verify_c13_contract.py"),
+                "--root",
+                str(root),
+                "--json",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"], payload)
+        self.assertTrue(all(payload["checks"].values()), payload)
+        self.assertEqual(payload["live_trading_state"], "HARD_LOCKED")
+        self.assertEqual(payload["profitability_state"], "UNPROVEN")
+        self.assertFalse(payload["promotion_allowed"])
+        self.assertFalse(payload["phase_complete"])
 
 
 if __name__ == "__main__":
