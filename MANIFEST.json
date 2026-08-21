@@ -363,8 +363,8 @@
     },
     {
       "path": "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md",
-      "sha256": "21d4c2b623ea49fff7cec0a602e258896b6832a4cbf74a641687610bb9547491",
-      "bytes": 2759
+      "sha256": "f5312a42ba6d020ecd17990cf94668f5b24b0ef50fe0073b9903e73e8c8eae40",
+      "bytes": 3220
     },
     {
       "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
@@ -803,8 +803,8 @@
     },
     {
       "path": "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md",
-      "sha256": "68defe56a89ad84d3d6d51b951544f66f39942b20459c56ab314e29022452ead",
-      "bytes": 2042
+      "sha256": "a9fc38243632377e57e9edcf7efa2cd78dc121bb832c0cfa8d761e187fc28eea",
+      "bytes": 2200
     },
     {
       "path": "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json",
@@ -813,7 +813,7 @@
     },
     {
       "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
-      "sha256": "bab3999b953c22e7201bdcffdd6efee7540a7fb3ba725be7da66939605f6e144",
+      "sha256": "b7d87e828386e916fc8fcde03ddaa85193d4992dc29c4945fcff11cf52352c7d",
       "bytes": 2161
     },
     {
@@ -828,7 +828,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "95283fd8043107c8f051636aa019dfbf52d92b65e9959ceefe102368a7069cc5",
+      "sha256": "4da10cb9558286e54520f2d2569987c3e064628b6b1d47eae337de0eff936f60",
       "bytes": 2102
     },
     {
@@ -1078,8 +1078,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "fb68a6bd9cb483cec58a132672502d32f50edb9af74a8ba4c52172cf4b8c296e",
-      "bytes": 58513
+      "sha256": "29f1c1dfa703a6b3d9cf787a9a40a7878fac63fc017a3d66134bd5fadf8e14d4",
+      "bytes": 60467
     },
     {
       "path": "src/marketos/bars.py",
@@ -1253,8 +1253,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "57e25018575f41fe71ee95213e081880c4e31095bc9f151b38c1d98202959737",
-      "bytes": 36617
+      "sha256": "acfb616e5744c8b582b4a71042bc31f8748c7cee5df4c9816991a4245fec13fa",
+      "bytes": 41199
     },
     {
       "path": "tests/test_c13_execution_safety.py",

@@ -19,14 +19,19 @@ or change any authority lock.
 ## Witness and bootstrap rules
 
 The v2 sidecar records the journal head plus the checkpoint sequence and
-record digest. A fresh path may create a v2 genesis anchor only when the path
+transitive checkpoint record digest. Each v2 checkpoint digest commits both
+its canonical record and its predecessor digest, so a historical chain
+rewrite changes the witnessed current-head digest. A fresh path may create a v2 genesis anchor only when the path
 did not exist and all three persisted tables are empty. An existing database
 without its sidecar fails with `JOURNAL_INTEGRITY_FAILURE`. A legacy v1
 sidecar may be opened for audit and reconciliation, but a non-empty store
 cannot restore or mutate an authoritative book until it has an independently
 approved v2 baseline; the runtime never upgrades it automatically.
 
-Any journal-head mismatch remains a journal integrity failure. A checkpoint
+Restoration runs under a SQLite `BEGIN IMMEDIATE` writer lock from the fresh
+head read through snapshot validation and authoritative-book publication. Any
+concurrent writer therefore waits until the restored book has been published,
+and the head is checked again before commit. Any journal-head mismatch remains a journal integrity failure. A checkpoint
 record rewrite that preserves its SQLite row digest but disagrees with the
 sidecar is `BOOK_CHECKPOINT_WITNESS_FAILURE`.
 

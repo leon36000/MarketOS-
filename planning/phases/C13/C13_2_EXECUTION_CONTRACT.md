@@ -18,10 +18,13 @@ This slice is verified but does not complete C13. It keeps `HARD_LOCKED`,
   authoritative restoration and mutation fail with
   `BOOK_CHECKPOINT_WITNESS_REQUIRED`; there is no automatic upgrade.
 - The v2 sidecar authenticates journal head fields and the latest checkpoint
-  sequence and record digest.
+  sequence and transitive record digest; each v2 record commits its
+  predecessor digest.
 - A checkpoint rewrite that recomputes its SQLite row digest but disagrees
   with the sidecar fails with `BOOK_CHECKPOINT_WITNESS_FAILURE`.
-- Only the checkpoint matching the current ledger SHA may restore a book.
+- Only the checkpoint matching the current ledger SHA may restore a book, and
+  restoration holds a SQLite writer lock through final publication and a
+  second head check.
 - Cash is derived from the journal prefix named by the checkpoint; positions
   and realized P&L come from the authenticated snapshot only.
 - Snapshot invariants reject malformed currencies, digests, ordering,

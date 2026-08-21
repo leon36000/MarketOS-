@@ -18,15 +18,15 @@
     "tools/verify_c13_checkpoint_reconstruction.py"
   ],
   "source_sha256": {
-    "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md": "21d4c2b623ea49fff7cec0a602e258896b6832a4cbf74a641687610bb9547491",
+    "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md": "f5312a42ba6d020ecd17990cf94668f5b24b0ef50fe0073b9903e73e8c8eae40",
     "docs/superpowers/plans/2026-08-21-c13-2-checkpoint-authenticated-restart-plan.md": "68f9ac558b70f90606f5c7b570c42bc892dfb8f16f7c168fcddf7b66fa190185",
     "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
     "planning/phases/C13/C13_2_DECISIONS.json": "2af98f54ee5cd50af5d69a673bac66e95d91f5bb6b21edbb9a5bbbd470bcbc26",
     "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
-    "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md": "68defe56a89ad84d3d6d51b951544f66f39942b20459c56ab314e29022452ead",
-    "src/marketos/authoritative_books.py": "fb68a6bd9cb483cec58a132672502d32f50edb9af74a8ba4c52172cf4b8c296e",
-    "tests/test_c13_authoritative_books.py": "57e25018575f41fe71ee95213e081880c4e31095bc9f151b38c1d98202959737",
+    "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md": "a9fc38243632377e57e9edcf7efa2cd78dc121bb832c0cfa8d761e187fc28eea",
+    "src/marketos/authoritative_books.py": "29f1c1dfa703a6b3d9cf787a9a40a7878fac63fc017a3d66134bd5fadf8e14d4",
+    "tests/test_c13_authoritative_books.py": "acfb616e5744c8b582b4a71042bc31f8748c7cee5df4c9816991a4245fec13fa",
     "tools/verify_c13_checkpoint_reconstruction.py": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a"
   },
-  "source_tree_sha256": "092c074ee5ac91a64aab3a068b7d7c31f38f550137bff77cdda500d3170e0fa6"
+  "source_tree_sha256": "177ff86c469ddc8f1e51e9ddae0f4b06f9d2601c5a1eb65cf666a8e0d4768200"
 }

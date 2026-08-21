@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import sqlite3
 import tempfile
+import threading
 import unittest
 from dataclasses import replace
 import json
@@ -583,6 +584,111 @@ class C13CheckpointReconstructionTests(unittest.TestCase):
             InvariantViolation, "BOOK_CHECKPOINT_WITNESS_FAILURE"
         ):
             DurableLedger(self.path)
+
+    def test_checkpoint_chain_rewrite_is_detected_by_transitive_witness(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
+            ledger.checkpoint("checkpoint-2", book, captured_at_ns=201)
+            connection = sqlite3.connect(self.path)
+            connection.execute("DROP TRIGGER book_checkpoints_no_update")
+            first_json = str(
+                connection.execute(
+                    "SELECT record_json FROM book_checkpoints WHERE checkpoint_id = ?",
+                    ("checkpoint-1",),
+                ).fetchone()[0]
+            )
+            first = json.loads(first_json)
+            first["snapshot"]["cash"]["minor_units"] = 9900
+            rewritten_first = canonical_json(first)
+            first_sha = canonical_sha256(
+                {"checkpoint": first, "previous_sha256": ""}
+            )
+            second_json = str(
+                connection.execute(
+                    "SELECT record_json FROM book_checkpoints WHERE checkpoint_id = ?",
+                    ("checkpoint-2",),
+                ).fetchone()[0]
+            )
+            second = json.loads(second_json)
+            second_sha = canonical_sha256(
+                {"checkpoint": second, "previous_sha256": first_sha}
+            )
+            connection.execute(
+                "UPDATE book_checkpoints SET record_json = ?, record_sha256 = ? "
+                "WHERE checkpoint_id = ?",
+                (rewritten_first, first_sha, "checkpoint-1"),
+            )
+            connection.execute(
+                "UPDATE book_checkpoints SET previous_sha256 = ?, record_sha256 = ? "
+                "WHERE checkpoint_id = ?",
+                (first_sha, second_sha, "checkpoint-2"),
+            )
+            connection.commit()
+            connection.close()
+            with self.assertRaisesRegex(
+                InvariantViolation, "BOOK_CHECKPOINT_WITNESS_FAILURE"
+            ):
+                ledger.verify()
+
+    def test_restart_restore_holds_sqlite_writer_lock_until_publication(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
+            expected = book.snapshot()
+
+        entered = threading.Event()
+        competitor_attempted = threading.Event()
+        competitor_committed = threading.Event()
+        release = threading.Event()
+        blocked = []
+
+        class PausingLedger(DurableLedger):
+            def __init__(self, path: Path) -> None:
+                self.pause_validation = False
+                super().__init__(path)
+                self.pause_validation = True
+
+            def _validate_snapshot(self, snapshot, *, captured_at_ns=None):
+                result = super()._validate_snapshot(
+                    snapshot,
+                    captured_at_ns=captured_at_ns,
+                )
+                if self.pause_validation:
+                    self.pause_validation = False
+                    entered.set()
+                    competitor_attempted.wait(timeout=5)
+                    blocked.append(not competitor_committed.wait(timeout=0.2))
+                    release.set()
+                return result
+
+        reopened = PausingLedger(self.path)
+        self.addCleanup(reopened.close)
+
+        def compete() -> None:
+            from marketos.authoritative_books import DurableLedger
+
+            with DurableLedger(self.path) as competitor:
+                competitor_attempted.set()
+                competitor.post(C13DurableLedgerTests.entry("fund-2", "1.00"))
+                competitor_committed.set()
+
+        worker = threading.Thread(target=compete)
+        worker.start()
+        self.assertTrue(competitor_attempted.wait(timeout=5))
+        restored = reopened.authoritative_book(base_currency="USD")
+        worker.join(timeout=5)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(blocked, [True])
+        self.assertEqual(restored.snapshot(), expected)
+        with DurableLedger(self.path) as current:
+            self.assertEqual(len(current.entries()), 2)
 
     def test_checkpoint_capture_cannot_precede_journal_entries(self) -> None:
         from marketos.authoritative_books import DurableLedger
