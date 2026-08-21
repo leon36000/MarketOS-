@@ -5,15 +5,19 @@ from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
 import json
+from pathlib import Path
+import tempfile
 from typing import Any, Iterable, Mapping
 
+from .authoritative_books import DurableLedger
 from .canonical import canonical_json, canonical_sha256
+from .execution_safety import C13PreTradeEnvelope
 from .errors import InvariantViolation
 from .events import EventEnvelope, EventKind, sort_events
 from .money import Money, Price, Quantity
 from .orders import ExecutionMode, OrderIntent, OrderSide, OrderType, TimeInForce
 from .paper import ExecutionReport, MarketSnapshot, PaperBroker
-from .portfolio import PortfolioBook, PortfolioSnapshot
+from .portfolio import PortfolioSnapshot
 from .risk import RiskKernel, RiskLimits
 from .store import SQLiteEventStore
 from .time import ClockQuality, EventTime
@@ -179,21 +183,33 @@ class ReplayEngine:
         self.risk_limits = risk_limits
         self.store = store
 
-    def _new_runtime(self) -> tuple[PortfolioBook, PaperBroker]:
-        portfolio = PortfolioBook(base_currency=self.config.base_currency)
+    def _new_runtime(self):
+        runtime_dir = tempfile.TemporaryDirectory(prefix="marketos-replay-")
+        ledger = DurableLedger(Path(runtime_dir.name) / "replay.sqlite")
+        portfolio = ledger.authoritative_book(base_currency=self.config.base_currency)
         if self.config.initial_cash.minor_units:
             portfolio.fund(
                 f"replay:{self.config.run_id}:fund",
                 self.config.initial_cash,
                 occurred_at_ns=0,
             )
+        ledger.checkpoint(
+            f"replay:{self.config.run_id}:initial",
+            portfolio,
+            captured_at_ns=0,
+        )
         broker = PaperBroker(
             portfolio=portfolio,
             risk_kernel=RiskKernel(self.risk_limits),
             fee_bps=self.config.fee_bps,
             slippage_bps=self.config.slippage_bps,
         )
-        return portfolio, broker
+        envelope = C13PreTradeEnvelope(
+            broker=broker,
+            book=portfolio,
+            ledger=ledger,
+        )
+        return runtime_dir, ledger, portfolio, broker, envelope
 
     @staticmethod
     def _market_from_event(event: EventEnvelope) -> MarketSnapshot:
@@ -252,57 +268,60 @@ class ReplayEngine:
         ignore_max_events: bool = False,
     ) -> ReplayResult:
         self._validate_cutoff(ordered)
-        portfolio, broker = self._new_runtime()
+        runtime_dir, ledger, portfolio, broker, envelope = self._new_runtime()
         reports: list[ExecutionReport] = []
-        limit = None if ignore_max_events else self.config.max_events
-        process_count = len(ordered) if limit is None else min(len(ordered), limit)
+        try:
+            limit = None if ignore_max_events else self.config.max_events
+            process_count = len(ordered) if limit is None else min(len(ordered), limit)
 
-        for event in ordered[:process_count]:
-            if self.store is not None:
-                self.store.append(event)
-            if event.kind is EventKind.MARKET_SNAPSHOT:
-                broker.update_market(self._market_from_event(event))
-            elif event.kind is EventKind.ORDER_INTENT:
-                report = broker.submit(
-                    self._intent_from_event(event),
-                    now_ns=event.time.available_at_ns,
-                    clock_quality=ClockQuality(
-                        source="replay",
-                        synchronization_method="DETERMINISTIC",
-                        last_sync_wall_ns=event.time.available_at_ns,
-                        max_error_ns=0,
-                        offset_ns=0,
-                        quality_state="SYNCED",
-                    ),
-                    books_reconciled=True,
-                )
-                reports.append(report)
+            for event in ordered[:process_count]:
                 if self.store is not None:
-                    self.store.append_evidence("EXECUTION_REPORT", report.canonical_dict())
-            else:
-                raise InvariantViolation(f"UNSUPPORTED_REPLAY_EVENT_KIND:{event.kind.value}")
+                    self.store.append(event)
+                if event.kind is EventKind.MARKET_SNAPSHOT:
+                    broker.update_market(self._market_from_event(event))
+                elif event.kind is EventKind.ORDER_INTENT:
+                    report = envelope.submit(
+                        self._intent_from_event(event),
+                        now_ns=event.time.available_at_ns,
+                        clock_quality=ClockQuality(
+                            source="replay",
+                            synchronization_method="DETERMINISTIC",
+                            last_sync_wall_ns=event.time.available_at_ns,
+                            max_error_ns=0,
+                            offset_ns=0,
+                            quality_state="SYNCED",
+                        ),
+                    )
+                    reports.append(report)
+                    if self.store is not None:
+                        self.store.append_evidence("EXECUTION_REPORT", report.canonical_dict())
+                else:
+                    raise InvariantViolation(f"UNSUPPORTED_REPLAY_EVENT_KIND:{event.kind.value}")
 
-        status = ReplayStatus.STOPPED_LIMIT if process_count < len(ordered) else ReplayStatus.COMPLETE
-        snapshot = portfolio.snapshot()
-        fingerprint = canonical_sha256(
-            {
-                "config": self.config,
-                "risk_limits": self.risk_limits,
-                "event_sha256": tuple(event.sha256() for event in ordered[:process_count]),
-                "reports": tuple(report.canonical_dict() for report in reports),
-                "portfolio": snapshot,
-                "status": status,
-                "events_processed": process_count,
-                "live_trading_state": "HARD_LOCKED",
-            }
-        )
-        return ReplayResult(
-            status=status,
-            events_processed=process_count,
-            reports=tuple(reports),
-            portfolio=snapshot,
-            fingerprint=fingerprint,
-        )
+            status = ReplayStatus.STOPPED_LIMIT if process_count < len(ordered) else ReplayStatus.COMPLETE
+            snapshot = portfolio.snapshot()
+            fingerprint = canonical_sha256(
+                {
+                    "config": self.config,
+                    "risk_limits": self.risk_limits,
+                    "event_sha256": tuple(event.sha256() for event in ordered[:process_count]),
+                    "reports": tuple(report.canonical_dict() for report in reports),
+                    "portfolio": snapshot,
+                    "status": status,
+                    "events_processed": process_count,
+                    "live_trading_state": "HARD_LOCKED",
+                }
+            )
+            return ReplayResult(
+                status=status,
+                events_processed=process_count,
+                reports=tuple(reports),
+                portfolio=snapshot,
+                fingerprint=fingerprint,
+            )
+        finally:
+            ledger.close()
+            runtime_dir.cleanup()
 
     def run(self, events: Iterable[EventEnvelope]) -> ReplayResult:
         return self._run_ordered(sort_events(events))

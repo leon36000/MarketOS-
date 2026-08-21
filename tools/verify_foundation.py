@@ -18,14 +18,15 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from marketos.canonical import canonical_sha256
+from marketos.authoritative_books import DurableLedger
 from marketos.config import load_events_jsonl, load_risk_limits
 from marketos.errors import InvariantViolation
 from marketos.events import EventEnvelope, EventKind, sort_events
 from marketos.ledger import JournalEntry, Ledger, Posting, PostingSide
 from marketos.money import Money, Price, Quantity
 from marketos.orders import ExecutionMode, OrderIntent, OrderSide, OrderType, TimeInForce
+from marketos.execution_safety import C13PreTradeEnvelope
 from marketos.paper import MarketSnapshot, PaperBroker
-from marketos.portfolio import PortfolioBook
 from marketos.replay import ReplayConfig, ReplayEngine
 from marketos.risk import RiskAction, RiskContext, RiskKernel
 from marketos.store import SQLiteEventStore
@@ -146,7 +147,9 @@ def verify() -> dict[str, object]:
         context = RiskContext(
             now_ns=100,
             data_available_at_ns=99,
-            books_reconciled=True,
+            portfolio_snapshot_sha256="b" * 64,
+            ledger_head_sha256="c" * 64,
+            market_view_sha256="d" * 64,
             clock_quality=ClockQuality("verify", "DETERMINISTIC", 100, 0, 0, "SYNCED"),
             cash=Money.from_decimal("USD", "1000"),
             current_position=Quantity.parse("0"),
@@ -159,8 +162,10 @@ def verify() -> dict[str, object]:
             intent,
             RiskContext(
                 now_ns=100,
-                data_available_at_ns=99,
-                books_reconciled=False,
+                data_available_at_ns=101,
+                portfolio_snapshot_sha256=context.portfolio_snapshot_sha256,
+                ledger_head_sha256=context.ledger_head_sha256,
+                market_view_sha256=context.market_view_sha256,
                 clock_quality=context.clock_quality,
                 cash=context.cash,
                 current_position=context.current_position,
@@ -174,46 +179,61 @@ def verify() -> dict[str, object]:
         return allowed.decision_sha256
 
     def paper_check() -> str:
-        book = PortfolioBook(base_currency="USD")
-        book.fund("fund", Money.from_decimal("USD", "1000"), occurred_at_ns=1)
-        broker = PaperBroker(portfolio=book, risk_kernel=RiskKernel(limits), fee_bps="10", slippage_bps="0")
-        broker.update_market(
-            MarketSnapshot(
-                "AAPL",
-                Price.parse("USD", "99", tick_size="0.01"),
-                Price.parse("USD", "100", tick_size="0.01"),
-                Quantity.parse("100"),
-                Quantity.parse("100"),
-                100,
-                "quote",
-            )
-        )
-        intent = OrderIntent(
-            "paper-buy",
-            "paper-client",
-            "paper-idem",
-            "AAPL",
-            OrderSide.BUY,
-            Quantity.positive("1"),
-            OrderType.MARKET,
-            None,
-            TimeInForce.IOC,
-            90,
-            90,
-            200,
-            "verify@1",
-            "a" * 64,
-            ExecutionMode.PAPER,
-        )
-        report = broker.submit(
-            intent,
-            now_ns=110,
-            clock_quality=ClockQuality("verify", "DETERMINISTIC", 110, 0, 0, "SYNCED"),
-            books_reconciled=True,
-        )
-        if not report.fills or book.position("AAPL").quantity != Quantity.positive("1"):
-            raise AssertionError("paper fill missing")
-        return report.report_sha256
+        with tempfile.TemporaryDirectory(prefix="marketos-foundation-paper-") as temp_dir:
+            ledger = DurableLedger(Path(temp_dir) / "paper.sqlite")
+            try:
+                book = ledger.authoritative_book(base_currency="USD")
+                book.fund("fund", Money.from_decimal("USD", "1000"), occurred_at_ns=1)
+                ledger.checkpoint("initial", book, captured_at_ns=2)
+                broker = PaperBroker(
+                    portfolio=book,
+                    risk_kernel=RiskKernel(limits),
+                    fee_bps="10",
+                    slippage_bps="0",
+                )
+                broker.update_market(
+                    MarketSnapshot(
+                        "AAPL",
+                        Price.parse("USD", "99", tick_size="0.01"),
+                        Price.parse("USD", "100", tick_size="0.01"),
+                        Quantity.parse("100"),
+                        Quantity.parse("100"),
+                        100,
+                        "quote",
+                    )
+                )
+                envelope = C13PreTradeEnvelope(
+                    broker=broker,
+                    book=book,
+                    ledger=ledger,
+                )
+                intent = OrderIntent(
+                    "paper-buy",
+                    "paper-client",
+                    "paper-idem",
+                    "AAPL",
+                    OrderSide.BUY,
+                    Quantity.positive("1"),
+                    OrderType.MARKET,
+                    None,
+                    TimeInForce.IOC,
+                    90,
+                    90,
+                    200,
+                    "verify@1",
+                    "a" * 64,
+                    ExecutionMode.PAPER,
+                )
+                report = envelope.submit(
+                    intent,
+                    now_ns=110,
+                    clock_quality=ClockQuality("verify", "DETERMINISTIC", 110, 0, 0, "SYNCED"),
+                )
+                if not report.fills or book.position("AAPL").quantity != Quantity.positive("1"):
+                    raise AssertionError("paper fill missing")
+                return report.report_sha256
+            finally:
+                ledger.close()
 
     def replay_check() -> str:
         config = ReplayConfig(
