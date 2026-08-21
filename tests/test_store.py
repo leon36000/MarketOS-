@@ -182,6 +182,31 @@ class StoreTests(unittest.TestCase):
         self.assertFalse(verification.ok)
         self.assertIn("EVENT_JSON_INVALID:1", verification.errors)
 
+    def test_normal_appends_do_not_rescan_full_history(self) -> None:
+        class CountingStore(SQLiteEventStore):
+            event_verifications = 0
+            evidence_verifications = 0
+
+            @classmethod
+            def verify_event_rows(cls, rows):
+                cls.event_verifications += 1
+                return super().verify_event_rows(rows)
+
+            @classmethod
+            def verify_evidence_rows(cls, rows):
+                cls.evidence_verifications += 1
+                return super().verify_evidence_rows(rows)
+
+        with CountingStore(self.path) as store:
+            self.assertEqual(CountingStore.event_verifications, 1)
+            self.assertEqual(CountingStore.evidence_verifications, 1)
+            for index in range(1, 101):
+                store.append(self.event(f"event-{index}", sequence=index))
+            for index in range(1, 101):
+                store.append_evidence("RISK", {"index": index})
+            self.assertEqual(CountingStore.event_verifications, 1)
+            self.assertEqual(CountingStore.evidence_verifications, 1)
+
     def test_append_many_is_atomic_on_conflict(self) -> None:
         with SQLiteEventStore(self.path) as store:
             with self.assertRaisesRegex(DuplicateConflict, "EVENT_ID_CONFLICT"):
