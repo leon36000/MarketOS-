@@ -1,0 +1,47 @@
+name: issue-26-source-red
+
+on:
+  pull_request:
+    branches:
+      - codex/pr14-pr20-reconciliation-proof
+    paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - PROJECT_INSTRUCTIONS.md
+      - tests/test_repository_contract.py
+      - .github/workflows/issue-26-source-red.yml
+
+permissions:
+  contents: read
+
+jobs:
+  contract-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Run focused operating-contract tests
+        env:
+          PYTHONPATH: src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest \
+            tests.test_repository_contract.RepositoryContractTests.test_agent_operating_contract_markers_are_consistent \
+            tests.test_repository_contract.RepositoryContractTests.test_claude_uses_proportional_not_global_preaction_verification \
+            -v
+      - name: Archive exact tracked head
+        if: always()
+        run: git archive --format=tar.gz --output=marketos-pr28-head.tar.gz HEAD
+      - name: Upload exact tracked head
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: marketos-pr28-head-${{ github.event.pull_request.head.sha }}
+          path: marketos-pr28-head.tar.gz
+          if-no-files-found: error
+          retention-days: 1
