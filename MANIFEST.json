@@ -813,7 +813,7 @@
     },
     {
       "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
-      "sha256": "d906b3ce6f1c99671e14363567ea062813c4bf3874e23f3eb160ced1dcdc3d91",
+      "sha256": "bab3999b953c22e7201bdcffdd6efee7540a7fb3ba725be7da66939605f6e144",
       "bytes": 2161
     },
     {
@@ -1078,8 +1078,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "30b635cb24a3cec05a852a79e606b029fe23dc4c44e61de27f439760ae51bbc5",
-      "bytes": 58306
+      "sha256": "fb68a6bd9cb483cec58a132672502d32f50edb9af74a8ba4c52172cf4b8c296e",
+      "bytes": 58513
     },
     {
       "path": "src/marketos/bars.py",
@@ -1253,8 +1253,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "c1b77c1452f73244130dd74c8ca293498a88c6cd0ee532be4ceba1059e2a99c1",
-      "bytes": 36148
+      "sha256": "57e25018575f41fe71ee95213e081880c4e31095bc9f151b38c1d98202959737",
+      "bytes": 36617
     },
     {
       "path": "tests/test_c13_execution_safety.py",
@@ -1548,8 +1548,8 @@
     },
     {
       "path": "tools/verify_c13_checkpoint_reconstruction.py",
-      "sha256": "aed90ecc23fd3a4ac05442bc8099d4e71e7e50a46c0091ea71eeab6b75849d06",
-      "bytes": 11209
+      "sha256": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a",
+      "bytes": 11731
     },
     {
       "path": "tools/verify_c13_contract.py",

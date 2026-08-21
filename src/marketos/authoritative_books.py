@@ -364,6 +364,10 @@ class DurableLedger:
         )
         self._ledger = Ledger()
         self._checkpoints: list[BookCheckpoint] = []
+        if anchor_existed_before_open and not path_existed_before_open:
+            self._connection.close()
+            self._closed = True
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
         if not anchor_existed_before_open:
             persisted_rows = int(
                 self._connection.execute(

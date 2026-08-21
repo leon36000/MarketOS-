@@ -512,6 +512,18 @@ class C13CheckpointReconstructionTests(unittest.TestCase):
         with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
             DurableLedger(self.path)
 
+    def test_orphaned_sidecar_without_database_fails_closed(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path):
+            pass
+        anchor_path = self.path.with_name(self.path.name + ".anchor.json")
+        self.path.unlink()
+
+        with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
+            DurableLedger(self.path)
+        self.assertTrue(anchor_path.is_file())
+
     def test_legacy_sidecar_cannot_restore_checkpoint_state(self) -> None:
         from marketos.authoritative_books import DurableLedger
 

@@ -24,9 +24,9 @@
     "planning/phases/C13/C13_2_DECISIONS.json": "2af98f54ee5cd50af5d69a673bac66e95d91f5bb6b21edbb9a5bbbd470bcbc26",
     "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
     "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md": "68defe56a89ad84d3d6d51b951544f66f39942b20459c56ab314e29022452ead",
-    "src/marketos/authoritative_books.py": "30b635cb24a3cec05a852a79e606b029fe23dc4c44e61de27f439760ae51bbc5",
-    "tests/test_c13_authoritative_books.py": "c1b77c1452f73244130dd74c8ca293498a88c6cd0ee532be4ceba1059e2a99c1",
-    "tools/verify_c13_checkpoint_reconstruction.py": "aed90ecc23fd3a4ac05442bc8099d4e71e7e50a46c0091ea71eeab6b75849d06"
+    "src/marketos/authoritative_books.py": "fb68a6bd9cb483cec58a132672502d32f50edb9af74a8ba4c52172cf4b8c296e",
+    "tests/test_c13_authoritative_books.py": "57e25018575f41fe71ee95213e081880c4e31095bc9f151b38c1d98202959737",
+    "tools/verify_c13_checkpoint_reconstruction.py": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a"
   },
-  "source_tree_sha256": "6df52fa716bfa7bbabc2382379aa1c1cc48d45d9e7c7961205e66d483af45dff"
+  "source_tree_sha256": "092c074ee5ac91a64aab3a068b7d7c31f38f550137bff77cdda500d3170e0fa6"
 }

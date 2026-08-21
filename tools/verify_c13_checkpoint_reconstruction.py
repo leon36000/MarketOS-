@@ -78,6 +78,18 @@ def _runtime_checks(root: Path) -> dict[str, bool]:
         except InvariantViolation as exc:
             checks["existing_db_missing_sidecar"] = str(exc) == "JOURNAL_INTEGRITY_FAILURE"
 
+        orphan_path = base / "orphan.sqlite"
+        with DurableLedger(orphan_path):
+            pass
+        orphan_anchor = orphan_path.with_name(orphan_path.name + ".anchor.json")
+        orphan_path.unlink()
+        try:
+            DurableLedger(orphan_path)
+            checks["orphaned_sidecar_rejected"] = False
+        except InvariantViolation as exc:
+            checks["orphaned_sidecar_rejected"] = str(exc) == "JOURNAL_INTEGRITY_FAILURE"
+        checks["orphan_anchor_preserved"] = orphan_anchor.is_file()
+
         legacy_path = base / "legacy.sqlite"
         with DurableLedger(legacy_path) as ledger:
             book = ledger.authoritative_book(base_currency="USD")
