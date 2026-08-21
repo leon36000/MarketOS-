@@ -80,6 +80,38 @@ class StoreIntegrityConcurrencyTests(unittest.TestCase):
             },
         )
 
+    def test_incompatible_legacy_table_contract_is_rejected(self) -> None:
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.executescript(
+                """
+                CREATE TABLE events (
+                    sequence INTEGER PRIMARY KEY,
+                    event_id TEXT NOT NULL,
+                    event_sha256 TEXT NOT NULL,
+                    previous_chain_sha256 TEXT NOT NULL,
+                    chain_sha256 TEXT NOT NULL,
+                    event_json TEXT NOT NULL
+                );
+                CREATE TABLE evidence (
+                    sequence INTEGER PRIMARY KEY,
+                    kind TEXT NOT NULL,
+                    evidence_sha256 TEXT NOT NULL,
+                    previous_chain_sha256 TEXT NOT NULL,
+                    chain_sha256 TEXT NOT NULL UNIQUE,
+                    payload_json TEXT NOT NULL
+                );
+                """
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events",
+        ):
+            SQLiteEventStore(self.path)
+
     def test_weakened_trigger_contract_is_rejected_on_reopen(self) -> None:
         with SQLiteEventStore(self.path) as store:
             store.append(self.event(1))
@@ -105,6 +137,29 @@ class StoreIntegrityConcurrencyTests(unittest.TestCase):
         with self.assertRaisesRegex(
             InvariantViolation,
             "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events_no_update",
+        ):
+            SQLiteEventStore(self.path)
+
+    def test_unexpected_ledger_trigger_is_rejected_on_reopen(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append(self.event(1))
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.executescript(
+                """
+                CREATE TRIGGER events_after_insert
+                AFTER INSERT ON events
+                BEGIN
+                    SELECT 1;
+                END;
+                """
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events_after_insert",
         ):
             SQLiteEventStore(self.path)
 
