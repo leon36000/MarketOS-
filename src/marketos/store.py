@@ -103,6 +103,29 @@ class SQLiteEventStore:
         "evidence_no_delete": ("evidence", "DELETE", "APPEND_ONLY_EVIDENCE"),
     }
 
+    _TABLE_CONTRACTS = {
+        "events": (
+            "CREATE TABLE events ( "
+            "sequence INTEGER PRIMARY KEY, "
+            "event_id TEXT NOT NULL UNIQUE, "
+            "event_sha256 TEXT NOT NULL, "
+            "previous_chain_sha256 TEXT NOT NULL, "
+            "chain_sha256 TEXT NOT NULL UNIQUE, "
+            "event_json TEXT NOT NULL "
+            ")"
+        ),
+        "evidence": (
+            "CREATE TABLE evidence ( "
+            "sequence INTEGER PRIMARY KEY, "
+            "kind TEXT NOT NULL, "
+            "evidence_sha256 TEXT NOT NULL, "
+            "previous_chain_sha256 TEXT NOT NULL, "
+            "chain_sha256 TEXT NOT NULL UNIQUE, "
+            "payload_json TEXT NOT NULL "
+            ")"
+        ),
+    }
+
     def __init__(self, path: str | Path) -> None:
         self.path = str(path)
         if self.path != ":memory:":
@@ -466,19 +489,55 @@ class SQLiteEventStore:
     def _normalize_sql(value: Any) -> str:
         return " ".join(str(value).upper().split())
 
-    def _verify_schema_guards(self) -> None:
-        names = tuple(self._TRIGGER_CONTRACTS)
+    def _verify_table_contracts(self) -> None:
+        names = tuple(self._TABLE_CONTRACTS)
         placeholders = ",".join("?" for _ in names)
         rows = self._connection.execute(
-            f"SELECT name, tbl_name, sql FROM sqlite_master "
-            f"WHERE type = 'trigger' AND name IN ({placeholders})",
+            f"SELECT name, sql FROM sqlite_master "
+            f"WHERE type = 'table' AND name IN ({placeholders})",
             names,
         ).fetchall()
         by_name = {str(row["name"]): row for row in rows}
+        for name, expected_sql in self._TABLE_CONTRACTS.items():
+            row = by_name.get(name)
+            if row is None or self._normalize_sql(row["sql"]) != self._normalize_sql(expected_sql):
+                raise InvariantViolation(
+                    f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}"
+                )
+
+    def _protected_trigger_rows(self, catalog: str) -> tuple[sqlite3.Row, ...]:
+        if catalog not in {"sqlite_master", "sqlite_temp_master"}:
+            raise InvariantViolation("INVALID_SQLITE_SCHEMA_CATALOG")
+        tables = tuple(self._TABLE_CONTRACTS)
+        placeholders = ",".join("?" for _ in tables)
+        return tuple(
+            self._connection.execute(
+                f"SELECT name, tbl_name, sql FROM {catalog} "
+                f"WHERE type = 'trigger' AND tbl_name IN ({placeholders})",
+                tables,
+            ).fetchall()
+        )
+
+    def _verify_trigger_contracts(self) -> None:
+        temporary_rows = self._protected_trigger_rows("sqlite_temp_master")
+        if temporary_rows:
+            unexpected = min(str(row["name"]) for row in temporary_rows)
+            raise InvariantViolation(
+                f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{unexpected}"
+            )
+        rows = self._protected_trigger_rows("sqlite_master")
+        by_name = {str(row["name"]): row for row in rows}
+        unexpected_names = sorted(set(by_name) - set(self._TRIGGER_CONTRACTS))
+        if unexpected_names:
+            raise InvariantViolation(
+                f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{unexpected_names[0]}"
+            )
         for name, (table, operation, message) in self._TRIGGER_CONTRACTS.items():
             row = by_name.get(name)
             if row is None or str(row["tbl_name"]) != table:
-                raise InvariantViolation(f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}")
+                raise InvariantViolation(
+                    f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}"
+                )
             normalized = self._normalize_sql(row["sql"])
             expected = self._normalize_sql(
                 f"CREATE TRIGGER {name} "
@@ -486,7 +545,13 @@ class SQLiteEventStore:
                 f"BEGIN SELECT RAISE(ABORT, '{message}'); END"
             )
             if normalized != expected:
-                raise InvariantViolation(f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}")
+                raise InvariantViolation(
+                    f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}"
+                )
+
+    def _verify_schema_contracts(self) -> None:
+        self._verify_table_contracts()
+        self._verify_trigger_contracts()
 
     def _verify_all_rows(
         self,
@@ -508,7 +573,7 @@ class SQLiteEventStore:
             _, _, event_verification, evidence_verification = self._verify_all_rows()
             self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
             self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
-            self._verify_schema_guards()
+            self._verify_schema_contracts()
             data_version = self._data_version_value()
             total_changes = self._connection.total_changes
             self._connection.execute("COMMIT")
@@ -532,7 +597,7 @@ class SQLiteEventStore:
             )
             self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
             self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
-            self._verify_schema_guards()
+            self._verify_schema_contracts()
             self._connection.execute("COMMIT")
             return event_rows, evidence_rows
         except Exception:
@@ -561,7 +626,7 @@ class SQLiteEventStore:
         else:
             event_state = self._event_state
             evidence_state = self._evidence_state
-        self._verify_schema_guards()
+        self._verify_schema_contracts()
         return event_state, evidence_state, observed_data_version
 
     def _cache_committed_states(

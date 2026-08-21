@@ -28,7 +28,7 @@ The schema installs four permanent triggers:
 - `events_no_update` and `events_no_delete`, both raising `APPEND_ONLY_EVENTS`;
 - `evidence_no_update` and `evidence_no_delete`, both raising `APPEND_ONLY_EVIDENCE`.
 
-Schema initialization uses `CREATE TRIGGER IF NOT EXISTS`, so an existing compatible database receives missing guards. Initialization then inspects `sqlite_master` and rejects a missing, conditional or semantically different guard as `EVENT_STORE_SCHEMA_INTEGRITY_FAILURE`.
+Schema initialization uses `CREATE TRIGGER IF NOT EXISTS`, so an existing compatible database receives missing guards. Initialization authenticates the normalized `CREATE TABLE` definitions, including primary-key and uniqueness constraints, requires exactly the four persistent guards, rejects every additional persistent or temporary trigger on the protected ledgers, and rejects a missing, conditional or semantically different contract as `EVENT_STORE_SCHEMA_INTEGRITY_FAILURE`.
 
 ## Event-chain verification
 

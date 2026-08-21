@@ -21,7 +21,7 @@ SQLite owns the first mutation veto. Four authenticated triggers reject direct u
 - `evidence_no_update`
 - `evidence_no_delete`
 
-A compatible database created by an older version receives these guards when reopened. The store then verifies their table, operation, unconditional execution and error message through `sqlite_master`; a trigger with the correct name but weakened semantics does not pass.
+A compatible database created by an older version receives these guards when reopened. The store authenticates the complete normalized `CREATE TABLE` contracts, including primary-key and uniqueness constraints, before accepting the database. It also requires the exact persistent trigger set, rejects every additional persistent or temporary trigger on the protected ledgers, and verifies each guard's table, operation, unconditional execution and error message. A trigger with the correct name but weakened semantics does not pass.
 
 ### Canonical row reconstruction
 
