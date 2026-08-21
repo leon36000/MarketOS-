@@ -3,8 +3,8 @@
   "files": [
     {
       "path": ".github/workflows/architecture-reconciliation.yml",
-      "sha256": "f508597c09ceddc0525e7ad83fc1fd09e5c799c72c1e3ad2ad15937b6fa658b7",
-      "bytes": 3074
+      "sha256": "b9a081623b37751266f7ea3395ae0bce17d792ae8eb2cad4d8cefd9873fb52ee",
+      "bytes": 3152
     },
     {
       "path": ".github/workflows/claude-pack-green.yml",
@@ -13,28 +13,28 @@
     },
     {
       "path": ".github/workflows/data-foundation.yml",
-      "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
-      "bytes": 2703
+      "sha256": "d9634c164042c7325ad83ba47d4ce8b429655981a0b452c7b098bb6bc8e9a7cc",
+      "bytes": 2742
     },
     {
       "path": ".github/workflows/execution-calibration.yml",
-      "sha256": "508937ac299cc3445bb1051d3a2223e5d161eaf4a35f5578028c3d696e188b3d",
-      "bytes": 3601
+      "sha256": "94dc0418a18078e0f17d7f01a4434d0379a44e557f536066ba5fc7b925d3b1bd",
+      "bytes": 3679
     },
     {
       "path": ".github/workflows/feature-foundation.yml",
-      "sha256": "8615824e1d20b92f1f6024b451f118060aa22eeb898b2f711536dae564aab062",
-      "bytes": 2412
+      "sha256": "e4944daff31d42e154b1cb1fb0cc9b2b85895d335da955771c8e7a50f6339e66",
+      "bytes": 2451
     },
     {
       "path": ".github/workflows/implementation-foundation.yml",
-      "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
-      "bytes": 1783
+      "sha256": "43c2d00a639446acdbc188deffd5cee5803c3acfd9536c1ee2f693c17a0fb152",
+      "bytes": 1822
     },
     {
       "path": ".github/workflows/market-data.yml",
-      "sha256": "afceca9e74beae6ee2adc33a8471fa66c51e1d0b9019653bbf3b0cd0377445d6",
-      "bytes": 2241
+      "sha256": "b350605017e966ed2fa2cccd39fa4c5031ec5e9529190d5757eca12295385f7d",
+      "bytes": 2280
     },
     {
       "path": ".github/workflows/materialize-execution-reality-gap.yml",
@@ -43,8 +43,8 @@
     },
     {
       "path": ".github/workflows/proof-engine-green.yml",
-      "sha256": "f65cde858cb0071af74be4118727202a907deb6cef0e4b9daa3484ae1871d77b",
-      "bytes": 2112
+      "sha256": "1cd180be1a2ebc2aca763fd4229cb770c56923cbe0fcaac430a1aaa977e1f8c0",
+      "bytes": 2190
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
@@ -53,13 +53,13 @@
     },
     {
       "path": ".github/workflows/research-governance.yml",
-      "sha256": "5e40cc8cd113350a8cac5de3730352e79b89d16d14e8ee311de06b4fd27a7474",
-      "bytes": 3155
+      "sha256": "dea98c1f486aac9e3114340054e74400b3ce735b42ec2d30f5363448195dfdb0",
+      "bytes": 3194
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "86bbe013b254fe6bf02766739e105ffc36b4c2311ecd48d55c63308a2c58270d",
-      "bytes": 1753
+      "sha256": "bca2068c333c99693ed9867491440a86d7455ab6140a956379a4fbc1fc2636cc",
+      "bytes": 1792
     },
     {
       "path": ".gitignore",
