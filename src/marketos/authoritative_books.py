@@ -10,10 +10,11 @@ from pathlib import Path
 import json
 import sqlite3
 import tempfile
+import threading
 from typing import Any, Iterable, Mapping
 
 from .canonical import canonical_json, canonical_sha256
-from .errors import DuplicateConflict, InvariantViolation
+from .errors import DuplicateConflict, ExecutionStateChanged, InvariantViolation
 from .ledger import JournalEntry, Ledger, Posting, PostingSide
 from .money import Money, Price, Quantity
 from .orders import ExecutionMode
@@ -259,6 +260,21 @@ class AuthoritativePortfolioBook(PortfolioBook):
             self._last_book_ledger_sha256 = self._durable_ledger.sha256()
             return result
 
+    def _restore_snapshot(self, snapshot: PortfolioSnapshot) -> None:
+        """Restore only a snapshot bound to this book and its current ledger head."""
+        if not isinstance(snapshot, PortfolioSnapshot):
+            raise InvariantViolation("INVALID_BOOK_ROLLBACK_SNAPSHOT")
+        if snapshot.base_currency != self.base_currency:
+            raise InvariantViolation("BOOK_ROLLBACK_CURRENCY_MISMATCH")
+        current_sha256 = self._durable_ledger.sha256()
+        if snapshot.ledger_sha256 != current_sha256:
+            raise InvariantViolation("BOOK_ROLLBACK_LEDGER_MISMATCH")
+        self._positions = {
+            position.instrument_id: position for position in snapshot.positions
+        }
+        self._realized = snapshot.realized_pnl
+        self._last_book_ledger_sha256 = snapshot.ledger_sha256
+
 
 class DurableLedger:
     """SQLite-backed append-only wrapper around the exact in-memory ledger."""
@@ -271,6 +287,8 @@ class DurableLedger:
         self._authoritative_book: AuthoritativePortfolioBook | None = None
         self._book_operation_owner: AuthoritativePortfolioBook | None = None
         self._book_tainted = False
+        self._lock = threading.RLock()
+        self._execution_transaction_active = False
         self._connection = sqlite3.connect(self.path, isolation_level=None)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA journal_mode = WAL")
@@ -333,6 +351,17 @@ class DurableLedger:
         )
         self._ledger = Ledger()
         self._checkpoints: list[BookCheckpoint] = []
+        if not self.anchor_path.exists():
+            entry_count = int(
+                self._connection.execute(
+                    "SELECT COUNT(*) FROM ledger_entries"
+                ).fetchone()[0]
+            )
+            if entry_count:
+                self._connection.close()
+                self._closed = True
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            self._write_anchor(Ledger())
         self._load()
         self._load_checkpoints()
 
@@ -342,22 +371,27 @@ class DurableLedger:
 
     @contextmanager
     def _book_operation(self, book: AuthoritativePortfolioBook):
-        self._ensure_open()
-        if self._authoritative_book is not book:
-            raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
-        if self._book_tainted:
-            raise InvariantViolation("BOOK_SOURCE_TAINTED")
-        current_sha256 = self._read_ledger().sha256()
-        if book._last_book_ledger_sha256 != current_sha256:
-            self._book_tainted = True
-            raise InvariantViolation("BOOK_SOURCE_TAINTED")
-        if self._book_operation_owner is not None:
-            raise InvariantViolation("BOOK_OPERATION_REENTRANT")
-        self._book_operation_owner = book
-        try:
-            yield
-        finally:
-            self._book_operation_owner = None
+        with self._lock:
+            self._ensure_open()
+            if self._authoritative_book is not book:
+                raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
+            if self._book_tainted:
+                raise InvariantViolation("BOOK_SOURCE_TAINTED")
+            current_sha256 = (
+                self._ledger.sha256()
+                if self._execution_transaction_active
+                else self._read_ledger().sha256()
+            )
+            if book._last_book_ledger_sha256 != current_sha256:
+                self._book_tainted = True
+                raise InvariantViolation("BOOK_SOURCE_TAINTED")
+            if self._book_operation_owner is not None:
+                raise InvariantViolation("BOOK_OPERATION_REENTRANT")
+            self._book_operation_owner = book
+            try:
+                yield
+            finally:
+                self._book_operation_owner = None
 
     def authoritative_book(self, *, base_currency: str) -> AuthoritativePortfolioBook:
         """Create the only checkpoint-capable book for a fresh durable ledger."""
@@ -391,18 +425,20 @@ class DurableLedger:
             **payload,
             "anchor_sha256": canonical_sha256(payload),
         }
+        self._replace_anchor_bytes(canonical_json(envelope).encode("utf-8"))
+
+    def _replace_anchor_bytes(self, content: bytes) -> None:
         temporary_path: Path | None = None
         try:
             with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
+                mode="wb",
                 dir=self.anchor_path.parent,
                 prefix=f".{self.anchor_path.name}.",
                 suffix=".tmp",
                 delete=False,
             ) as handle:
                 temporary_path = Path(handle.name)
-                handle.write(canonical_json(envelope))
+                handle.write(content)
                 handle.flush()
                 os.fsync(handle.fileno())
             os.replace(temporary_path, self.anchor_path)
@@ -415,12 +451,21 @@ class DurableLedger:
             if temporary_path is not None and temporary_path.exists():
                 temporary_path.unlink()
 
+    def _restore_anchor_bytes(self, content: bytes | None) -> None:
+        if content is None:
+            if self.anchor_path.exists() or self.anchor_path.is_symlink():
+                self.anchor_path.unlink()
+            directory_fd = os.open(self.anchor_path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+            return
+        self._replace_anchor_bytes(content)
+
     def _verify_anchor(self, ledger: Ledger) -> None:
         if not self.anchor_path.exists():
-            if ledger.entries():
-                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-            self._write_anchor(ledger)
-            return
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
         try:
             data = _mapping(
                 json.loads(self.anchor_path.read_text(encoding="utf-8")),
@@ -508,30 +553,137 @@ class DurableLedger:
         self._checkpoints = []
         self._load_checkpoints()
 
+    def _post_in_transaction(self, entry: JournalEntry) -> bool:
+        """Append one entry to the already-open SQLite transaction."""
+        current = self._ledger
+        candidate = current.clone()
+        inserted = candidate.post(entry)
+        if not inserted:
+            self._ledger = current
+            return False
+        if entry.reversal_of is not None and any(
+            existing.reversal_of == entry.reversal_of
+            for existing in current.entries()
+        ):
+            raise InvariantViolation(
+                f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
+            )
+        record_json = canonical_json(entry.canonical_dict())
+        record_sha256 = entry.sha256()
+        previous = self._connection.execute(
+            "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
+        ).fetchone()
+        previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+        self._connection.execute(
+            """
+            INSERT INTO ledger_entries(
+                entry_id, occurred_at_ns, record_json, record_sha256, previous_sha256
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                entry.entry_id,
+                entry.occurred_at_ns,
+                record_json,
+                record_sha256,
+                previous_sha256,
+            ),
+        )
+        previous_head = self._connection.execute(
+            "SELECT head_record_sha256 FROM ledger_heads "
+            "ORDER BY head_sequence DESC LIMIT 1"
+        ).fetchone()
+        previous_head_sha256 = (
+            "" if previous_head is None else str(previous_head["head_record_sha256"])
+        )
+        entry_count = int(
+            self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
+        )
+        self._connection.execute(
+            """
+            INSERT INTO ledger_heads(
+                ledger_entry_count, head_record_sha256,
+                head_ledger_sha256, previous_head_sha256
+            ) VALUES (?, ?, ?, ?)
+            """,
+            (
+                entry_count,
+                record_sha256,
+                candidate.sha256(),
+                previous_head_sha256,
+            ),
+        )
+        if self._authoritative_book is not None and self._book_operation_owner is None:
+            self._book_tainted = True
+        self._ledger = candidate
+        return True
+
     def post(self, entry: JournalEntry) -> bool:
-        self._ensure_open()
-        self._connection.execute("BEGIN IMMEDIATE")
-        try:
-            current = self._read_ledger()
-            candidate = current.clone()
-            inserted = candidate.post(entry)
-            if not inserted:
-                self._connection.execute("COMMIT")
+        with self._lock:
+            self._ensure_open()
+            if self._execution_transaction_active:
+                return self._post_in_transaction(entry)
+            self._connection.execute("BEGIN IMMEDIATE")
+            before_ledger = self._ledger
+            before_tainted = self._book_tainted
+            before_anchor: bytes | None = None
+            try:
+                current = self._read_ledger()
                 self._ledger = current
-                return False
-            if entry.reversal_of is not None and any(
-                existing.reversal_of == entry.reversal_of
-                for existing in current.entries()
-            ):
-                raise InvariantViolation(
-                    f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
-                )
-            record_json = canonical_json(entry.canonical_dict())
-            record_sha256 = entry.sha256()
-            previous = self._connection.execute(
-                "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
-            ).fetchone()
-            previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+                before_anchor = self.anchor_path.read_bytes()
+                inserted = self._post_in_transaction(entry)
+                if inserted:
+                    self._write_anchor(self._ledger)
+                self._connection.execute("COMMIT")
+                return inserted
+            except BaseException:
+                try:
+                    self._connection.execute("ROLLBACK")
+                finally:
+                    self._ledger = before_ledger
+                    self._book_tainted = before_tainted
+                    if before_anchor is not None:
+                        self._restore_anchor_bytes(before_anchor)
+                raise
+
+    def _post_many_in_transaction(
+        self,
+        pending: tuple[JournalEntry, ...],
+    ) -> tuple[bool, ...]:
+        current = self._ledger
+        candidate = current.clone()
+        results: list[bool] = []
+        new_entries: list[JournalEntry] = []
+        for entry in pending:
+            inserted = candidate.post(entry)
+            results.append(inserted)
+            if inserted:
+                if entry.reversal_of is not None and sum(
+                    existing.reversal_of == entry.reversal_of
+                    for existing in candidate.entries()
+                ) > 1:
+                    raise InvariantViolation(
+                        f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
+                    )
+                new_entries.append(entry)
+        if not new_entries:
+            self._ledger = current
+            return tuple(results)
+        previous = self._connection.execute(
+            "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
+        ).fetchone()
+        previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+        previous_head = self._connection.execute(
+            "SELECT head_record_sha256 FROM ledger_heads "
+            "ORDER BY head_sequence DESC LIMIT 1"
+        ).fetchone()
+        previous_head_sha256 = (
+            "" if previous_head is None else str(previous_head["head_record_sha256"])
+        )
+        entry_count = int(
+            self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
+        )
+        running = current.clone()
+        for entry in new_entries:
             self._connection.execute(
                 """
                 INSERT INTO ledger_entries(
@@ -541,21 +693,15 @@ class DurableLedger:
                 (
                     entry.entry_id,
                     entry.occurred_at_ns,
-                    record_json,
-                    record_sha256,
+                    canonical_json(entry.canonical_dict()),
+                    entry.sha256(),
                     previous_sha256,
                 ),
             )
-            previous_head = self._connection.execute(
-                "SELECT head_record_sha256 FROM ledger_heads "
-                "ORDER BY head_sequence DESC LIMIT 1"
-            ).fetchone()
-            previous_head_sha256 = (
-                "" if previous_head is None else str(previous_head["head_record_sha256"])
-            )
-            entry_count = int(
-                self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
-            )
+            previous_sha256 = entry.sha256()
+            if not running.post(entry):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            entry_count += 1
             self._connection.execute(
                 """
                 INSERT INTO ledger_heads(
@@ -565,104 +711,45 @@ class DurableLedger:
                 """,
                 (
                     entry_count,
-                    record_sha256,
-                    candidate.sha256(),
+                    entry.sha256(),
+                    running.sha256(),
                     previous_head_sha256,
                 ),
             )
-            self._write_anchor(candidate)
-            self._connection.execute("COMMIT")
-        except Exception:
-            self._connection.execute("ROLLBACK")
-            raise
-        if self._authoritative_book is not None and self._book_operation_owner is None:
-            self._book_tainted = True
-        self._ledger = candidate
-        return True
-
-    def post_many(self, entries: Iterable[JournalEntry]) -> tuple[bool, ...]:
-        self._ensure_open()
-        pending = tuple(entries)
-        self._connection.execute("BEGIN IMMEDIATE")
-        try:
-            current = self._read_ledger()
-            candidate = current.clone()
-            results: list[bool] = []
-            new_entries: list[JournalEntry] = []
-            for entry in pending:
-                inserted = candidate.post(entry)
-                results.append(inserted)
-                if inserted:
-                    if entry.reversal_of is not None and sum(
-                        existing.reversal_of == entry.reversal_of
-                        for existing in candidate.entries()
-                    ) > 1:
-                        raise InvariantViolation(
-                            f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry.reversal_of}"
-                        )
-                    new_entries.append(entry)
-            if not new_entries:
-                self._connection.execute("COMMIT")
-                self._ledger = current
-                return tuple(results)
-            previous = self._connection.execute(
-                "SELECT record_sha256 FROM ledger_entries ORDER BY ledger_sequence DESC LIMIT 1"
-            ).fetchone()
-            previous_sha256 = "" if previous is None else str(previous["record_sha256"])
-            previous_head = self._connection.execute(
-                "SELECT head_record_sha256 FROM ledger_heads "
-                "ORDER BY head_sequence DESC LIMIT 1"
-            ).fetchone()
-            previous_head_sha256 = (
-                "" if previous_head is None else str(previous_head["head_record_sha256"])
-            )
-            entry_count = int(
-                self._connection.execute("SELECT COUNT(*) FROM ledger_entries").fetchone()[0]
-            )
-            running = current.clone()
-            for entry in new_entries:
-                self._connection.execute(
-                    """
-                    INSERT INTO ledger_entries(
-                        entry_id, occurred_at_ns, record_json, record_sha256, previous_sha256
-                    ) VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (
-                        entry.entry_id,
-                        entry.occurred_at_ns,
-                        canonical_json(entry.canonical_dict()),
-                        entry.sha256(),
-                        previous_sha256,
-                    ),
-                )
-                previous_sha256 = entry.sha256()
-                if not running.post(entry):
-                    raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-                entry_count += 1
-                self._connection.execute(
-                    """
-                    INSERT INTO ledger_heads(
-                        ledger_entry_count, head_record_sha256,
-                        head_ledger_sha256, previous_head_sha256
-                    ) VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        entry_count,
-                        entry.sha256(),
-                        running.sha256(),
-                        previous_head_sha256,
-                    ),
-                )
-                previous_head_sha256 = entry.sha256()
-            self._write_anchor(candidate)
-            self._connection.execute("COMMIT")
-        except Exception:
-            self._connection.execute("ROLLBACK")
-            raise
+            previous_head_sha256 = entry.sha256()
         if self._authoritative_book is not None and self._book_operation_owner is None:
             self._book_tainted = True
         self._ledger = candidate
         return tuple(results)
+
+    def post_many(self, entries: Iterable[JournalEntry]) -> tuple[bool, ...]:
+        with self._lock:
+            self._ensure_open()
+            pending = tuple(entries)
+            if self._execution_transaction_active:
+                return self._post_many_in_transaction(pending)
+            self._connection.execute("BEGIN IMMEDIATE")
+            before_ledger = self._ledger
+            before_tainted = self._book_tainted
+            before_anchor: bytes | None = None
+            try:
+                current = self._read_ledger()
+                self._ledger = current
+                before_anchor = self.anchor_path.read_bytes()
+                results = self._post_many_in_transaction(pending)
+                if any(results):
+                    self._write_anchor(self._ledger)
+                self._connection.execute("COMMIT")
+                return results
+            except BaseException:
+                try:
+                    self._connection.execute("ROLLBACK")
+                finally:
+                    self._ledger = before_ledger
+                    self._book_tainted = before_tainted
+                    if before_anchor is not None:
+                        self._restore_anchor_bytes(before_anchor)
+                raise
 
     def reverse(
         self,
@@ -672,38 +759,42 @@ class DurableLedger:
         occurred_at_ns: int,
         description: str | None = None,
     ) -> JournalEntry:
-        self._ensure_open()
-        current = self._read_ledger()
-        self._ledger = current
-        if any(entry.reversal_of == entry_id for entry in current.entries()):
-            raise InvariantViolation(f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry_id}")
-        original = next(
-            (entry for entry in current.entries() if entry.entry_id == entry_id),
-            None,
-        )
-        if original is None:
-            raise InvariantViolation(f"UNKNOWN_JOURNAL_ENTRY:{entry_id}")
-        reversal = JournalEntry(
-            entry_id=reversal_id,
-            occurred_at_ns=occurred_at_ns,
-            description=description or f"Reverse {entry_id}",
-            postings=tuple(
-                Posting(posting.account, posting.side.opposite(), posting.amount)
-                for posting in original.postings
-            ),
-            reversal_of=entry_id,
-        )
-        self.post(reversal)
-        return reversal
+        with self._lock:
+            self._ensure_open()
+            current = (
+                self._ledger
+                if self._execution_transaction_active
+                else self._read_ledger()
+            )
+            self._ledger = current
+            if any(entry.reversal_of == entry_id for entry in current.entries()):
+                raise InvariantViolation(f"JOURNAL_ENTRY_ALREADY_REVERSED:{entry_id}")
+            original = next(
+                (entry for entry in current.entries() if entry.entry_id == entry_id),
+                None,
+            )
+            if original is None:
+                raise InvariantViolation(f"UNKNOWN_JOURNAL_ENTRY:{entry_id}")
+            reversal = JournalEntry(
+                entry_id=reversal_id,
+                occurred_at_ns=occurred_at_ns,
+                description=description or f"Reverse {entry_id}",
+                postings=tuple(
+                    Posting(posting.account, posting.side.opposite(), posting.amount)
+                    for posting in original.postings
+                ),
+                reversal_of=entry_id,
+            )
+            self.post(reversal)
+            return reversal
 
-    def checkpoint(
+    def _checkpoint_in_transaction(
         self,
         checkpoint_id: str,
         book: PortfolioBook,
         *,
         captured_at_ns: int,
     ) -> bool:
-        self._ensure_open()
         if (
             not isinstance(book, AuthoritativePortfolioBook)
             or book is not self._authoritative_book
@@ -712,75 +803,160 @@ class DurableLedger:
             raise InvariantViolation("INVALID_BOOK_CHECKPOINT_SOURCE")
         if self._book_tainted:
             raise InvariantViolation("BOOK_SOURCE_TAINTED")
-        self._connection.execute("BEGIN IMMEDIATE")
-        try:
-            current = self._read_ledger()
-            self._ledger = current
-            if book._last_book_ledger_sha256 != current.sha256():
-                self._book_tainted = True
-                raise InvariantViolation("BOOK_SOURCE_TAINTED")
-            snapshot = book.snapshot()
-            if snapshot.ledger_sha256 != current.sha256():
-                raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
-            checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
-            existing_row = self._connection.execute(
-                "SELECT * FROM book_checkpoints WHERE checkpoint_id = ?",
-                (checkpoint_id,),
-            ).fetchone()
-            if existing_row is not None:
-                existing = self._checkpoint_from_row(existing_row)
-                if existing.sha256() != checkpoint.sha256():
-                    raise DuplicateConflict(
-                        f"BOOK_CHECKPOINT_ID_CONFLICT:{checkpoint_id}"
-                    )
-                self._connection.execute("COMMIT")
-                self._refresh_checkpoints()
-                return False
-            record_json = canonical_json(checkpoint.canonical_dict())
-            record_sha256 = checkpoint.sha256()
-            previous = self._connection.execute(
-                "SELECT record_sha256 FROM book_checkpoints "
-                "ORDER BY checkpoint_sequence DESC LIMIT 1"
-            ).fetchone()
-            previous_sha256 = "" if previous is None else str(previous["record_sha256"])
-            self._connection.execute(
-                """
-                INSERT INTO book_checkpoints(
-                    checkpoint_id, record_json, record_sha256, previous_sha256
-                ) VALUES (?, ?, ?, ?)
-                """,
-                (checkpoint_id, record_json, record_sha256, previous_sha256),
-            )
-            self._connection.execute("COMMIT")
-        except Exception:
-            self._connection.execute("ROLLBACK")
-            raise
-        self._refresh_checkpoints()
+        current = self._ledger
+        if book._last_book_ledger_sha256 != current.sha256():
+            self._book_tainted = True
+            raise InvariantViolation("BOOK_SOURCE_TAINTED")
+        snapshot = book.snapshot()
+        if snapshot.ledger_sha256 != current.sha256():
+            raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
+        checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
+        existing_row = self._connection.execute(
+            "SELECT * FROM book_checkpoints WHERE checkpoint_id = ?",
+            (checkpoint_id,),
+        ).fetchone()
+        if existing_row is not None:
+            existing = self._checkpoint_from_row(existing_row)
+            if existing.sha256() != checkpoint.sha256():
+                raise DuplicateConflict(f"BOOK_CHECKPOINT_ID_CONFLICT:{checkpoint_id}")
+            return False
+        record_json = canonical_json(checkpoint.canonical_dict())
+        record_sha256 = checkpoint.sha256()
+        previous = self._connection.execute(
+            "SELECT record_sha256 FROM book_checkpoints "
+            "ORDER BY checkpoint_sequence DESC LIMIT 1"
+        ).fetchone()
+        previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+        self._connection.execute(
+            """
+            INSERT INTO book_checkpoints(
+                checkpoint_id, record_json, record_sha256, previous_sha256
+            ) VALUES (?, ?, ?, ?)
+            """,
+            (checkpoint_id, record_json, record_sha256, previous_sha256),
+        )
         return True
+
+    def checkpoint(
+        self,
+        checkpoint_id: str,
+        book: PortfolioBook,
+        *,
+        captured_at_ns: int,
+    ) -> bool:
+        with self._lock:
+            self._ensure_open()
+            if self._execution_transaction_active:
+                return self._checkpoint_in_transaction(
+                    checkpoint_id,
+                    book,
+                    captured_at_ns=captured_at_ns,
+                )
+            self._connection.execute("BEGIN IMMEDIATE")
+            before_ledger = self._ledger
+            before_checkpoints = tuple(self._checkpoints)
+            before_tainted = self._book_tainted
+            try:
+                current = self._read_ledger()
+                self._ledger = current
+                inserted = self._checkpoint_in_transaction(
+                    checkpoint_id,
+                    book,
+                    captured_at_ns=captured_at_ns,
+                )
+                self._connection.execute("COMMIT")
+            except BaseException:
+                try:
+                    self._connection.execute("ROLLBACK")
+                finally:
+                    self._ledger = before_ledger
+                    self._checkpoints = list(before_checkpoints)
+                    self._book_tainted = before_tainted
+                raise
+            self._refresh_checkpoints()
+            return inserted
+
+    @contextmanager
+    def execution_transaction(self, expected_ledger_sha256: str):
+        """Open the single durable transaction used by authorized execution."""
+        with self._lock:
+            self._ensure_open()
+            if self._execution_transaction_active:
+                raise InvariantViolation("EXECUTION_TRANSACTION_REENTRANT")
+            before_ledger = self._ledger
+            before_checkpoints = tuple(self._checkpoints)
+            before_tainted = self._book_tainted
+            before_anchor: bytes | None = None
+            book_snapshot: PortfolioSnapshot | None = None
+            transaction_started = False
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                transaction_started = True
+                current = self._read_ledger()
+                self._ledger = current
+                before_anchor = self.anchor_path.read_bytes()
+                if (
+                    not isinstance(expected_ledger_sha256, str)
+                    or current.sha256() != expected_ledger_sha256
+                ):
+                    raise ExecutionStateChanged("EXECUTION_STATE_CHANGED")
+                self._refresh_checkpoints()
+                before_checkpoints = tuple(self._checkpoints)
+                if self._authoritative_book is not None:
+                    book = self._authoritative_book
+                    if book._last_book_ledger_sha256 != current.sha256():
+                        self._book_tainted = True
+                        raise InvariantViolation("BOOK_SOURCE_TAINTED")
+                    book_snapshot = book.snapshot()
+                self._execution_transaction_active = True
+                yield
+                self._write_anchor(self._ledger)
+                self._connection.execute("COMMIT")
+                transaction_started = False
+            except BaseException:
+                try:
+                    if transaction_started:
+                        self._connection.execute("ROLLBACK")
+                finally:
+                    self._execution_transaction_active = False
+                    self._ledger = before_ledger
+                    self._checkpoints = list(before_checkpoints)
+                    self._book_tainted = before_tainted
+                    if before_anchor is not None:
+                        self._restore_anchor_bytes(before_anchor)
+                    if book_snapshot is not None and self._authoritative_book is not None:
+                        self._authoritative_book._restore_snapshot(book_snapshot)
+                raise
+            finally:
+                self._execution_transaction_active = False
+            self._refresh_checkpoints()
 
     def latest_checkpoint(self) -> BookCheckpoint | None:
-        self._ensure_open()
-        self._refresh_checkpoints()
-        return self._checkpoints[-1] if self._checkpoints else None
+        with self._lock:
+            self._ensure_open()
+            if not self._execution_transaction_active:
+                self._refresh_checkpoints()
+            return self._checkpoints[-1] if self._checkpoints else None
 
     def verify(self) -> bool:
-        self._ensure_open()
-        candidate = self._read_ledger()
-        previous_sha256 = ""
-        expected_sequence = 1
-        checkpoint_rows = self._connection.execute(
-            "SELECT * FROM book_checkpoints ORDER BY checkpoint_sequence"
-        ).fetchall()
-        for row in checkpoint_rows:
-            if int(row["checkpoint_sequence"]) != expected_sequence:
-                raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
-            if str(row["previous_sha256"]) != previous_sha256:
-                raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
-            self._checkpoint_from_row(row)
-            previous_sha256 = str(row["record_sha256"])
-            expected_sequence += 1
-        self._ledger = candidate
-        return True
+        with self._lock:
+            self._ensure_open()
+            candidate = self._ledger if self._execution_transaction_active else self._read_ledger()
+            previous_sha256 = ""
+            expected_sequence = 1
+            checkpoint_rows = self._connection.execute(
+                "SELECT * FROM book_checkpoints ORDER BY checkpoint_sequence"
+            ).fetchall()
+            for row in checkpoint_rows:
+                if int(row["checkpoint_sequence"]) != expected_sequence:
+                    raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
+                if str(row["previous_sha256"]) != previous_sha256:
+                    raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
+                self._checkpoint_from_row(row)
+                previous_sha256 = str(row["record_sha256"])
+                expected_sequence += 1
+            self._ledger = candidate
+            return True
 
     def _verify_heads(
         self,
@@ -812,22 +988,28 @@ class DurableLedger:
             raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
 
     def entries(self) -> tuple[JournalEntry, ...]:
-        self._ensure_open()
-        return self._ledger.entries()
+        with self._lock:
+            self._ensure_open()
+            return self._ledger.entries()
 
     def balance(self, account: str, currency: str) -> Money:
-        self._ensure_open()
-        return self._ledger.balance(account, currency)
+        with self._lock:
+            self._ensure_open()
+            return self._ledger.balance(account, currency)
 
     def sha256(self) -> str:
-        self._ensure_open()
-        return self._ledger.sha256()
+        with self._lock:
+            self._ensure_open()
+            return self._ledger.sha256()
 
     def close(self) -> None:
-        if self._closed:
-            return
-        self._connection.close()
-        self._closed = True
+        with self._lock:
+            if self._closed:
+                return
+            if self._execution_transaction_active:
+                raise InvariantViolation("EXECUTION_TRANSACTION_OPEN")
+            self._connection.close()
+            self._closed = True
 
     def __enter__(self) -> "DurableLedger":
         self._ensure_open()

@@ -25,9 +25,9 @@
     "planning/phases/C13/C13_DECISIONS.json": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
     "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
     "planning/phases/C13/EXECUTION_CONTRACT.md": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
-    "src/marketos/authoritative_books.py": "acb17940dde6993f240f7888e48a3a50785a3cf40ad0b8d0436d532c7285c914",
+    "src/marketos/authoritative_books.py": "890f31021e7c9d0f35bcf8bcff557a73c83ad985e86894c21e39d816db307820",
     "tests/test_c13_authoritative_books.py": "b22282bff53ea7d57efa27c318c38a25dfff4fce44b452a809dbc9e0a28db956",
     "tools/verify_c13_contract.py": "326604745076b7ac87e508424951a4a28162a7385f5ce76b2163fc4efecb55c0"
   },
-  "source_tree_sha256": "2ee39f75be9dde03b75252119c2fb6796a3ef0e07ca9aea201946c98b8f8f243"
+  "source_tree_sha256": "601f5ee3d56d821dedd6505eb09e78e726ed73c76ee017dea9712e161bb079b1"
 }

@@ -11,3 +11,7 @@ class InvariantViolation(DomainError):
 
 class DuplicateConflict(DomainError):
     """Raised when a stable identifier is reused for different content."""
+
+
+class ExecutionStateChanged(InvariantViolation):
+    """Raised when an authorized execution observes a different durable head."""
