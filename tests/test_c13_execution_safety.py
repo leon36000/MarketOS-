@@ -343,7 +343,43 @@ class C13EnvelopeTests(unittest.TestCase):
             self.broker._commit_authorized(
                 prepared,
                 capability=object(),
-                c13_gate_sha256="a" * 64,
+                c13_gate=None,
+            )
+
+    def test_prepared_decision_and_gate_binding_tampering_fail_closed(self) -> None:
+        from marketos.authoritative_books import C13RiskGate, reconcile_book
+
+        prepared = self.broker._prepare(
+            self.intent("tamper"),
+            now_ns=1_000,
+            clock_quality=self.clock,
+        )
+        reconciliation = reconcile_book(self.ledger, prepared.portfolio_snapshot)
+        gate = C13RiskGate().evaluate(
+            prepared.decision,
+            reconciliation,
+            ExecutionMode.PAPER,
+            portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+            ledger_head_sha256=prepared.ledger_head_sha256,
+            market_view_sha256=prepared.market_view_sha256,
+        )
+        tampered_prepared = replace(
+            prepared,
+            decision=replace(prepared.decision, reasons=("FORGED",)),
+        )
+        with self.assertRaisesRegex(InvariantViolation, "PREPARED_RISK_DECISION_INTEGRITY_FAILURE"):
+            with self.ledger.execution_transaction(prepared.ledger_head_sha256):
+                self.broker._commit_authorized(
+                    tampered_prepared,
+                    capability=self.envelope._capability,
+                    c13_gate=gate,
+                )
+        tampered_gate = replace(gate, market_view_sha256="f" * 64)
+        with self.assertRaisesRegex(InvariantViolation, "C13_GATE_INTEGRITY_FAILURE"):
+            self.broker._commit_authorized(
+                prepared,
+                capability=self.envelope._capability,
+                c13_gate=tampered_gate,
             )
 
     def test_failure_after_book_mutation_restores_everything(self) -> None:

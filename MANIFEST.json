@@ -1098,8 +1098,8 @@
     },
     {
       "path": "src/marketos/execution_safety.py",
-      "sha256": "736ee40d2d1d76bc40222ca185582dad3f613b2c85cc19157a4018a0518fc8d0",
-      "bytes": 7758
+      "sha256": "e38a9b510c3444425d8c4af25bcaf2fe1b1ec8df63c34f610fc776668f5d750d",
+      "bytes": 7744
     },
     {
       "path": "src/marketos/experiments.py",
@@ -1138,8 +1138,8 @@
     },
     {
       "path": "src/marketos/paper.py",
-      "sha256": "f1036047ace6f23f1d498239efcedaf61448b5d91dcfb54af0c5ae4d5c4e1f0b",
-      "bytes": 21684
+      "sha256": "a89d27637ee558dea50ec292ee068bf15fe2cdddcdbcdd4e351cb7d908db01a9",
+      "bytes": 24298
     },
     {
       "path": "src/marketos/portfolio.py",
@@ -1218,8 +1218,8 @@
     },
     {
       "path": "tests/test_c13_execution_safety.py",
-      "sha256": "8ada992ff3e9386c37ac185bb97c867439ddb545904477ca95c80733f40f7528",
-      "bytes": 20307
+      "sha256": "fd1b3359f679a606fe6fbffd3f2ac953803515701f7d6e1a7cabdd016200f2de",
+      "bytes": 21878
     },
     {
       "path": "tests/test_c1_design.py",

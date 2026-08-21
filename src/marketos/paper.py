@@ -6,6 +6,7 @@ from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 import threading
 from typing import Any
 
+from .authoritative_books import C13GateDecision
 from .canonical import canonical_sha256
 from .errors import DuplicateConflict, ExecutionStateChanged, InvariantViolation
 from .money import Money, Price, Quantity, RoundingPolicy
@@ -389,7 +390,7 @@ class PaperBroker:
         prepared: PreparedExecution,
         *,
         capability: object,
-        c13_gate_sha256: str,
+        c13_gate: C13GateDecision,
     ) -> PendingExecution:
         """Apply one prepared fill; the caller owns the durable transaction."""
         with self._lock:
@@ -398,6 +399,24 @@ class PaperBroker:
                 raise InvariantViolation("INVALID_PREPARED_EXECUTION")
             if prepared.intent_sha256 != prepared.intent.sha256():
                 raise InvariantViolation("PREPARED_INTENT_INTEGRITY_FAILURE")
+            if (
+                prepared.portfolio_snapshot_sha256 != prepared.portfolio_snapshot.sha256()
+                or prepared.ledger_head_sha256 != prepared.portfolio_snapshot.ledger_sha256
+                or prepared.market_view_sha256 != prepared.market_view.sha256()
+            ):
+                raise InvariantViolation("PREPARED_SOURCE_INTEGRITY_FAILURE")
+            if not isinstance(c13_gate, C13GateDecision):
+                raise InvariantViolation("INVALID_C13_GATE_DECISION")
+            if canonical_sha256(c13_gate.canonical_dict()) != c13_gate.decision_sha256:
+                raise InvariantViolation("C13_GATE_INTEGRITY_FAILURE")
+            if (
+                c13_gate.action is not RiskAction.ALLOW
+                or c13_gate.intent_id != prepared.intent.intent_id
+                or c13_gate.portfolio_snapshot_sha256 != prepared.portfolio_snapshot_sha256
+                or c13_gate.ledger_head_sha256 != prepared.ledger_head_sha256
+                or c13_gate.market_view_sha256 != prepared.market_view_sha256
+            ):
+                raise InvariantViolation("C13_GATE_SOURCE_BINDING_FAILURE")
             current_snapshot = self.portfolio.snapshot()
             if current_snapshot != prepared.portfolio_snapshot:
                 raise ExecutionStateChanged("EXECUTION_PORTFOLIO_CHANGED")
@@ -413,8 +432,39 @@ class PaperBroker:
             estimated_fee = self._fee(execution_price, prepared.intent.quantity)
             if estimated_fee != prepared.estimated_fee:
                 raise ExecutionStateChanged("EXECUTION_FEE_CHANGED")
+            current_position = next(
+                (
+                    position.quantity
+                    for position in current_snapshot.positions
+                    if position.instrument_id == prepared.intent.instrument_id
+                ),
+                Quantity.parse("0"),
+            )
+            recomputed_decision = self.risk_kernel.evaluate(
+                prepared.intent,
+                RiskContext(
+                    now_ns=prepared.now_ns,
+                    data_available_at_ns=current_view.execution.available_at_ns,
+                    portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                    ledger_head_sha256=prepared.ledger_head_sha256,
+                    market_view_sha256=prepared.market_view_sha256,
+                    clock_quality=prepared.clock_quality,
+                    cash=current_snapshot.cash,
+                    current_position=current_position,
+                    current_gross_notional=self._gross_notional(
+                        current_snapshot,
+                        current_view,
+                    ),
+                    mark_price=execution_price,
+                    estimated_fee=estimated_fee,
+                ),
+            )
+            if recomputed_decision != prepared.decision:
+                raise InvariantViolation("PREPARED_RISK_DECISION_INTEGRITY_FAILURE")
             if prepared.decision.action is not RiskAction.ALLOW:
                 raise InvariantViolation("PREPARED_EXECUTION_NOT_ALLOWED")
+
+            c13_gate_sha256 = c13_gate.sha256()
 
             intent = prepared.intent
             if intent.order_type is OrderType.LIMIT:

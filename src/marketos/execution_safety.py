@@ -181,7 +181,7 @@ class C13PreTradeEnvelope:
                 pending = self.broker._commit_authorized(
                     prepared,
                     capability=self._capability,
-                    c13_gate_sha256=gate_sha256,
+                    c13_gate=gate,
                 )
                 if pending.report.fills:
                     self.ledger.checkpoint(
