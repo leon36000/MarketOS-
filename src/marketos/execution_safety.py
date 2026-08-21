@@ -39,7 +39,9 @@ class C13PreTradeEnvelope:
         self.book = book
         self.ledger = ledger
         self._capability = object()
+        self._transaction_owner = object()
         broker._bind_envelope_capability(self._capability)
+        ledger._bind_execution_owner(self._transaction_owner)
 
     def _cached(self, intent: OrderIntent) -> ExecutionReport | None:
         existing = self.broker._reports.get(intent.idempotency_key)
@@ -106,6 +108,69 @@ class C13PreTradeEnvelope:
             )
         )
 
+    @staticmethod
+    def _veto_gate(gate, reason: str):
+        return C13RiskGate._build_decision(
+            action=RiskAction.NO_TRADE,
+            intent_id=gate.intent_id,
+            reasons=tuple(dict.fromkeys((*gate.reasons, reason))),
+            upstream_decision_sha256=gate.upstream_decision_sha256,
+            reconciliation_sha256=gate.reconciliation_sha256,
+            portfolio_snapshot_sha256=gate.portfolio_snapshot_sha256,
+            ledger_head_sha256=gate.ledger_head_sha256,
+            market_view_sha256=gate.market_view_sha256,
+        )
+
+    def _report_for_gate(
+        self,
+        prepared: PreparedExecution,
+        gate,
+        reconciliation,
+        *,
+        state: OrderState = OrderState.REJECTED,
+        reasons: tuple[str, ...] | None = None,
+    ) -> ExecutionReport:
+        return self.broker._report(
+            intent=prepared.intent,
+            state=state,
+            decision=prepared.decision,
+            fills=(),
+            remaining=prepared.intent.quantity,
+            reasons=(
+                self._gate_reasons(gate, prepared, reconciliation)
+                if reasons is None
+                else reasons
+            ),
+            inserted=True,
+            c13_gate_sha256=gate.sha256(),
+            portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+            ledger_head_sha256=prepared.ledger_head_sha256,
+            market_view_sha256=prepared.market_view_sha256,
+        )
+
+    def _finalize_report_at_head(
+        self,
+        prepared: PreparedExecution,
+        report: ExecutionReport,
+    ) -> tuple[bool, str | None]:
+        try:
+            with self.ledger.execution_transaction(
+                prepared.ledger_head_sha256,
+                owner=self._transaction_owner,
+            ):
+                pass
+        except ExecutionStateChanged:
+            return False, "EXECUTION_STATE_CHANGED"
+        except InvariantViolation as exc:
+            if str(exc) in {"JOURNAL_INTEGRITY_FAILURE", "BOOK_SOURCE_TAINTED"}:
+                return False, None
+            raise
+        self.broker._finalize_pending(
+            self._pending_without_mutation(prepared, report),
+            capability=self._capability,
+        )
+        return True, None
+
     def submit(
         self,
         intent: OrderIntent,
@@ -137,59 +202,69 @@ class C13PreTradeEnvelope:
                 ledger_head_sha256=prepared.ledger_head_sha256,
                 market_view_sha256=prepared.market_view_sha256,
             )
-            gate_sha256 = gate.sha256()
 
             if gate.action is RiskAction.NO_TRADE:
-                report = self.broker._report(
-                    intent=intent,
-                    state=OrderState.REJECTED,
-                    decision=prepared.decision,
-                    fills=(),
-                    remaining=intent.quantity,
-                    reasons=self._gate_reasons(gate, prepared, reconciliation),
-                    inserted=True,
-                    c13_gate_sha256=gate_sha256,
-                    portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
-                    ledger_head_sha256=prepared.ledger_head_sha256,
-                    market_view_sha256=prepared.market_view_sha256,
-                )
-                return self.broker._finalize_pending(
-                    self._pending_without_mutation(prepared, report),
-                    capability=self._capability,
-                )
+                report = self._report_for_gate(prepared, gate, reconciliation)
+                finalized, reason = self._finalize_report_at_head(prepared, report)
+                if finalized:
+                    return self.broker._reports[intent.idempotency_key][1]
+                if reason is not None:
+                    race_gate = self._veto_gate(gate, reason)
+                    return self._report_for_gate(
+                        prepared,
+                        race_gate,
+                        reconciliation,
+                        reasons=tuple(dict.fromkeys((*report.reasons, reason))),
+                    )
+                return report
 
             if intent.mode is ExecutionMode.SHADOW:
-                report = self.broker._report(
-                    intent=intent,
-                    state=OrderState.CANCELLED,
-                    decision=prepared.decision,
-                    fills=(),
-                    remaining=intent.quantity,
-                    reasons=("SHADOW_MODE_NO_EXECUTION",),
-                    inserted=True,
-                    c13_gate_sha256=gate_sha256,
-                    portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
-                    ledger_head_sha256=prepared.ledger_head_sha256,
-                    market_view_sha256=prepared.market_view_sha256,
-                )
-                return self.broker._finalize_pending(
-                    self._pending_without_mutation(prepared, report),
-                    capability=self._capability,
-                )
-
-            with self.ledger.execution_transaction(prepared.ledger_head_sha256):
-                pending = self.broker._commit_authorized(
+                report = self._report_for_gate(
                     prepared,
-                    capability=self._capability,
-                    c13_gate=gate,
+                    gate,
+                    reconciliation,
+                    state=OrderState.CANCELLED,
+                    reasons=("SHADOW_MODE_NO_EXECUTION",),
                 )
-                if pending.report.fills:
-                    self.ledger.checkpoint(
-                        f"c13-1:{intent.idempotency_key}",
-                        self.book,
-                        captured_at_ns=now_ns,
+                finalized, reason = self._finalize_report_at_head(prepared, report)
+                if finalized:
+                    return self.broker._reports[intent.idempotency_key][1]
+                if reason is not None:
+                    race_gate = self._veto_gate(gate, reason)
+                    return self._report_for_gate(
+                        prepared,
+                        race_gate,
+                        reconciliation,
+                        reasons=tuple(dict.fromkeys((*report.reasons, reason))),
                     )
-            return self.broker._finalize_pending(
-                pending,
-                capability=self._capability,
-            )
+                return report
+
+            try:
+                with self.ledger.execution_transaction(
+                    prepared.ledger_head_sha256,
+                    owner=self._transaction_owner,
+                ):
+                    pending = self.broker._commit_authorized(
+                        prepared,
+                        capability=self._capability,
+                        transaction_owner=self._transaction_owner,
+                        c13_gate=gate,
+                    )
+                    if pending.report.fills:
+                        self.ledger.checkpoint(
+                            f"c13-1:{intent.idempotency_key}",
+                            self.book,
+                            captured_at_ns=now_ns,
+                        )
+                return self.broker._finalize_pending(
+                    pending,
+                    capability=self._capability,
+                )
+            except ExecutionStateChanged as exc:
+                race_gate = self._veto_gate(gate, str(exc))
+                return self._report_for_gate(
+                    prepared,
+                    race_gate,
+                    reconciliation,
+                    reasons=tuple(dict.fromkeys((*gate.reasons, str(exc)))),
+                )

@@ -4,7 +4,7 @@
 
 **Goal:** Route every paper/shadow order through one provenance-bound, transaction-safe pre-trade envelope without changing any live or promotion lock.
 
-**Architecture:** Add `C13PreTradeEnvelope` as the only public mutation seam around `PaperBroker`. It derives one immutable portfolio/market evidence set, invokes the existing deterministic Risk Kernel and C13-0 reconciliation veto, then commits a fill and checkpoint inside an expected-head SQLite transaction. The existing sidecar remains an exact independent witness; mismatch or missing data fails closed, and non-empty ledger reconstruction remains explicitly blocked.
+**Architecture:** Add `C13PreTradeEnvelope` as the only public mutation seam around `PaperBroker`. It derives one immutable portfolio/market evidence set, including every mark timestamp used for gross exposure, invokes the existing deterministic Risk Kernel and C13-0 reconciliation veto, then commits a fill and checkpoint inside an expected-head SQLite transaction owned by the envelope. The existing sidecar remains an exact independent witness; mismatch or missing data fails closed, and non-empty ledger reconstruction remains explicitly blocked.
 
 **Tech Stack:** Python 3.12, standard library `dataclasses`, `threading.RLock`, `sqlite3` WAL/`BEGIN IMMEDIATE`, SHA-256 canonical fingerprints, `unittest`.
 
@@ -35,7 +35,7 @@
 
 **Interfaces:**
 - Produces `ExecutionStateChanged(InvariantViolation)` for an expected-head mismatch.
-- Produces `DurableLedger.execution_transaction(expected_ledger_sha256)` as a context manager.
+- Produces `DurableLedger.execution_transaction(expected_ledger_sha256, owner=bound_owner)` as a context manager; the broker mutation primitive requires that owner and an active transaction.
 - Keeps `AuthoritativePortfolioBook` fresh-only; no reopen reconstruction API is produced.
 
 - [ ] **Step 1: Write the failing persistence and race tests.** Add tests that create two `DurableLedger` objects for one temporary SQLite path and assert that `execution_transaction` rejects a stale expected head, that a fill inside a successful transaction persists, and that a sidecar mismatch or missing sidecar rejects reopen. Add a rollback test that raises after a book append and asserts the original entry list, snapshot, checkpoint list, and sidecar bytes remain unchanged.
@@ -159,9 +159,9 @@ Expected: failure because `marketos.execution_safety` and the envelope-only path
 
 - [ ] **Step 3: Implement construction and preparation.** Require `isinstance(book, AuthoritativePortfolioBook)`, `isinstance(ledger, DurableLedger)`, `broker.portfolio is book`, and `book.ledger is ledger`. Acquire broker lock before ledger lock. Capture reconciliation from the live snapshot, call the private broker preparation, and require all captured portfolio/ledger/market hashes to match before the C13 gate.
 
-- [ ] **Step 4: Implement fail-closed gate reports.** Invoke `C13RiskGate` with the prepared source hashes. On any veto, return a deterministic no-fill report and only then cache the idempotency result. On `PAPER`/`SHADOW` allow, enter `execution_transaction(prepared.ledger_head)`. A transaction head mismatch returns `EXECUTION_STATE_CHANGED` without caching or mutating anything.
+- [ ] **Step 4: Implement fail-closed gate reports.** Invoke `C13RiskGate` with the prepared source hashes. On any veto, perform an owner-bound expected-head transaction before caching the deterministic no-fill report. On `PAPER`/`SHADOW` allow, enter `execution_transaction(prepared.ledger_head, owner=bound_owner)`. Any transaction head mismatch returns an uncached deterministic `NO_TRADE` with `EXECUTION_STATE_CHANGED` without mutating anything.
 
-- [ ] **Step 5: Implement atomic fill and checkpoint.** Inside the transaction, recheck the market-view hash, call the capability-checked private broker commit, append the checkpoint for the resulting authoritative book, and return a pending report. After commit, finalize the market and report caches under the same broker lock. On pre-commit error, restore the captured book snapshot and let the ledger restore the prior sidecar bytes.
+- [ ] **Step 5: Implement atomic fill and checkpoint.** Inside the transaction, recheck the market-view hash, call the capability- and transaction-owner-checked private broker commit, append the checkpoint for the resulting authoritative book, refresh checkpoints before commit, and return a pending report. Finalize the market and report caches only after commit under the same broker lock. On pre-commit error, independently restore the captured book snapshot and prior sidecar bytes; cleanup failure taints the book fail-closed.
 
 - [ ] **Step 6: Run GREEN, including mutation checks.** Mutate the prepared object, gate hash, ledger head, market snapshot, and capability in separate tests; each mutation must either fail closed or raise before a fill. Then run:
 

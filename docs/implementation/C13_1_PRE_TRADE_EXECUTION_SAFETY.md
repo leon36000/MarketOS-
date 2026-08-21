@@ -8,22 +8,34 @@ implementation, not a claim that C13 or MarketOS is complete.
 `C13PreTradeEnvelope` is the only public paper/shadow submission seam. Its
 constructor requires the exact `PaperBroker`, `AuthoritativePortfolioBook` and
 `DurableLedger` identities and binds an opaque capability to that broker.
+The envelope also binds a private transaction owner to the ledger; the broker
+mutation primitive requires both that owner and an active owner-bound durable
+transaction, so possession of a capability alone cannot create a fill.
 `PaperBroker.submit` fails closed with
 `PAPER_BROKER_DIRECT_SUBMIT_FORBIDDEN`.
 
 The envelope derives the portfolio snapshot, ledger head, execution quote and
-every mark used for current gross exposure. `RiskContext` carries the three
-source fingerprints; no caller can provide a reconciliation boolean, risk
-decision, snapshot, liquidity result or execution mode override.
+every mark used for current gross exposure, including each evidence timestamp.
+`RiskContext` carries the three source fingerprints and validates freshness and
+future-data constraints for every contributing quote/mark; no caller can
+provide a reconciliation boolean, risk decision, snapshot, liquidity result or
+execution mode override.
 
 ## Atomic commit
 
 For `PAPER`, the envelope rechecks the captured view, requires an unchanged
 ledger head inside `BEGIN IMMEDIATE`, applies the fill and appends the
-authoritative book checkpoint in the same SQLite transaction. The durable
-sidecar is an exact independent witness: replacement is fsynced before commit,
-and rollback restores the prior bytes and fsyncs the directory. A missing or
-mismatched sidecar is a veto; no automatic repair is attempted.
+authoritative book checkpoint in the same SQLite transaction. Rejection and
+shadow reports use the same expected-head transaction before entering the
+idempotency cache. A changed head returns a deterministic uncached
+`NO_TRADE`/`EXECUTION_STATE_CHANGED` result.
+
+The durable sidecar is an exact independent witness: replacement is fsynced
+before commit, and rollback independently attempts restoration of both the
+prior bytes and the in-memory authoritative book. Checkpoint refresh happens
+before SQLite `COMMIT`; any failure therefore rolls back the database, book,
+checkpoint list and witness bytes. A missing or mismatched sidecar is a veto;
+no automatic repair is attempted.
 
 Reports and market/idempotency caches are finalized only after the transaction
 commits. Any failure after an in-memory book mutation restores the book,
@@ -54,5 +66,7 @@ python3 tools/verify_c13_execution_safety.py --root . --json
 ```
 
 The acceptance evidence covers paper allow, direct-submit veto, expected-head
-race, sidecar mismatch, reconstruction block, quote/liquidity vetoes,
-capability forgery, idempotency and rollback restoration.
+races on allow/rejection/shadow paths, sidecar mismatch and write-failure
+rollback, reconstruction block, quote/liquidity vetoes, stolen-capability
+transaction closure, stale aggregate marks, idempotency/cache finalization,
+rollback restoration and replay-path independence.

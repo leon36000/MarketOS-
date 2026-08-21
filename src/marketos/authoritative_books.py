@@ -295,6 +295,8 @@ class DurableLedger:
         self._book_tainted = False
         self._lock = threading.RLock()
         self._execution_transaction_active = False
+        self._execution_transaction_owner: object | None = None
+        self._bound_execution_owner: object | None = None
         self._connection = sqlite3.connect(self.path, isolation_level=None)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA journal_mode = WAL")
@@ -413,6 +415,13 @@ class DurableLedger:
             ledger=self,
         )
         return self._authoritative_book
+
+    def _bind_execution_owner(self, owner: object) -> None:
+        with self._lock:
+            self._ensure_open()
+            if self._bound_execution_owner is not None and self._bound_execution_owner is not owner:
+                raise InvariantViolation("DURABLE_LEDGER_ALREADY_BOUND")
+            self._bound_execution_owner = owner
 
     def _anchor_payload(self, ledger: Ledger) -> dict[str, object]:
         row = self._connection.execute(
@@ -883,12 +892,19 @@ class DurableLedger:
             return inserted
 
     @contextmanager
-    def execution_transaction(self, expected_ledger_sha256: str):
+    def execution_transaction(
+        self,
+        expected_ledger_sha256: str,
+        *,
+        owner: object | None = None,
+    ):
         """Open the single durable transaction used by authorized execution."""
         with self._lock:
             self._ensure_open()
             if self._execution_transaction_active:
                 raise InvariantViolation("EXECUTION_TRANSACTION_REENTRANT")
+            if owner is None or self._bound_execution_owner is not owner:
+                raise InvariantViolation("EXECUTION_TRANSACTION_OWNER_REQUIRED")
             before_ledger = self._ledger
             before_checkpoints = tuple(self._checkpoints)
             before_tainted = self._book_tainted
@@ -915,27 +931,45 @@ class DurableLedger:
                         raise InvariantViolation("BOOK_SOURCE_TAINTED")
                     book_snapshot = book.snapshot()
                 self._execution_transaction_active = True
+                self._execution_transaction_owner = owner
                 yield
                 self._write_anchor(self._ledger)
+                self._refresh_checkpoints()
                 self._connection.execute("COMMIT")
                 transaction_started = False
-            except BaseException:
+            except BaseException as failure:
+                rollback_failure: BaseException | None = None
                 try:
                     if transaction_started:
                         self._connection.execute("ROLLBACK")
-                finally:
-                    self._execution_transaction_active = False
-                    self._ledger = before_ledger
-                    self._checkpoints = list(before_checkpoints)
-                    self._book_tainted = before_tainted
-                    if before_anchor is not None:
+                except BaseException as exc:
+                    rollback_failure = exc
+                self._execution_transaction_active = False
+                self._execution_transaction_owner = None
+                self._ledger = before_ledger
+                self._checkpoints = list(before_checkpoints)
+                self._book_tainted = before_tainted
+                cleanup_failures: list[BaseException] = []
+                if before_anchor is not None:
+                    try:
                         self._restore_anchor_bytes(before_anchor)
-                    if book_snapshot is not None and self._authoritative_book is not None:
+                    except BaseException as exc:
+                        cleanup_failures.append(exc)
+                if book_snapshot is not None and self._authoritative_book is not None:
+                    try:
                         self._authoritative_book._restore_snapshot(book_snapshot)
+                    except BaseException as exc:
+                        cleanup_failures.append(exc)
+                if rollback_failure is not None:
+                    cleanup_failures.append(rollback_failure)
+                if cleanup_failures:
+                    self._book_tainted = True
+                    for cleanup_failure in cleanup_failures:
+                        failure.add_note(f"C13_ROLLBACK_CLEANUP_FAILURE:{cleanup_failure}")
                 raise
             finally:
                 self._execution_transaction_active = False
-            self._refresh_checkpoints()
+                self._execution_transaction_owner = None
 
     def latest_checkpoint(self) -> BookCheckpoint | None:
         with self._lock:

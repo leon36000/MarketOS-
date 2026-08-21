@@ -24,7 +24,8 @@ evidence, and prevents a concurrent state change between evaluation and fill.
 
 `C13PreTradeEnvelope` in `src/marketos/execution_safety.py` is the only public
 paper/shadow submission seam. It owns no broker credentials and has no external
-order route. It is constructed with one `PaperBroker`, one
+order route. It binds one opaque broker capability and one ledger transaction
+owner. It is constructed with one `PaperBroker`, one
 `AuthoritativePortfolioBook`, and its exact `DurableLedger`; construction fails
 if those identities do not match.
 
@@ -34,7 +35,8 @@ one immutable aggregate market view: the execution quote plus every mark used
 to calculate current gross exposure. It reconciles the portfolio through the
 provenance-bound C13-0 gate, asks the broker's private preparation seam to
 derive the visible-liquidity bound, cash, position, exposure, data-age and
-clock context, and then opens a SQLite `BEGIN IMMEDIATE` transaction that
+clock context, including freshness evidence for every contributing mark, and
+then opens a SQLite `BEGIN IMMEDIATE` transaction that
 compares the expected ledger head before any fill append. The market head is
 rechecked while the broker lock is held. A changed ledger or market head
 returns a deterministic `NO_TRADE` report without changing the portfolio,
@@ -43,7 +45,9 @@ market cache, report cache, or idempotency state.
 `DurableLedger` gains a re-entrant execution lock used by all book writes and
 reads that participate in the envelope plus an atomic execution transaction.
 Book appends and the post-fill checkpoint join that transaction; the expected
-head comparison occurs inside the same `BEGIN IMMEDIATE` boundary. A rollback
+head comparison occurs inside the same `BEGIN IMMEDIATE` boundary. The private
+mutation seam also requires the active owner-bound transaction, not merely the
+capability. A rollback
 restores the in-memory authoritative book snapshot and checkpoint list. The
 existing `.anchor.json` remains an independent witness and must match the
 committed SQLite head exactly. The transaction records the previous sidecar
@@ -56,9 +60,11 @@ rewrites both the database and its witness.
 `PaperBroker` gains a re-entrant state lock around market and report state. The
 public `PaperBroker.submit` path is removed as an authority seam; direct
 callers receive a fail-closed invariant error and must use the envelope. The
-private commit seam requires an opaque capability bound to the one envelope
-instance, so a fabricated prepared object or gate result cannot become a
-second mutation path.
+private commit seam requires an opaque capability and the bound active
+transaction owner, so a fabricated prepared object, gate result, or direct
+capability call cannot become a second mutation path. Rejection and shadow
+reports also perform the expected-head transaction before caching; a race is
+returned as an uncached deterministic `NO_TRADE`.
 
 The existing Risk Kernel remains deterministic, but its caller-supplied
 `books_reconciled` context field is removed. Book authority belongs only to

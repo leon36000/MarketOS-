@@ -7,6 +7,7 @@ from dataclasses import replace
 import json
 import subprocess
 import sys
+import threading
 
 from marketos.authoritative_books import DurableLedger
 from marketos.canonical import canonical_sha256
@@ -45,13 +46,15 @@ class C13ExecutionTransactionTests(unittest.TestCase):
         second = DurableLedger(self.path)
         self.addCleanup(first.close)
         self.addCleanup(second.close)
+        owner = object()
+        second._bind_execution_owner(owner)
         book = first.authoritative_book(base_currency="USD")
         book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
         expected = second.sha256()
         self.assertNotEqual(first.sha256(), expected)
 
         with self.assertRaises(ExecutionStateChanged):
-            with second.execution_transaction(expected):
+            with second.execution_transaction(expected, owner=owner):
                 self.fail("a stale execution must not enter its commit body")
 
     def test_successful_execution_transaction_persists_book_and_checkpoint(self) -> None:
@@ -63,7 +66,9 @@ class C13ExecutionTransactionTests(unittest.TestCase):
                 occurred_at_ns=100,
             )
             expected = ledger.sha256()
-            with ledger.execution_transaction(expected):
+            owner = object()
+            ledger._bind_execution_owner(owner)
+            with ledger.execution_transaction(expected, owner=owner):
                 book.fund(
                     "fund-2",
                     Money.from_decimal("USD", "1.00"),
@@ -83,6 +88,38 @@ class C13ExecutionTransactionTests(unittest.TestCase):
             )
             self.assertEqual(reopened.latest_checkpoint().checkpoint_id, "checkpoint-2")
 
+    def test_second_connection_writer_is_blocked_after_begin_immediate(self) -> None:
+        with DurableLedger(self.path) as ledger:
+            owner = object()
+            ledger._bind_execution_owner(owner)
+            writer_started = threading.Event()
+            writer_go = threading.Event()
+            writer_done = threading.Event()
+            writer_errors: list[BaseException] = []
+
+            def writer_task() -> None:
+                writer = DurableLedger(self.path)
+                writer_started.set()
+                try:
+                    writer_go.wait(2)
+                    writer.post(self.funding_entry("writer-after-begin", "1.00"))
+                except BaseException as exc:
+                    writer_errors.append(exc)
+                finally:
+                    writer.close()
+                    writer_done.set()
+
+            writer_thread = threading.Thread(target=writer_task, daemon=True)
+            with ledger.execution_transaction(ledger.sha256(), owner=owner):
+                writer_thread.start()
+                self.assertTrue(writer_started.wait(2))
+                writer_go.set()
+                self.assertFalse(writer_done.wait(0.1))
+            writer_thread.join(2)
+            self.assertFalse(writer_thread.is_alive())
+            self.assertTrue(writer_done.is_set())
+            self.assertEqual(writer_errors, [])
+
     def test_rollback_restores_ledger_book_checkpoint_and_anchor(self) -> None:
         with DurableLedger(self.path) as ledger:
             book = ledger.authoritative_book(base_currency="USD")
@@ -96,9 +133,11 @@ class C13ExecutionTransactionTests(unittest.TestCase):
             snapshot_before = book.snapshot()
             checkpoints_before = (ledger.latest_checkpoint(),)
             anchor_before = ledger.anchor_path.read_bytes()
+            owner = object()
+            ledger._bind_execution_owner(owner)
 
             with self.assertRaisesRegex(RuntimeError, "force rollback"):
-                with ledger.execution_transaction(ledger.sha256()):
+                with ledger.execution_transaction(ledger.sha256(), owner=owner):
                     book.fund(
                         "fund-2",
                         Money.from_decimal("USD", "1.00"),
@@ -178,7 +217,7 @@ class C13EvidenceBindingTests(unittest.TestCase):
         )
         limits = RiskLimits(
             currency="USD",
-            allowed_instruments=frozenset({"AAPL"}),
+            allowed_instruments=frozenset({"AAPL", "MSFT"}),
             max_order_notional=Money.from_decimal("USD", "10000"),
             max_gross_notional=Money.from_decimal("USD", "20000"),
             max_position_quantity=Quantity.positive("100"),
@@ -230,7 +269,7 @@ class C13EnvelopeTests(unittest.TestCase):
         self.ledger.checkpoint("initial", self.book, captured_at_ns=2)
         limits = RiskLimits(
             currency="USD",
-            allowed_instruments=frozenset({"AAPL"}),
+            allowed_instruments=frozenset({"AAPL", "MSFT"}),
             max_order_notional=Money.from_decimal("USD", "100000"),
             max_gross_notional=Money.from_decimal("USD", "100000"),
             max_position_quantity=Quantity.positive("1000"),
@@ -245,6 +284,17 @@ class C13EnvelopeTests(unittest.TestCase):
             slippage_bps="0",
         )
         self.broker.update_market(self.snapshot())
+        self.broker.update_market(
+            MarketSnapshot(
+                instrument_id="MSFT",
+                bid=Price.parse("USD", "49", tick_size="0.01"),
+                ask=Price.parse("USD", "50", tick_size="0.01"),
+                bid_size=Quantity.parse("100"),
+                ask_size=Quantity.parse("100"),
+                available_at_ns=900,
+                source_event_id="quote-MSFT",
+            )
+        )
         self.clock = ClockQuality("chrony", "NTP", 900, 10, 0, "SYNCED")
         self.envelope = C13PreTradeEnvelope(
             broker=self.broker,
@@ -278,12 +328,13 @@ class C13EnvelopeTests(unittest.TestCase):
         mode: ExecutionMode = ExecutionMode.PAPER,
         idempotency_key: str | None = None,
         quantity: str = "5",
+        instrument_id: str = "AAPL",
     ) -> OrderIntent:
         return OrderIntent(
             intent_id=intent_id,
             client_order_id=f"client-{intent_id}",
             idempotency_key=idempotency_key or f"idem-{intent_id}",
-            instrument_id="AAPL",
+            instrument_id=instrument_id,
             side=OrderSide.BUY,
             quantity=Quantity.positive(quantity),
             order_type=OrderType.MARKET,
@@ -343,8 +394,36 @@ class C13EnvelopeTests(unittest.TestCase):
             self.broker._commit_authorized(
                 prepared,
                 capability=object(),
+                transaction_owner=object(),
                 c13_gate=None,
             )
+
+    def test_stolen_capability_without_active_transaction_cannot_commit(self) -> None:
+        from marketos.authoritative_books import C13RiskGate, reconcile_book
+
+        prepared = self.broker._prepare(
+            self.intent("outside"),
+            now_ns=1_000,
+            clock_quality=self.clock,
+        )
+        reconciliation = reconcile_book(self.ledger, prepared.portfolio_snapshot)
+        gate = C13RiskGate().evaluate(
+            prepared.decision,
+            reconciliation,
+            ExecutionMode.PAPER,
+            portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+            ledger_head_sha256=prepared.ledger_head_sha256,
+            market_view_sha256=prepared.market_view_sha256,
+        )
+        entries_before = self.ledger.entries()
+        with self.assertRaisesRegex(InvariantViolation, "EXECUTION_TRANSACTION_REQUIRED"):
+            self.broker._commit_authorized(
+                prepared,
+                capability=self.envelope._capability,
+                transaction_owner=self.envelope._transaction_owner,
+                c13_gate=gate,
+            )
+        self.assertEqual(self.ledger.entries(), entries_before)
 
     def test_prepared_decision_and_gate_binding_tampering_fail_closed(self) -> None:
         from marketos.authoritative_books import C13RiskGate, reconcile_book
@@ -368,19 +447,108 @@ class C13EnvelopeTests(unittest.TestCase):
             decision=replace(prepared.decision, reasons=("FORGED",)),
         )
         with self.assertRaisesRegex(InvariantViolation, "PREPARED_RISK_DECISION_INTEGRITY_FAILURE"):
-            with self.ledger.execution_transaction(prepared.ledger_head_sha256):
+            with self.ledger.execution_transaction(
+                prepared.ledger_head_sha256,
+                owner=self.envelope._transaction_owner,
+            ):
                 self.broker._commit_authorized(
                     tampered_prepared,
                     capability=self.envelope._capability,
+                    transaction_owner=self.envelope._transaction_owner,
                     c13_gate=gate,
                 )
         tampered_gate = replace(gate, market_view_sha256="f" * 64)
         with self.assertRaisesRegex(InvariantViolation, "C13_GATE_INTEGRITY_FAILURE"):
-            self.broker._commit_authorized(
-                prepared,
-                capability=self.envelope._capability,
-                c13_gate=tampered_gate,
+            with self.ledger.execution_transaction(
+                prepared.ledger_head_sha256,
+                owner=self.envelope._transaction_owner,
+            ):
+                self.broker._commit_authorized(
+                    prepared,
+                    capability=self.envelope._capability,
+                    transaction_owner=self.envelope._transaction_owner,
+                    c13_gate=tampered_gate,
+                )
+
+    def test_refresh_failure_after_commit_does_not_create_partial_execution(self) -> None:
+        entries_before = self.ledger.entries()
+        snapshot_before = self.book.snapshot()
+        market_before = self.broker.market("AAPL")
+        checkpoints_before = tuple(self.ledger._checkpoints)
+        reports_before = dict(self.broker._reports)
+        original_refresh = self.ledger._refresh_checkpoints
+        refresh_calls = 0
+
+        def fail_refresh():
+            nonlocal refresh_calls
+            if self.ledger._execution_transaction_active:
+                refresh_calls += 1
+                raise RuntimeError("post-commit refresh failure")
+            return original_refresh()
+
+        self.ledger._refresh_checkpoints = fail_refresh
+        self.addCleanup(setattr, self.ledger, "_refresh_checkpoints", original_refresh)
+        with self.assertRaisesRegex(RuntimeError, "post-commit refresh failure"):
+            self.envelope.submit(self.intent("refresh-failure"), now_ns=1_000, clock_quality=self.clock)
+        self.assertEqual(self.ledger.entries(), entries_before)
+        self.assertEqual(self.book.snapshot(), snapshot_before)
+        self.assertEqual(tuple(self.ledger._checkpoints), checkpoints_before)
+        self.assertEqual(self.broker.market("AAPL"), market_before)
+        self.assertEqual(self.broker._reports, reports_before)
+        self.assertEqual(refresh_calls, 1)
+
+    def test_partial_sidecar_replacement_after_fill_restores_everything(self) -> None:
+        entries_before = self.ledger.entries()
+        snapshot_before = self.book.snapshot()
+        checkpoints_before = tuple(self.ledger._checkpoints)
+        anchor_before = self.ledger.anchor_path.read_bytes()
+        market_before = self.broker.market("AAPL")
+        reports_before = dict(self.broker._reports)
+        original_replace = self.ledger._replace_anchor_bytes
+        replacement_calls = 0
+
+        def partial_replace(content: bytes):
+            nonlocal replacement_calls
+            replacement_calls += 1
+            if replacement_calls == 1:
+                self.ledger.anchor_path.write_bytes(b'{"partial":')
+                raise RuntimeError("partial sidecar replacement")
+            return original_replace(content)
+
+        self.ledger._replace_anchor_bytes = partial_replace
+        self.addCleanup(setattr, self.ledger, "_replace_anchor_bytes", original_replace)
+        with self.assertRaisesRegex(RuntimeError, "partial sidecar replacement"):
+            self.envelope.submit(
+                self.intent("partial-sidecar-fill"),
+                now_ns=1_000,
+                clock_quality=self.clock,
             )
+        self.assertGreaterEqual(replacement_calls, 2)
+        self.assertEqual(self.ledger.entries(), entries_before)
+        self.assertEqual(self.book.snapshot(), snapshot_before)
+        self.assertEqual(tuple(self.ledger._checkpoints), checkpoints_before)
+        self.assertEqual(self.ledger.anchor_path.read_bytes(), anchor_before)
+        self.assertEqual(self.broker.market("AAPL"), market_before)
+        self.assertEqual(self.broker._reports, reports_before)
+
+    def test_sidecar_restore_failure_still_restores_book(self) -> None:
+        snapshot_before = self.book.snapshot()
+        original_checkpoint = self.ledger.checkpoint
+        original_restore = self.ledger._restore_anchor_bytes
+
+        def fail_checkpoint(*args, **kwargs):
+            raise RuntimeError("primary checkpoint failure")
+
+        def fail_restore(content):
+            raise RuntimeError("sidecar restore failure")
+
+        self.ledger.checkpoint = fail_checkpoint
+        self.ledger._restore_anchor_bytes = fail_restore
+        self.addCleanup(setattr, self.ledger, "checkpoint", original_checkpoint)
+        self.addCleanup(setattr, self.ledger, "_restore_anchor_bytes", original_restore)
+        with self.assertRaisesRegex(RuntimeError, "primary checkpoint failure"):
+            self.envelope.submit(self.intent("sidecar-restore"), now_ns=1_000, clock_quality=self.clock)
+        self.assertEqual(self.book.snapshot(), snapshot_before)
 
     def test_failure_after_book_mutation_restores_everything(self) -> None:
         entries_before = self.ledger.entries()
@@ -421,6 +589,22 @@ class C13EnvelopeTests(unittest.TestCase):
         self.assertEqual(empty.state, OrderState.CANCELLED)
         self.assertIn("NO_VISIBLE_LIQUIDITY", empty.reasons)
 
+    def test_stale_position_mark_vetoes_aggregate_exposure(self) -> None:
+        seed = self.envelope.submit(
+            self.intent("seed-msft", instrument_id="MSFT", quantity="1"),
+            now_ns=950,
+            clock_quality=self.clock,
+        )
+        self.assertTrue(seed.fills)
+        self.broker.update_market(self.snapshot(available_at_ns=1_000))
+        stale = self.envelope.submit(
+            self.intent("stale-mark"),
+            now_ns=1_101,
+            clock_quality=self.clock,
+        )
+        self.assertEqual(stale.state, OrderState.REJECTED)
+        self.assertIn("STALE_DATA", stale.reasons)
+
     def test_divergent_checkpoint_and_sidecar_mismatch_are_vetoes(self) -> None:
         self.ledger.post(self.funding_entry("outside"))
         divergent = self.envelope.submit(
@@ -458,13 +642,68 @@ class C13EnvelopeTests(unittest.TestCase):
 
         C13RiskGate.evaluate = gate_then_write
         self.addCleanup(setattr, C13RiskGate, "evaluate", original)
-        with self.assertRaisesRegex(ExecutionStateChanged, "EXECUTION_STATE_CHANGED"):
-            self.envelope.submit(self.intent("race-order"), now_ns=1_000, clock_quality=self.clock)
+        report = self.envelope.submit(self.intent("race-order"), now_ns=1_000, clock_quality=self.clock)
+        self.assertEqual(report.state, OrderState.REJECTED)
+        self.assertIn("EXECUTION_STATE_CHANGED", report.reasons)
         self.assertNotIn("idem-race-order", self.broker._reports)
 
+    def test_expected_head_race_on_rejection_is_not_cached(self) -> None:
+        from marketos.authoritative_books import C13RiskGate
+
+        writer = DurableLedger(self.path)
+        self.addCleanup(writer.close)
+        original = C13RiskGate.evaluate
+        raced = False
+
+        def gate_then_write(gate_instance, *args, **kwargs):
+            nonlocal raced
+            result = original(gate_instance, *args, **kwargs)
+            if not raced:
+                raced = True
+                writer.post(self.funding_entry("rejection-race"))
+            return result
+
+        C13RiskGate.evaluate = gate_then_write
+        self.addCleanup(setattr, C13RiskGate, "evaluate", original)
+        report = self.envelope.submit(
+            self.intent("rejection-race-order", quantity="1000"),
+            now_ns=1_000,
+            clock_quality=self.clock,
+        )
+        self.assertEqual(report.state, OrderState.REJECTED)
+        self.assertIn("EXECUTION_STATE_CHANGED", report.reasons)
+        self.assertNotIn("idem-rejection-race-order", self.broker._reports)
+
+    def test_expected_head_race_on_shadow_is_not_cached(self) -> None:
+        from marketos.authoritative_books import C13RiskGate
+
+        writer = DurableLedger(self.path)
+        self.addCleanup(writer.close)
+        original = C13RiskGate.evaluate
+        raced = False
+
+        def gate_then_write(gate_instance, *args, **kwargs):
+            nonlocal raced
+            result = original(gate_instance, *args, **kwargs)
+            if not raced:
+                raced = True
+                writer.post(self.funding_entry("shadow-race-writer"))
+            return result
+
+        C13RiskGate.evaluate = gate_then_write
+        self.addCleanup(setattr, C13RiskGate, "evaluate", original)
+        report = self.envelope.submit(
+            self.intent("shadow-race-order", mode=ExecutionMode.SHADOW),
+            now_ns=1_000,
+            clock_quality=self.clock,
+        )
+        self.assertEqual(report.state, OrderState.REJECTED)
+        self.assertIn("EXECUTION_STATE_CHANGED", report.reasons)
+        self.assertNotIn("idem-shadow-race-order", self.broker._reports)
+
     def test_unsupported_instrument_fails_closed_before_mutation(self) -> None:
-        unsupported = replace(self.intent("unsupported"), instrument_id="MSFT")
-        with self.assertRaisesRegex(InvariantViolation, "MISSING_MARKET_SNAPSHOT:MSFT"):
+        unsupported = replace(self.intent("unsupported"), instrument_id="TSLA")
+        with self.assertRaisesRegex(InvariantViolation, "MISSING_MARKET_SNAPSHOT:TSLA"):
             self.envelope.submit(unsupported, now_ns=1_000, clock_quality=self.clock)
 
     @staticmethod

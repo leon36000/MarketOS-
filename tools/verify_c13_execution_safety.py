@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import replace
+from decimal import Decimal
 import json
 from pathlib import Path
 import sys
 import tempfile
+import threading
 from typing import Any
 
 
@@ -17,13 +19,14 @@ def _load(path: Path) -> dict[str, Any]:
 
 def _runtime_checks(root: Path) -> tuple[dict[str, bool], list[str]]:
     sys.path.insert(0, str(root / "src"))
-    from marketos.authoritative_books import DurableLedger
+    from marketos.authoritative_books import C13RiskGate, DurableLedger, reconcile_book
     from marketos.errors import ExecutionStateChanged, InvariantViolation
     from marketos.execution_safety import C13PreTradeEnvelope
     from marketos.money import Money, Price, Quantity
     from marketos.orders import ExecutionMode, OrderIntent, OrderSide, OrderState, OrderType, TimeInForce
     from marketos.paper import MarketSnapshot, PaperBroker
-    from marketos.risk import RiskKernel, RiskLimits
+    from marketos.risk import RiskContext, RiskKernel, RiskLimits
+    from marketos.replay import ReplayConfig, ReplayEngine
     from marketos.time import ClockQuality
     from marketos.ledger import JournalEntry, Posting, PostingSide
 
@@ -45,6 +48,17 @@ def _runtime_checks(root: Path) -> tuple[dict[str, bool], list[str]]:
         "stale_head_veto": False,
         "sidecar_mismatch_veto": False,
         "reconstruction_veto": False,
+        "capability_transaction_guard": False,
+        "cache_finalized": False,
+        "stale_mark_veto": False,
+        "rollback_restored": False,
+        "sidecar_write_failure_rollback": False,
+        "partial_sidecar_replacement_rollback": False,
+        "post_fill_refresh_failure_rollback": False,
+        "writer_blocked_after_begin": False,
+        "rejection_head_race_not_cached": False,
+        "shadow_head_race_not_cached": False,
+        "replay_path_independent": False,
     }
     errors: list[str] = []
     with tempfile.TemporaryDirectory(prefix="marketos-c13-1-verify-") as directory:
@@ -108,6 +122,311 @@ def _runtime_checks(root: Path) -> tuple[dict[str, bool], list[str]]:
                 and ledger.latest_checkpoint() is not None
                 and ledger.latest_checkpoint().checkpoint_id == "c13-1:verify-idem"
             )
+            checks["cache_finalized"] = (
+                "verify-idem" in broker._reports
+                and broker.market("AAPL").ask_size == Quantity.parse("99")
+            )
+
+            entries_before = ledger.entries()
+            snapshot_before = book.snapshot()
+            checkpoints_before = tuple(ledger._checkpoints)
+            anchor_before = ledger.anchor_path.read_bytes()
+            market_before = broker.market("AAPL")
+            reports_before = dict(broker._reports)
+            original_refresh = ledger._refresh_checkpoints
+            refresh_calls = 0
+
+            def fail_after_fill_refresh():
+                nonlocal refresh_calls
+                if ledger._execution_transaction_active:
+                    refresh_calls += 1
+                    raise RuntimeError("verification post-fill refresh failure")
+                return original_refresh()
+
+            ledger._refresh_checkpoints = fail_after_fill_refresh
+            try:
+                try:
+                    envelope.submit(
+                        replace(
+                            intent,
+                            intent_id="post-fill-refresh-order",
+                            idempotency_key="post-fill-refresh-idem",
+                        ),
+                        now_ns=1_000,
+                        clock_quality=clock,
+                    )
+                except RuntimeError as exc:
+                    checks["post_fill_refresh_failure_rollback"] = (
+                        str(exc) == "verification post-fill refresh failure"
+                        and refresh_calls == 1
+                        and ledger.entries() == entries_before
+                        and book.snapshot() == snapshot_before
+                        and tuple(ledger._checkpoints) == checkpoints_before
+                        and ledger.anchor_path.read_bytes() == anchor_before
+                        and broker.market("AAPL") == market_before
+                        and broker._reports == reports_before
+                    )
+            finally:
+                ledger._refresh_checkpoints = original_refresh
+
+            original_replace = ledger._replace_anchor_bytes
+            replacement_calls = 0
+
+            def partial_replace(content: bytes):
+                nonlocal replacement_calls
+                replacement_calls += 1
+                if replacement_calls == 1:
+                    ledger.anchor_path.write_bytes(b'{"partial":')
+                    raise RuntimeError("verification partial sidecar replacement")
+                return original_replace(content)
+
+            ledger._replace_anchor_bytes = partial_replace
+            try:
+                try:
+                    envelope.submit(
+                        replace(
+                            intent,
+                            intent_id="partial-sidecar-order",
+                            idempotency_key="partial-sidecar-idem",
+                        ),
+                        now_ns=1_000,
+                        clock_quality=clock,
+                    )
+                except RuntimeError as exc:
+                    checks["partial_sidecar_replacement_rollback"] = (
+                        str(exc) == "verification partial sidecar replacement"
+                        and replacement_calls >= 2
+                        and ledger.entries() == entries_before
+                        and book.snapshot() == snapshot_before
+                        and ledger.anchor_path.read_bytes() == anchor_before
+                        and broker.market("AAPL") == market_before
+                        and broker._reports == reports_before
+                    )
+            finally:
+                ledger._replace_anchor_bytes = original_replace
+
+            guarded_intent = replace(
+                intent,
+                intent_id="guarded-order",
+                idempotency_key="guarded-idem",
+            )
+            prepared = broker._prepare(
+                guarded_intent,
+                now_ns=1_000,
+                clock_quality=clock,
+            )
+            reconciliation = reconcile_book(ledger, prepared.portfolio_snapshot)
+            guard_gate = C13RiskGate().evaluate(
+                prepared.decision,
+                reconciliation,
+                ExecutionMode.PAPER,
+                portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                ledger_head_sha256=prepared.ledger_head_sha256,
+                market_view_sha256=prepared.market_view_sha256,
+            )
+            try:
+                broker._commit_authorized(
+                    prepared,
+                    capability=envelope._capability,
+                    transaction_owner=envelope._transaction_owner,
+                    c13_gate=guard_gate,
+                )
+            except InvariantViolation as exc:
+                checks["capability_transaction_guard"] = str(exc) == "EXECUTION_TRANSACTION_REQUIRED"
+
+            stale_context = RiskContext(
+                now_ns=1_000,
+                data_available_at_ns=950,
+                portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                ledger_head_sha256=prepared.ledger_head_sha256,
+                market_view_sha256=prepared.market_view_sha256,
+                clock_quality=clock,
+                cash=prepared.portfolio_snapshot.cash,
+                current_position=Quantity.parse("0"),
+                current_gross_notional=Money.zero("USD"),
+                mark_price=Price.parse("USD", "100", tick_size="0.01"),
+                estimated_fee=Money.zero("USD"),
+                market_evidence_available_at_ns=(("AAPL", 950), ("MSFT", 0)),
+            )
+            checks["stale_mark_veto"] = "STALE_DATA" in RiskKernel(limits).evaluate(
+                guarded_intent,
+                stale_context,
+            ).reasons
+
+            entries_before = ledger.entries()
+            snapshot_before = book.snapshot()
+            anchor_before = ledger.anchor_path.read_bytes()
+            try:
+                with ledger.execution_transaction(
+                    ledger.sha256(),
+                    owner=envelope._transaction_owner,
+                ):
+                    book.fund("rollback", Money.from_decimal("USD", "1"), occurred_at_ns=500)
+                    raise RuntimeError("verification rollback")
+            except RuntimeError:
+                checks["rollback_restored"] = (
+                    ledger.entries() == entries_before
+                    and book.snapshot() == snapshot_before
+                    and ledger.anchor_path.read_bytes() == anchor_before
+                )
+
+            original_write_anchor = ledger._write_anchor
+            try:
+                def fail_write_anchor(candidate):
+                    raise RuntimeError("verification sidecar write failure")
+
+                ledger._write_anchor = fail_write_anchor
+                try:
+                    with ledger.execution_transaction(
+                        ledger.sha256(),
+                        owner=envelope._transaction_owner,
+                    ):
+                        pass
+                except RuntimeError:
+                    checks["sidecar_write_failure_rollback"] = (
+                        ledger.entries() == entries_before
+                        and ledger.anchor_path.read_bytes() == anchor_before
+                    )
+            finally:
+                ledger._write_anchor = original_write_anchor
+
+            writer_path = Path(directory) / "writer-race.sqlite"
+            locked_ledger = DurableLedger(writer_path)
+            locked_owner = object()
+            locked_ledger._bind_execution_owner(locked_owner)
+            writer_started = threading.Event()
+            writer_go = threading.Event()
+            writer_done = threading.Event()
+            writer_errors: list[BaseException] = []
+
+            def blocked_writer() -> None:
+                writer = DurableLedger(writer_path)
+                writer_started.set()
+                try:
+                    writer_go.wait(2)
+                    writer.post(funding("writer-after-begin"))
+                except BaseException as exc:
+                    writer_errors.append(exc)
+                finally:
+                    writer.close()
+                    writer_done.set()
+
+            writer_thread = threading.Thread(target=blocked_writer, daemon=True)
+            try:
+                with locked_ledger.execution_transaction(
+                    locked_ledger.sha256(),
+                    owner=locked_owner,
+                ):
+                    writer_thread.start()
+                    started = writer_started.wait(2)
+                    writer_go.set()
+                    blocked = started and not writer_done.wait(0.1)
+                writer_thread.join(2)
+                checks["writer_blocked_after_begin"] = (
+                    blocked and writer_done.is_set() and not writer_errors
+                )
+            finally:
+                if writer_thread.is_alive():
+                    writer_thread.join(2)
+                locked_ledger.close()
+
+            def race_report(mode, quantity: str, run_id: str, entry_id: str):
+                race_path = Path(directory) / f"{run_id}.sqlite"
+                race_ledger = DurableLedger(race_path)
+                race_book = race_ledger.authoritative_book(base_currency="USD")
+                race_book.fund("fund", Money.from_decimal("USD", "1000"), occurred_at_ns=1)
+                race_ledger.checkpoint("initial", race_book, captured_at_ns=2)
+                race_broker = PaperBroker(
+                    portfolio=race_book,
+                    risk_kernel=RiskKernel(limits),
+                    fee_bps="10",
+                    slippage_bps="0",
+                )
+                race_broker.update_market(
+                    MarketSnapshot(
+                        "AAPL",
+                        Price.parse("USD", "99", tick_size="0.01"),
+                        Price.parse("USD", "100", tick_size="0.01"),
+                        Quantity.parse("100"),
+                        Quantity.parse("100"),
+                        950,
+                        f"{run_id}-quote",
+                    )
+                )
+                race_envelope = C13PreTradeEnvelope(
+                    broker=race_broker,
+                    book=race_book,
+                    ledger=race_ledger,
+                )
+                race_writer = DurableLedger(race_path)
+                original_evaluate = C13RiskGate.evaluate
+                raced = False
+
+                def gate_then_write(gate_instance, *args, **kwargs):
+                    nonlocal raced
+                    result = original_evaluate(gate_instance, *args, **kwargs)
+                    if not raced:
+                        raced = True
+                        race_writer.post(funding(entry_id))
+                    return result
+
+                C13RiskGate.evaluate = gate_then_write
+                try:
+                    report = race_envelope.submit(
+                        replace(
+                            intent,
+                            intent_id=f"{run_id}-order",
+                            idempotency_key=f"{run_id}-idem",
+                            mode=mode,
+                            quantity=Quantity.positive(quantity),
+                        ),
+                        now_ns=1_000,
+                        clock_quality=clock,
+                    )
+                    return report, race_broker
+                finally:
+                    C13RiskGate.evaluate = original_evaluate
+                    race_writer.close()
+                    race_ledger.close()
+
+            rejection_report, rejection_broker = race_report(
+                ExecutionMode.PAPER,
+                "1000000",
+                "rejection-race",
+                "rejection-race-writer",
+            )
+            checks["rejection_head_race_not_cached"] = (
+                rejection_report.state is OrderState.REJECTED
+                and "EXECUTION_STATE_CHANGED" in rejection_report.reasons
+                and "rejection-race-idem" not in rejection_broker._reports
+            )
+            shadow_report, shadow_broker = race_report(
+                ExecutionMode.SHADOW,
+                "1",
+                "shadow-race",
+                "shadow-race-writer",
+            )
+            checks["shadow_head_race_not_cached"] = (
+                shadow_report.state is OrderState.REJECTED
+                and "EXECUTION_STATE_CHANGED" in shadow_report.reasons
+                and "shadow-race-idem" not in shadow_broker._reports
+            )
+
+            scenario_path = root / "examples" / "paper_scenario.jsonl"
+            if scenario_path.is_file():
+                from marketos.config import load_events_jsonl
+
+                scenario = load_events_jsonl(scenario_path)
+                replay_config = ReplayConfig(
+                    "c13-1-validator",
+                    "USD",
+                    Money.from_decimal("USD", "1000"),
+                    Decimal("10"),
+                    Decimal("0"),
+                )
+                first = ReplayEngine(config=replay_config, risk_limits=limits).run(scenario)
+                second = ReplayEngine(config=replay_config, risk_limits=limits).run(reversed(scenario))
+                checks["replay_path_independent"] = first.fingerprint == second.fingerprint
 
             try:
                 broker.submit(None, now_ns=1_000, clock_quality=clock)
@@ -121,7 +440,7 @@ def _runtime_checks(root: Path) -> tuple[dict[str, bool], list[str]]:
             finally:
                 writer.close()
             try:
-                with ledger.execution_transaction(expected):
+                with ledger.execution_transaction(expected, owner=envelope._transaction_owner):
                     pass
             except ExecutionStateChanged as exc:
                 checks["stale_head_veto"] = str(exc) == "EXECUTION_STATE_CHANGED"

@@ -12,7 +12,9 @@ MarketOS locks.
   preparation and execution reports.
 - Complete execution quote plus every current-position mark in one market
   view.
-- Envelope-only paper/shadow mutation with an opaque broker capability.
+- Envelope-only paper/shadow mutation with an opaque broker capability and a
+  ledger-bound transaction owner; the mutation primitive rejects calls outside
+  the active owner-bound transaction.
 - SQLite `BEGIN IMMEDIATE` expected-head check, atomic fill/checkpoint and
   fsynced sidecar rollback witness.
 - Post-commit report, market and idempotency cache finalization.
@@ -41,11 +43,14 @@ MarketOS locks.
 ## Interfaces
 
 `C13PreTradeEnvelope(broker, book, ledger)` rejects unrelated identities and
-binds one opaque capability. `submit(intent, now_ns, clock_quality)` derives
-all risk and reconciliation evidence internally. Direct `PaperBroker.submit`
-is a fail-closed error. `DurableLedger.execution_transaction(expected_head)`
-checks the expected head inside the write transaction and restores the book
-and sidecar on rollback.
+binds one opaque capability plus one ledger transaction owner.
+`submit(intent, now_ns, clock_quality)` derives all risk and reconciliation
+evidence internally. Direct `PaperBroker.submit` is a fail-closed error.
+`DurableLedger.execution_transaction(expected_head, owner=bound_owner)` checks
+the expected head inside the write transaction; `_commit_authorized` requires
+that active owner provenance and restores the book and sidecar on rollback.
+Rejection and shadow finalization also perform the expected-head check before
+caching; a race is an uncached deterministic `NO_TRADE`.
 
 ## TDD Sequence
 
@@ -78,11 +83,16 @@ git diff --check
 
 - Change the expected ledger head between preparation and transaction start;
   no fill or idempotency cache entry is accepted.
+- Present a valid capability without an active owner-bound transaction; no fill
+  or ledger mutation is accepted.
 - Change a portfolio, ledger or market fingerprint; preparation fails closed.
+- Make any position mark stale or future-dated; aggregate risk returns
+  `NO_TRADE` and cannot fill.
 - Remove or alter the sidecar; reconciliation returns a no-trade report and
   never repairs it.
-- Raise after the book fill but before checkpoint commit; SQLite, book,
-  checkpoint, sidecar, market and report caches return to their prior state.
+- Raise during checkpoint/refresh or sidecar replacement/restoration; SQLite,
+  book, checkpoint, sidecar, market and report caches return to their prior
+  state, with cleanup failures tainting the book fail-closed.
 - Forge the private capability or call the broker directly; both are vetoed.
 
 ## Exit Gate

@@ -340,6 +340,10 @@ class PaperBroker:
             portfolio_snapshot_sha256 = portfolio_snapshot.sha256()
             ledger_head_sha256 = portfolio_snapshot.ledger_sha256
             market_view_sha256 = market_view.sha256()
+            market_evidence = {
+                snapshot.instrument_id: snapshot.available_at_ns
+                for snapshot in (market_view.execution, *market_view.marks)
+            }
             decision = self.risk_kernel.evaluate(
                 intent,
                 RiskContext(
@@ -364,6 +368,7 @@ class PaperBroker:
                     ),
                     mark_price=execution_price,
                     estimated_fee=estimated_fee,
+                    market_evidence_available_at_ns=tuple(sorted(market_evidence.items())),
                 ),
             )
             return PreparedExecution(
@@ -390,11 +395,19 @@ class PaperBroker:
         prepared: PreparedExecution,
         *,
         capability: object,
+        transaction_owner: object,
         c13_gate: C13GateDecision,
     ) -> PendingExecution:
         """Apply one prepared fill; the caller owns the durable transaction."""
         with self._lock:
             self._assert_capability(capability)
+            ledger = getattr(self.portfolio, "ledger", None)
+            if (
+                ledger is None
+                or not getattr(ledger, "_execution_transaction_active", False)
+                or getattr(ledger, "_execution_transaction_owner", None) is not transaction_owner
+            ):
+                raise InvariantViolation("EXECUTION_TRANSACTION_REQUIRED")
             if not isinstance(prepared, PreparedExecution):
                 raise InvariantViolation("INVALID_PREPARED_EXECUTION")
             if prepared.intent_sha256 != prepared.intent.sha256():
@@ -440,6 +453,10 @@ class PaperBroker:
                 ),
                 Quantity.parse("0"),
             )
+            market_evidence = {
+                snapshot.instrument_id: snapshot.available_at_ns
+                for snapshot in (current_view.execution, *current_view.marks)
+            }
             recomputed_decision = self.risk_kernel.evaluate(
                 prepared.intent,
                 RiskContext(
@@ -457,6 +474,7 @@ class PaperBroker:
                     ),
                     mark_price=execution_price,
                     estimated_fee=estimated_fee,
+                    market_evidence_available_at_ns=tuple(sorted(market_evidence.items())),
                 ),
             )
             if recomputed_decision != prepared.decision:
