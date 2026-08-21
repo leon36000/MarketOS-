@@ -5,7 +5,11 @@ on:
   push:
     branches:
       - "codex/**"
+      - "chatgpt/**"
     paths:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "PROJECT_INSTRUCTIONS.md"
       - ".github/workflows/reconcile-derived-files.yml"
       - ".github/workflows/validate.yml"
       - ".github/workflows/implementation-foundation.yml"
