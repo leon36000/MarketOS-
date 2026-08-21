@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -128,6 +129,28 @@ class RepositoryContractTests(unittest.TestCase):
             self.assertIsNotNone(spec.loader)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
+
+    def test_agent_operating_contract_markers_are_consistent(self) -> None:
+        expected = {
+            "LUNA_PARALLEL_LIMIT": "2",
+            "SOL_BLIND_REVIEW_REQUIRED": "true",
+            "FULL_SUITE_BEFORE_EVERY_ACTION": "false",
+            "NO_STUBS": "true",
+            "MERGE_REQUIRES_EXACT_SHA_REVIEW": "true",
+        }
+        for relative in ("AGENTS.md", "CLAUDE.md", "PROJECT_INSTRUCTIONS.md"):
+            with self.subTest(relative=relative):
+                text = (FIXTURE_ROOT / relative).read_text(encoding="utf-8")
+                markers = dict(
+                    re.findall(r"(?m)^([A-Z][A-Z0-9_]*)=([^\n]+)$", text)
+                )
+                observed = {key: markers.get(key) for key in expected}
+                self.assertEqual(observed, expected)
+
+    def test_claude_uses_proportional_not_global_preaction_verification(self) -> None:
+        text = (FIXTURE_ROOT / "CLAUDE.md").read_text(encoding="utf-8").lower()
+        self.assertNotIn("avant toute action", text)
+        self.assertIn("vérification proportionnelle", text)
 
     def test_execution_contract_count_matches_repository(self) -> None:
         report = validate_repository(FIXTURE_ROOT)
