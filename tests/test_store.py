@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketos.errors import DuplicateConflict
+from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.events import EventEnvelope, EventKind
 from marketos.store import SQLiteEventStore
 from marketos.time import EventTime
@@ -29,6 +29,28 @@ class StoreTests(unittest.TestCase):
             schema_version="1",
             payload={"value": value},
         )
+
+    def force_update(
+        self,
+        *,
+        trigger: str,
+        statement: str,
+        parameters: tuple[object, ...],
+    ) -> None:
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.execute(f"DROP TRIGGER {trigger}")
+            connection.execute(statement, parameters)
+            connection.commit()
+        finally:
+            connection.close()
+
+    def sql_count(self, table: str) -> int:
+        connection = sqlite3.connect(self.path)
+        try:
+            return int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+        finally:
+            connection.close()
 
     def test_append_is_durable_and_reopenable(self) -> None:
         with SQLiteEventStore(self.path) as store:
@@ -56,21 +78,109 @@ class StoreTests(unittest.TestCase):
             self.assertEqual(store.count(), 1)
             self.assertTrue(store.verify_chain().ok)
 
-    def test_chain_tamper_is_detected(self) -> None:
+    def test_event_rows_reject_direct_update_and_delete(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append(self.event("one"))
+        connection = sqlite3.connect(self.path)
+        try:
+            for statement, parameters in (
+                ("UPDATE events SET event_json = ? WHERE event_id = ?", ("{}", "one")),
+                ("DELETE FROM events WHERE event_id = ?", ("one",)),
+            ):
+                with self.subTest(statement=statement):
+                    with self.assertRaisesRegex(sqlite3.IntegrityError, "APPEND_ONLY_EVENTS"):
+                        connection.execute(statement, parameters)
+                    connection.rollback()
+        finally:
+            connection.close()
+        self.assertEqual(self.sql_count("events"), 1)
+
+    def test_evidence_rows_reject_direct_update_and_delete(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append_evidence("RISK", {"decision": "NO_TRADE"})
+        connection = sqlite3.connect(self.path)
+        try:
+            for statement in (
+                "UPDATE evidence SET payload_json = '{}' WHERE sequence = 1",
+                "DELETE FROM evidence WHERE sequence = 1",
+            ):
+                with self.subTest(statement=statement):
+                    with self.assertRaisesRegex(sqlite3.IntegrityError, "APPEND_ONLY_EVIDENCE"):
+                        connection.execute(statement)
+                    connection.rollback()
+        finally:
+            connection.close()
+        self.assertEqual(self.sql_count("evidence"), 1)
+
+    def test_forced_event_tamper_blocks_read_count_append_and_reopen(self) -> None:
+        store = SQLiteEventStore(self.path)
+        store.append(self.event("one"))
+        self.force_update(
+            trigger="events_no_update",
+            statement="UPDATE events SET event_json = ? WHERE event_id = ?",
+            parameters=(json.dumps({"tampered": True}), "one"),
+        )
+        try:
+            for operation in (
+                store.read_all,
+                store.count,
+                lambda: store.append(self.event("one")),
+            ):
+                with self.subTest(operation=operation):
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "EVENT_CHAIN_INTEGRITY_FAILURE",
+                    ):
+                        operation()
+        finally:
+            store.close()
+        self.assertEqual(self.sql_count("events"), 1)
+        with self.assertRaisesRegex(InvariantViolation, "EVENT_CHAIN_INTEGRITY_FAILURE"):
+            SQLiteEventStore(self.path)
+
+    def test_forced_evidence_tamper_blocks_read_append_and_reopen(self) -> None:
+        store = SQLiteEventStore(self.path)
+        store.append_evidence("RISK", {"decision": "NO_TRADE"})
+        self.force_update(
+            trigger="evidence_no_update",
+            statement="UPDATE evidence SET payload_json = ? WHERE sequence = 1",
+            parameters=(json.dumps({"tampered": True}),),
+        )
+        try:
+            for operation in (
+                store.read_evidence,
+                lambda: store.append_evidence("RISK", {"decision": "ALLOW"}),
+            ):
+                with self.subTest(operation=operation):
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "EVIDENCE_CHAIN_INTEGRITY_FAILURE",
+                    ):
+                        operation()
+        finally:
+            store.close()
+        self.assertEqual(self.sql_count("evidence"), 1)
+        with self.assertRaisesRegex(InvariantViolation, "EVIDENCE_CHAIN_INTEGRITY_FAILURE"):
+            SQLiteEventStore(self.path)
+
+    def test_chain_tamper_is_reported_without_json_decode_escape(self) -> None:
         with SQLiteEventStore(self.path) as store:
             store.append(self.event("one"))
             store.append(self.event("two", sequence=2))
-        connection = sqlite3.connect(self.path)
-        connection.execute(
-            "UPDATE events SET event_json = ? WHERE event_id = ?",
-            (json.dumps({"tampered": True}), "one"),
+        self.force_update(
+            trigger="events_no_update",
+            statement="UPDATE events SET event_json = ? WHERE event_id = ?",
+            parameters=("{", "one"),
         )
-        connection.commit()
-        connection.close()
-        with SQLiteEventStore(self.path) as store:
-            verification = store.verify_chain()
-            self.assertFalse(verification.ok)
-            self.assertIn("EVENT_HASH_MISMATCH:1", verification.errors)
+        connection = sqlite3.connect(self.path)
+        connection.row_factory = sqlite3.Row
+        try:
+            rows = connection.execute("SELECT * FROM events ORDER BY sequence").fetchall()
+        finally:
+            connection.close()
+        verification = SQLiteEventStore.verify_event_rows(rows)
+        self.assertFalse(verification.ok)
+        self.assertIn("EVENT_JSON_INVALID:1", verification.errors)
 
     def test_append_many_is_atomic_on_conflict(self) -> None:
         with SQLiteEventStore(self.path) as store:
