@@ -813,7 +813,7 @@
     },
     {
       "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
-      "sha256": "b7d87e828386e916fc8fcde03ddaa85193d4992dc29c4945fcff11cf52352c7d",
+      "sha256": "a2f31bd72a7baee2bfc1a32e5965118576014d224f26bc52e459ce0b52d82021",
       "bytes": 2161
     },
     {
@@ -828,7 +828,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "4da10cb9558286e54520f2d2569987c3e064628b6b1d47eae337de0eff936f60",
+      "sha256": "16c0f3ddbe46ce939c4b0effed9d69718f0f095d62209b587bae96096766b3e5",
       "bytes": 2102
     },
     {
@@ -1078,8 +1078,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "29f1c1dfa703a6b3d9cf787a9a40a7878fac63fc017a3d66134bd5fadf8e14d4",
-      "bytes": 60467
+      "sha256": "b4347d3f8eb64488ef5952b88646dd343c66df06f1db5b49b56836035ab5be11",
+      "bytes": 60714
     },
     {
       "path": "src/marketos/bars.py",

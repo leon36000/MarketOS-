@@ -434,6 +434,7 @@ class DurableLedger:
             transaction_started = False
             before_ledger = self._ledger
             before_checkpoints = tuple(self._checkpoints)
+            before_authoritative_book = self._authoritative_book
             try:
                 self._connection.execute("BEGIN IMMEDIATE")
                 transaction_started = True
@@ -466,6 +467,7 @@ class DurableLedger:
                     self._connection.execute("ROLLBACK")
                 self._ledger = before_ledger
                 self._checkpoints = list(before_checkpoints)
+                self._authoritative_book = before_authoritative_book
                 raise
 
     def _bind_execution_owner(self, owner: object) -> None:
@@ -723,13 +725,14 @@ class DurableLedger:
                 "previous_sha256": str(row["previous_sha256"]),
             }
         )
+        valid_record_sha256s = {expected_record_sha256}
+        if self._anchor_version != _ANCHOR_VERSION:
+            valid_record_sha256s.update(
+                {checkpoint.sha256(), transitive_record_sha256}
+            )
         if (
             str(row["record_sha256"])
-            not in {
-                expected_record_sha256,
-                checkpoint.sha256(),
-                transitive_record_sha256,
-            }
+            not in valid_record_sha256s
             or canonical_json(checkpoint.canonical_dict()) != record_json
             or checkpoint.checkpoint_id != str(row["checkpoint_id"])
         ):
