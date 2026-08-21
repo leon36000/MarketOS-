@@ -73,13 +73,13 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "4cf570de062809cd6e665c240789bf16654d742dd610053dc3b62c86831fd5e0",
-      "bytes": 537
+      "sha256": "7901bb2a2f20179eee800a0903587a792fc66787e5373425081712e385baf7ff",
+      "bytes": 6264
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "875dd22ced8ec08165b4f9105b18cdca0deeefd3890e60474fe526a8579c5043",
-      "bytes": 1291
+      "sha256": "82a0004deeaac3deaaf65abbffa00ad68920865870490a6476c4242b3f5c802d",
+      "bytes": 4074
     },
     {
       "path": "Makefile",
@@ -88,8 +88,8 @@
     },
     {
       "path": "PROJECT_INSTRUCTIONS.md",
-      "sha256": "a718ca62752a56b98dc498ad6e3950c0a2486248c0882ac02bcfa3c787876e47",
-      "bytes": 1486
+      "sha256": "2ca0a81c34bf0577d83fbba784132f6b846b8ce7f72b46f8df92cd6189b912b3",
+      "bytes": 5632
     },
     {
       "path": "README.md",
@@ -1448,8 +1448,8 @@
     },
     {
       "path": "tests/test_repository_contract.py",
-      "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
-      "bytes": 6935
+      "sha256": "d1c253e16ad76fad2a18f0abe764af6a2fd7f9026674bb8811d3627b0b968f51",
+      "bytes": 8020
     },
     {
       "path": "tests/test_requirements_reconciliation.py",
