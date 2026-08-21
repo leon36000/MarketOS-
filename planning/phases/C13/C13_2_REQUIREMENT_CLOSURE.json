@@ -1,0 +1,52 @@
+{
+  "phase": "C13",
+  "slice": "C13-2",
+  "status": "VERIFIED_SLICE",
+  "phase_complete": false,
+  "promotion_allowed": false,
+  "requirements": [
+    {
+      "id": "AUD-RSK-005",
+      "state": "PARTIAL_VERIFIED_C13_2",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md"
+      ],
+      "boundary": "Checkpoint restart restores only an authenticated current-head paper/shadow book; FX, tax lots, corporate actions and production accounting remain open."
+    },
+    {
+      "id": "AUD-RSK-006",
+      "state": "PARTIAL_VERIFIED_C13_2",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "tests/test_c13_authoritative_books.py",
+        "tools/verify_c13_checkpoint_reconstruction.py"
+      ],
+      "boundary": "Checkpoint witness and bootstrap failures are fail-closed; secrets, chaos and disaster-recovery gates remain open."
+    },
+    {
+      "id": "AUD-RSK-009",
+      "state": "PARTIAL_VERIFIED_C13_2",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md",
+        "tools/verify_c13_checkpoint_reconstruction.py"
+      ],
+      "boundary": "Restart evidence is content-addressed and independently checked; the all-domain evidence ledger remains open."
+    }
+  ],
+  "hard_boundary": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "software_implementation_complete": false,
+    "promotion_allowed": false
+  },
+  "critical_open_gaps_preserved": [
+    "C13_RUNTIME_CONTRACTS",
+    "C14_COCKPIT_AND_OPERABILITY",
+    "C15_QUALIFICATION",
+    "C16_PACKAGING_AND_INTEGRATION",
+    "REQUIREMENTS_119_VS_108"
+  ]
+}

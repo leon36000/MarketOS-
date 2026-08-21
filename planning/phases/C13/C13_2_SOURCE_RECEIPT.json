@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "authority": "C13_2_SOURCE_RECEIPT",
+  "gitleaks_allow": "gitleaks:allow — content hashes are non-secret receipt data",
+  "slice": "C13-2",
+  "content_addressed": true,
+  "promotion_allowed": false,
+  "source_parent_commit": "c52370fc3a763782463a1059278dc94ee6b1cebe",
+  "source_paths": [
+    "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md",
+    "docs/superpowers/plans/2026-08-21-c13-2-checkpoint-authenticated-restart-plan.md",
+    "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
+    "planning/phases/C13/C13_2_DECISIONS.json",
+    "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json",
+    "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md",
+    "src/marketos/authoritative_books.py",
+    "tests/test_c13_authoritative_books.py",
+    "tools/verify_c13_checkpoint_reconstruction.py"
+  ],
+  "source_sha256": {
+    "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md": "21d4c2b623ea49fff7cec0a602e258896b6832a4cbf74a641687610bb9547491",
+    "docs/superpowers/plans/2026-08-21-c13-2-checkpoint-authenticated-restart-plan.md": "68f9ac558b70f90606f5c7b570c42bc892dfb8f16f7c168fcddf7b66fa190185",
+    "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
+    "planning/phases/C13/C13_2_DECISIONS.json": "2af98f54ee5cd50af5d69a673bac66e95d91f5bb6b21edbb9a5bbbd470bcbc26",
+    "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
+    "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md": "68defe56a89ad84d3d6d51b951544f66f39942b20459c56ab314e29022452ead",
+    "src/marketos/authoritative_books.py": "30b635cb24a3cec05a852a79e606b029fe23dc4c44e61de27f439760ae51bbc5",
+    "tests/test_c13_authoritative_books.py": "c1b77c1452f73244130dd74c8ca293498a88c6cd0ee532be4ceba1059e2a99c1",
+    "tools/verify_c13_checkpoint_reconstruction.py": "aed90ecc23fd3a4ac05442bc8099d4e71e7e50a46c0091ea71eeab6b75849d06"
+  },
+  "source_tree_sha256": "6df52fa716bfa7bbabc2382379aa1c1cc48d45d9e7c7961205e66d483af45dff"
+}

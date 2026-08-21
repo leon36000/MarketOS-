@@ -9,6 +9,7 @@ import json
 import subprocess
 import sys
 
+from marketos.canonical import canonical_json, canonical_sha256
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.ledger import JournalEntry, Posting, PostingSide
 from marketos.money import Money, Price, Quantity
@@ -482,6 +483,107 @@ class C13ReconciliationTests(unittest.TestCase):
                 ledger.authoritative_book(base_currency="USD")
 
 
+class C13CheckpointReconstructionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.path = Path(self.temp_dir.name) / "authoritative-books.sqlite"
+
+    def test_current_head_checkpoint_restores_authoritative_book_after_reopen(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            expected = book.snapshot()
+            self.assertTrue(ledger.checkpoint("checkpoint-1", book, captured_at_ns=200))
+
+        with DurableLedger(self.path) as reopened:
+            restored = reopened.authoritative_book(base_currency="USD")
+            self.assertEqual(restored.snapshot(), expected)
+
+    def test_existing_database_without_sidecar_fails_closed(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            self.assertEqual(ledger.entries(), ())
+        self.path.with_name(self.path.name + ".anchor.json").unlink()
+
+        with self.assertRaisesRegex(InvariantViolation, "JOURNAL_INTEGRITY_FAILURE"):
+            DurableLedger(self.path)
+
+    def test_legacy_sidecar_cannot_restore_checkpoint_state(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
+
+        anchor_path = self.path.with_name(self.path.name + ".anchor.json")
+        current = json.loads(anchor_path.read_text(encoding="utf-8"))
+        legacy_payload = {
+            key: current[key]
+            for key in (
+                "head_sequence",
+                "ledger_entry_count",
+                "head_record_sha256",
+                "head_ledger_sha256",
+            )
+        }
+        legacy_payload["anchor_sha256"] = canonical_sha256(legacy_payload)
+        anchor_path.write_text(canonical_json(legacy_payload), encoding="utf-8")
+
+        with DurableLedger(self.path) as reopened:
+            with self.assertRaisesRegex(
+                InvariantViolation, "BOOK_CHECKPOINT_WITNESS_REQUIRED"
+            ):
+                reopened.authoritative_book(base_currency="USD")
+
+    def test_checkpoint_row_rewrite_with_recomputed_digest_is_detected(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            ledger.checkpoint("checkpoint-1", book, captured_at_ns=200)
+
+        connection = sqlite3.connect(self.path)
+        connection.execute("DROP TRIGGER book_checkpoints_no_update")
+        record_json = str(
+            connection.execute(
+                "SELECT record_json FROM book_checkpoints WHERE checkpoint_id = ?",
+                ("checkpoint-1",),
+            ).fetchone()[0]
+        )
+        record = json.loads(record_json)
+        record["snapshot"]["cash"]["minor_units"] = 9900
+        rewritten_json = canonical_json(record)
+        connection.execute(
+            "UPDATE book_checkpoints SET record_json = ?, record_sha256 = ? "
+            "WHERE checkpoint_id = ?",
+            (rewritten_json, canonical_sha256(record), "checkpoint-1"),
+        )
+        connection.commit()
+        connection.close()
+
+        with self.assertRaisesRegex(
+            InvariantViolation, "BOOK_CHECKPOINT_WITNESS_FAILURE"
+        ):
+            DurableLedger(self.path)
+
+    def test_checkpoint_capture_cannot_precede_journal_entries(self) -> None:
+        from marketos.authoritative_books import DurableLedger
+
+        with DurableLedger(self.path) as ledger:
+            book = ledger.authoritative_book(base_currency="USD")
+            book.fund("fund-1", Money.from_decimal("USD", "100.00"), occurred_at_ns=100)
+            with self.assertRaisesRegex(
+                InvariantViolation, "INVALID_BOOK_CHECKPOINT_TIME"
+            ):
+                ledger.checkpoint("checkpoint-1", book, captured_at_ns=99)
+
+
 class C13RiskGateTests(unittest.TestCase):
     def setUp(self) -> None:
         try:
@@ -721,6 +823,30 @@ class C13VerifierTests(unittest.TestCase):
             [
                 sys.executable,
                 str(root / "tools" / "verify_c13_contract.py"),
+                "--root",
+                str(root),
+                "--json",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"], payload)
+        self.assertTrue(all(payload["checks"].values()), payload)
+        self.assertEqual(payload["live_trading_state"], "HARD_LOCKED")
+        self.assertEqual(payload["profitability_state"], "UNPROVEN")
+        self.assertFalse(payload["promotion_allowed"])
+        self.assertFalse(payload["phase_complete"])
+
+    def test_c13_2_validator_reports_non_promotable_restart_slice(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(root / "tools" / "verify_c13_checkpoint_reconstruction.py"),
                 "--root",
                 str(root),
                 "--json",
