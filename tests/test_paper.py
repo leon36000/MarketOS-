@@ -1,21 +1,29 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from pathlib import Path
+import tempfile
 import unittest
 
+from marketos.authoritative_books import DurableLedger
 from marketos.errors import DuplicateConflict
 from marketos.money import Money, Price, Quantity
 from marketos.orders import ExecutionMode, OrderIntent, OrderSide, OrderState, OrderType, TimeInForce
 from marketos.paper import MarketSnapshot, PaperBroker
-from marketos.portfolio import PortfolioBook
+from marketos.execution_safety import C13PreTradeEnvelope
 from marketos.risk import RiskKernel, RiskLimits
 from marketos.time import ClockQuality
 
 
 class PaperBrokerTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.book = PortfolioBook(base_currency="USD")
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.ledger = DurableLedger(Path(self.temp_dir.name) / "paper.sqlite")
+        self.addCleanup(self.ledger.close)
+        self.book = self.ledger.authoritative_book(base_currency="USD")
         self.book.fund("fund", Money.from_decimal("USD", "1000"), occurred_at_ns=1)
+        self.ledger.checkpoint("initial", self.book, captured_at_ns=2)
         limits = RiskLimits(
             currency="USD",
             allowed_instruments=frozenset({"AAPL"}),
@@ -34,6 +42,11 @@ class PaperBrokerTests(unittest.TestCase):
         )
         self.clock = ClockQuality("chrony", "NTP", 900, 10, 0, "SYNCED")
         self.broker.update_market(self.snapshot("99", "100", bid_size="100", ask_size="100", available_at_ns=950))
+        self.envelope = C13PreTradeEnvelope(
+            broker=self.broker,
+            book=self.book,
+            ledger=self.ledger,
+        )
 
     def snapshot(self, bid: str, ask: str, *, bid_size: str, ask_size: str, available_at_ns: int) -> MarketSnapshot:
         return MarketSnapshot(
@@ -75,7 +88,7 @@ class PaperBrokerTests(unittest.TestCase):
         )
 
     def submit(self, intent: OrderIntent, now_ns: int = 1_000):
-        return self.broker.submit(intent, now_ns=now_ns, clock_quality=self.clock, books_reconciled=True)
+        return self.envelope.submit(intent, now_ns=now_ns, clock_quality=self.clock)
 
     def test_buy_and_sell_update_exact_books_and_pnl(self) -> None:
         buy = self.submit(self.intent("buy", OrderSide.BUY, "5"))

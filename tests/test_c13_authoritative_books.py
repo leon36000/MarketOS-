@@ -550,7 +550,9 @@ class C13RiskGateTests(unittest.TestCase):
             RiskContext(
                 now_ns=1_000,
                 data_available_at_ns=950,
-                books_reconciled=True,
+                portfolio_snapshot_sha256="b" * 64,
+                ledger_head_sha256="c" * 64,
+                market_view_sha256="d" * 64,
                 clock_quality=ClockQuality("chrony", "NTP", 900, 20, 5, "SYNCED"),
                 cash=Money.from_decimal("USD", cash),
                 current_position=Quantity.parse("0"),

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import string
 
 from .canonical import canonical_sha256
 from .errors import InvariantViolation
@@ -14,6 +15,15 @@ from .time import ClockQuality
 class RiskAction(str, Enum):
     ALLOW = "ALLOW"
     NO_TRADE = "NO_TRADE"
+
+
+def _require_sha256(value: str, code: str) -> None:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in string.hexdigits for character in value)
+    ):
+        raise InvariantViolation(code)
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,32 +75,53 @@ class RiskLimits:
 class RiskContext:
     now_ns: int
     data_available_at_ns: int
-    books_reconciled: bool
+    portfolio_snapshot_sha256: str
+    ledger_head_sha256: str
+    market_view_sha256: str
     clock_quality: ClockQuality
     cash: Money
     current_position: Quantity
     current_gross_notional: Money
     mark_price: Price
     estimated_fee: Money
+    market_evidence_available_at_ns: tuple[tuple[str, int], ...] = ()
 
     def __post_init__(self) -> None:
         for value in (self.now_ns, self.data_available_at_ns):
             if isinstance(value, bool) or not isinstance(value, int) or value < 0:
                 raise InvariantViolation("INVALID_RISK_CONTEXT_TIME")
+        _require_sha256(self.portfolio_snapshot_sha256, "INVALID_PORTFOLIO_SNAPSHOT_SHA256")
+        _require_sha256(self.ledger_head_sha256, "INVALID_LEDGER_HEAD_SHA256")
+        _require_sha256(self.market_view_sha256, "INVALID_MARKET_VIEW_SHA256")
         if self.estimated_fee.minor_units < 0:
             raise InvariantViolation("NEGATIVE_FEE")
+        evidence = tuple(self.market_evidence_available_at_ns)
+        if evidence != tuple(sorted(evidence, key=lambda item: item[0])):
+            raise InvariantViolation("NONCANONICAL_MARKET_EVIDENCE")
+        for instrument_id, available_at_ns in evidence:
+            if not isinstance(instrument_id, str) or not instrument_id.strip():
+                raise InvariantViolation("INVALID_MARKET_EVIDENCE_ID")
+            if (
+                isinstance(available_at_ns, bool)
+                or not isinstance(available_at_ns, int)
+                or available_at_ns < 0
+            ):
+                raise InvariantViolation("INVALID_MARKET_EVIDENCE_TIME")
 
     def canonical_dict(self) -> dict[str, object]:
         return {
             "now_ns": self.now_ns,
             "data_available_at_ns": self.data_available_at_ns,
-            "books_reconciled": self.books_reconciled,
+            "portfolio_snapshot_sha256": self.portfolio_snapshot_sha256,
+            "ledger_head_sha256": self.ledger_head_sha256,
+            "market_view_sha256": self.market_view_sha256,
             "clock_quality": self.clock_quality,
             "cash": self.cash,
             "current_position": self.current_position,
             "current_gross_notional": self.current_gross_notional,
             "mark_price": self.mark_price,
             "estimated_fee": self.estimated_fee,
+            "market_evidence_available_at_ns": self.market_evidence_available_at_ns,
         }
 
 
@@ -143,12 +174,14 @@ class RiskKernel:
             reasons.append("INTENT_NOT_YET_VALID")
         if context.now_ns > intent.expires_at_ns:
             reasons.append("INTENT_EXPIRED")
-        if context.data_available_at_ns > context.now_ns:
-            reasons.append("FUTURE_DATA")
-        elif context.now_ns - context.data_available_at_ns > limits.max_data_age_ns:
-            reasons.append("STALE_DATA")
-        if not context.books_reconciled:
-            reasons.append("BOOKS_UNRECONCILED")
+        evidence = context.market_evidence_available_at_ns or (
+            (intent.instrument_id, context.data_available_at_ns),
+        )
+        for _, available_at_ns in evidence:
+            if available_at_ns > context.now_ns:
+                reasons.append("FUTURE_DATA")
+            elif context.now_ns - available_at_ns > limits.max_data_age_ns:
+                reasons.append("STALE_DATA")
         if not context.clock_quality.is_acceptable(
             now_wall_ns=context.now_ns,
             max_age_ns=limits.max_clock_sync_age_ns,
