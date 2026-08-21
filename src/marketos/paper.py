@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
+import threading
 from typing import Any
 
 from .canonical import canonical_sha256
 from .errors import DuplicateConflict, InvariantViolation
 from .money import Money, Price, Quantity, RoundingPolicy
 from .orders import ExecutionMode, OrderIntent, OrderSide, OrderState, OrderType
-from .portfolio import PortfolioBook
+from .portfolio import PortfolioBook, PortfolioSnapshot
 from .risk import RiskAction, RiskContext, RiskDecision, RiskKernel
 from .time import ClockQuality
 
@@ -59,6 +60,49 @@ class MarketSnapshot:
             "source_event_id": self.source_event_id,
         }
 
+    def sha256(self) -> str:
+        return canonical_sha256(self.canonical_dict())
+
+
+@dataclass(frozen=True, slots=True)
+class MarketView:
+    """Immutable quote evidence used by one risk preparation."""
+
+    execution: MarketSnapshot
+    marks: tuple[MarketSnapshot, ...]
+
+    def __post_init__(self) -> None:
+        instruments = tuple(snapshot.instrument_id for snapshot in self.marks)
+        if instruments != tuple(sorted(set(instruments))):
+            raise InvariantViolation("MARKET_VIEW_MARKS_NOT_CANONICAL")
+        if any(snapshot.bid.currency != self.execution.bid.currency for snapshot in self.marks):
+            raise InvariantViolation("MARKET_VIEW_CURRENCY_MISMATCH")
+
+    def canonical_dict(self) -> dict[str, object]:
+        return {
+            "execution": self.execution,
+            "marks": self.marks,
+        }
+
+    def sha256(self) -> str:
+        return canonical_sha256(self.canonical_dict())
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedExecution:
+    intent: OrderIntent
+    now_ns: int
+    clock_quality: ClockQuality
+    portfolio_snapshot: PortfolioSnapshot
+    market_view: MarketView
+    execution_price: Price
+    estimated_fee: Money
+    decision: RiskDecision
+    intent_sha256: str
+    portfolio_snapshot_sha256: str
+    ledger_head_sha256: str
+    market_view_sha256: str
+
 
 @dataclass(frozen=True, slots=True)
 class Fill:
@@ -105,6 +149,10 @@ class ExecutionReport:
     remaining_quantity: Quantity
     reasons: tuple[str, ...]
     inserted: bool
+    c13_gate_sha256: str
+    portfolio_snapshot_sha256: str
+    ledger_head_sha256: str
+    market_view_sha256: str
     report_sha256: str
     live_trading_state: str = "HARD_LOCKED"
 
@@ -117,6 +165,10 @@ class ExecutionReport:
             "remaining_quantity": self.remaining_quantity,
             "reasons": self.reasons,
             "inserted": self.inserted,
+            "c13_gate_sha256": self.c13_gate_sha256,
+            "portfolio_snapshot_sha256": self.portfolio_snapshot_sha256,
+            "ledger_head_sha256": self.ledger_head_sha256,
+            "market_view_sha256": self.market_view_sha256,
             "live_trading_state": self.live_trading_state,
         }
         if include_hash:
@@ -139,18 +191,21 @@ class PaperBroker:
         self.slippage_bps = _decimal_bps(slippage_bps, "SLIPPAGE_BPS")
         self._markets: dict[str, MarketSnapshot] = {}
         self._reports: dict[str, tuple[str, ExecutionReport]] = {}
+        self._lock = threading.RLock()
 
     def update_market(self, snapshot: MarketSnapshot) -> None:
-        existing = self._markets.get(snapshot.instrument_id)
-        if existing is not None and snapshot.available_at_ns < existing.available_at_ns:
-            raise InvariantViolation("STALE_MARKET_SNAPSHOT")
-        self._markets[snapshot.instrument_id] = snapshot
+        with self._lock:
+            existing = self._markets.get(snapshot.instrument_id)
+            if existing is not None and snapshot.available_at_ns < existing.available_at_ns:
+                raise InvariantViolation("STALE_MARKET_SNAPSHOT")
+            self._markets[snapshot.instrument_id] = snapshot
 
     def market(self, instrument_id: str) -> MarketSnapshot:
-        try:
-            return self._markets[instrument_id]
-        except KeyError as exc:
-            raise InvariantViolation(f"MISSING_MARKET_SNAPSHOT:{instrument_id}") from exc
+        with self._lock:
+            try:
+                return self._markets[instrument_id]
+            except KeyError as exc:
+                raise InvariantViolation(f"MISSING_MARKET_SNAPSHOT:{instrument_id}") from exc
 
     def _execution_price(self, intent: OrderIntent, snapshot: MarketSnapshot) -> Price:
         base = snapshot.ask if intent.side is OrderSide.BUY else snapshot.bid
@@ -172,12 +227,17 @@ class PaperBroker:
             rounding=RoundingPolicy.HALF_UP,
         )
 
-    def _gross_notional(self) -> Money:
+    def _gross_notional(
+        self,
+        portfolio_snapshot: PortfolioSnapshot,
+        market_view: MarketView,
+    ) -> Money:
         total = Money.zero(self.portfolio.base_currency)
-        for position in self.portfolio.snapshot().positions:
+        marks = {snapshot.instrument_id: snapshot for snapshot in market_view.marks}
+        for position in portfolio_snapshot.positions:
             if position.quantity.value == 0:
                 continue
-            snapshot = self._markets.get(position.instrument_id)
+            snapshot = marks.get(position.instrument_id)
             if snapshot is None:
                 raise InvariantViolation(f"MISSING_MARK_FOR_POSITION:{position.instrument_id}")
             mid = (snapshot.bid.value + snapshot.ask.value) / Decimal("2")
@@ -199,6 +259,10 @@ class PaperBroker:
         remaining: Quantity,
         reasons: tuple[str, ...],
         inserted: bool,
+        c13_gate_sha256: str,
+        portfolio_snapshot_sha256: str,
+        ledger_head_sha256: str,
+        market_view_sha256: str,
     ) -> ExecutionReport:
         payload: dict[str, Any] = {
             "intent_id": intent.intent_id,
@@ -207,7 +271,11 @@ class PaperBroker:
             "fills": fills,
             "remaining_quantity": remaining,
             "reasons": reasons,
-            "inserted": True,
+            "inserted": inserted,
+            "c13_gate_sha256": c13_gate_sha256,
+            "portfolio_snapshot_sha256": portfolio_snapshot_sha256,
+            "ledger_head_sha256": ledger_head_sha256,
+            "market_view_sha256": market_view_sha256,
             "live_trading_state": "HARD_LOCKED",
         }
         digest = canonical_sha256(payload)
@@ -219,147 +287,84 @@ class PaperBroker:
             remaining_quantity=remaining,
             reasons=reasons,
             inserted=inserted,
+            c13_gate_sha256=c13_gate_sha256,
+            portfolio_snapshot_sha256=portfolio_snapshot_sha256,
+            ledger_head_sha256=ledger_head_sha256,
+            market_view_sha256=market_view_sha256,
             report_sha256=digest,
         )
 
-    def submit(
+    def _market_view(
+        self,
+        intent: OrderIntent,
+        portfolio_snapshot: PortfolioSnapshot,
+    ) -> MarketView:
+        execution = self.market(intent.instrument_id)
+        marks: list[MarketSnapshot] = []
+        for position in portfolio_snapshot.positions:
+            if position.quantity.value == 0:
+                continue
+            marks.append(self.market(position.instrument_id))
+        marks.sort(key=lambda snapshot: snapshot.instrument_id)
+        return MarketView(execution=execution, marks=tuple(marks))
+
+    def _prepare(
         self,
         intent: OrderIntent,
         *,
         now_ns: int,
         clock_quality: ClockQuality,
-        books_reconciled: bool,
-    ) -> ExecutionReport:
-        intent_hash = intent.sha256()
-        existing = self._reports.get(intent.idempotency_key)
-        if existing is not None:
-            existing_hash, report = existing
-            if existing_hash != intent_hash:
-                raise DuplicateConflict(f"IDEMPOTENCY_KEY_CONFLICT:{intent.idempotency_key}")
-            return replace(report, inserted=False)
-
-        snapshot = self.market(intent.instrument_id)
-        execution_price = self._execution_price(intent, snapshot)
-        estimated_fee = self._fee(execution_price, intent.quantity)
-        decision = self.risk_kernel.evaluate(
-            intent,
-            RiskContext(
+    ) -> PreparedExecution:
+        """Capture one immutable portfolio/market evidence set for the envelope."""
+        with self._lock:
+            portfolio_snapshot = self.portfolio.snapshot()
+            market_view = self._market_view(intent, portfolio_snapshot)
+            execution_price = self._execution_price(intent, market_view.execution)
+            estimated_fee = self._fee(execution_price, intent.quantity)
+            portfolio_snapshot_sha256 = portfolio_snapshot.sha256()
+            ledger_head_sha256 = portfolio_snapshot.ledger_sha256
+            market_view_sha256 = market_view.sha256()
+            decision = self.risk_kernel.evaluate(
+                intent,
+                RiskContext(
+                    now_ns=now_ns,
+                    data_available_at_ns=market_view.execution.available_at_ns,
+                    portfolio_snapshot_sha256=portfolio_snapshot_sha256,
+                    ledger_head_sha256=ledger_head_sha256,
+                    market_view_sha256=market_view_sha256,
+                    clock_quality=clock_quality,
+                    cash=portfolio_snapshot.cash,
+                    current_position=next(
+                        (
+                            position.quantity
+                            for position in portfolio_snapshot.positions
+                            if position.instrument_id == intent.instrument_id
+                        ),
+                        Quantity.parse("0"),
+                    ),
+                    current_gross_notional=self._gross_notional(
+                        portfolio_snapshot,
+                        market_view,
+                    ),
+                    mark_price=execution_price,
+                    estimated_fee=estimated_fee,
+                ),
+            )
+            return PreparedExecution(
+                intent=intent,
                 now_ns=now_ns,
-                data_available_at_ns=snapshot.available_at_ns,
-                books_reconciled=books_reconciled,
                 clock_quality=clock_quality,
-                cash=self.portfolio.cash(),
-                current_position=self.portfolio.position(intent.instrument_id).quantity,
-                current_gross_notional=self._gross_notional(),
-                mark_price=execution_price,
+                portfolio_snapshot=portfolio_snapshot,
+                market_view=market_view,
+                execution_price=execution_price,
                 estimated_fee=estimated_fee,
-            ),
-        )
-        if decision.action is RiskAction.NO_TRADE:
-            report = self._report(
-                intent=intent,
-                state=OrderState.REJECTED,
                 decision=decision,
-                fills=(),
-                remaining=intent.quantity,
-                reasons=decision.reasons,
-                inserted=True,
+                intent_sha256=intent.sha256(),
+                portfolio_snapshot_sha256=portfolio_snapshot_sha256,
+                ledger_head_sha256=ledger_head_sha256,
+                market_view_sha256=market_view_sha256,
             )
-            self._reports[intent.idempotency_key] = (intent_hash, report)
-            return report
 
-        if intent.mode is not ExecutionMode.PAPER:
-            report = self._report(
-                intent=intent,
-                state=OrderState.CANCELLED,
-                decision=decision,
-                fills=(),
-                remaining=intent.quantity,
-                reasons=("SHADOW_MODE_NO_EXECUTION",),
-                inserted=True,
-            )
-            self._reports[intent.idempotency_key] = (intent_hash, report)
-            return report
-
-        if intent.order_type is OrderType.LIMIT:
-            assert intent.limit_price is not None
-            marketable = (
-                execution_price.value <= intent.limit_price.value
-                if intent.side is OrderSide.BUY
-                else execution_price.value >= intent.limit_price.value
-            )
-            if not marketable:
-                report = self._report(
-                    intent=intent,
-                    state=OrderState.CANCELLED,
-                    decision=decision,
-                    fills=(),
-                    remaining=intent.quantity,
-                    reasons=("LIMIT_NOT_MARKETABLE",),
-                    inserted=True,
-                )
-                self._reports[intent.idempotency_key] = (intent_hash, report)
-                return report
-
-        visible = snapshot.ask_size if intent.side is OrderSide.BUY else snapshot.bid_size
-        fill_value = min(intent.quantity.value, visible.value)
-        if fill_value <= 0:
-            report = self._report(
-                intent=intent,
-                state=OrderState.CANCELLED,
-                decision=decision,
-                fills=(),
-                remaining=intent.quantity,
-                reasons=("NO_VISIBLE_LIQUIDITY",),
-                inserted=True,
-            )
-            self._reports[intent.idempotency_key] = (intent_hash, report)
-            return report
-
-        fill_quantity = Quantity.positive(fill_value)
-        fee = self._fee(execution_price, fill_quantity)
-        fill = Fill(
-            fill_id=f"fill:{intent.intent_id}:0",
-            intent_id=intent.intent_id,
-            instrument_id=intent.instrument_id,
-            side=intent.side,
-            quantity=fill_quantity,
-            price=execution_price,
-            fee=fee,
-            occurred_at_ns=now_ns,
-        )
-        if intent.side is OrderSide.BUY:
-            self.portfolio.buy(
-                fill.fill_id,
-                intent.instrument_id,
-                fill.quantity,
-                fill.price,
-                fill.fee,
-                occurred_at_ns=now_ns,
-            )
-            updated_snapshot = replace(snapshot, ask_size=Quantity.parse(snapshot.ask_size.value - fill_value))
-        else:
-            self.portfolio.sell(
-                fill.fill_id,
-                intent.instrument_id,
-                fill.quantity,
-                fill.price,
-                fill.fee,
-                occurred_at_ns=now_ns,
-            )
-            updated_snapshot = replace(snapshot, bid_size=Quantity.parse(snapshot.bid_size.value - fill_value))
-        self._markets[intent.instrument_id] = updated_snapshot
-
-        remaining = Quantity.parse(intent.quantity.value - fill_value)
-        state = OrderState.FILLED if remaining.value == 0 else OrderState.PARTIALLY_FILLED
-        report = self._report(
-            intent=intent,
-            state=state,
-            decision=decision,
-            fills=(fill,),
-            remaining=remaining,
-            reasons=(),
-            inserted=True,
-        )
-        self._reports[intent.idempotency_key] = (intent_hash, report)
-        return report
+    def submit(self, *args: Any, **kwargs: Any) -> ExecutionReport:
+        del args, kwargs
+        raise InvariantViolation("PAPER_BROKER_DIRECT_SUBMIT_FORBIDDEN")

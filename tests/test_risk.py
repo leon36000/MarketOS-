@@ -47,7 +47,9 @@ class RiskTests(unittest.TestCase):
         values = dict(
             now_ns=1_000,
             data_available_at_ns=950,
-            books_reconciled=True,
+            portfolio_snapshot_sha256="b" * 64,
+            ledger_head_sha256="c" * 64,
+            market_view_sha256="d" * 64,
             clock_quality=ClockQuality("chrony", "NTP", 900, 20, 5, "SYNCED"),
             cash=Money.from_decimal("USD", "5000"),
             current_position=Quantity.parse("0"),
@@ -84,8 +86,13 @@ class RiskTests(unittest.TestCase):
         bad = ClockQuality("chrony", "NTP", 900, 100, 5, "SYNCED")
         self.assert_denied("CLOCK_QUALITY_UNACCEPTABLE", context=self.context(clock_quality=bad))
 
-    def test_unreconciled_books_and_unsupported_instrument_are_denied(self) -> None:
-        self.assert_denied("BOOKS_UNRECONCILED", context=self.context(books_reconciled=False))
+    def test_source_hashes_are_bound_and_unsupported_instrument_is_denied(self) -> None:
+        first = self.kernel.evaluate(self.intent(), self.context())
+        altered = self.kernel.evaluate(
+            self.intent(),
+            self.context(market_view_sha256="f" * 64),
+        )
+        self.assertNotEqual(first.context_sha256, altered.context_sha256)
         intent = self.intent()
         other = OrderIntent(**{**intent.as_kwargs(), "instrument_id": "MSFT", "intent_id": "intent-2", "client_order_id": "client-2", "idempotency_key": "idem-2"})
         self.assert_denied("INSTRUMENT_NOT_ALLOWED", intent=other)
