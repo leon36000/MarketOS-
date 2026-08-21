@@ -23,6 +23,8 @@ from .risk import RiskAction, RiskDecision
 
 
 _RECONCILIATION_PROVENANCE = object()
+_ANCHOR_VERSION = "2.0.0"
+_LEGACY_ANCHOR_VERSION = "1.0.0"
 
 
 def _decode_canonical(value: Any) -> Any:
@@ -287,8 +289,10 @@ class DurableLedger:
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
+        path_existed_before_open = self.path.exists()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.anchor_path = self.path.with_name(self.path.name + ".anchor.json")
+        anchor_existed_before_open = self.anchor_path.exists()
         self._closed = False
         self._authoritative_book: AuthoritativePortfolioBook | None = None
         self._book_operation_owner: AuthoritativePortfolioBook | None = None
@@ -297,6 +301,7 @@ class DurableLedger:
         self._execution_transaction_active = False
         self._execution_transaction_owner: object | None = None
         self._bound_execution_owner: object | None = None
+        self._anchor_version: str | None = None
         self._connection = sqlite3.connect(self.path, isolation_level=None)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA journal_mode = WAL")
@@ -359,13 +364,19 @@ class DurableLedger:
         )
         self._ledger = Ledger()
         self._checkpoints: list[BookCheckpoint] = []
-        if not self.anchor_path.exists():
-            entry_count = int(
+        if anchor_existed_before_open and not path_existed_before_open:
+            self._connection.close()
+            self._closed = True
+            raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+        if not anchor_existed_before_open:
+            persisted_rows = int(
                 self._connection.execute(
-                    "SELECT COUNT(*) FROM ledger_entries"
+                    "SELECT (SELECT COUNT(*) FROM ledger_entries) + "
+                    "(SELECT COUNT(*) FROM ledger_heads) + "
+                    "(SELECT COUNT(*) FROM book_checkpoints)"
                 ).fetchone()[0]
             )
-            if entry_count:
+            if path_existed_before_open or persisted_rows:
                 self._connection.close()
                 self._closed = True
                 raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
@@ -376,6 +387,10 @@ class DurableLedger:
     def _ensure_open(self) -> None:
         if self._closed:
             raise InvariantViolation("DURABLE_LEDGER_CLOSED")
+
+    def _require_writable_witness(self) -> None:
+        if self._anchor_version != _ANCHOR_VERSION:
+            raise InvariantViolation("BOOK_CHECKPOINT_WITNESS_REQUIRED")
 
     @contextmanager
     def _book_operation(self, book: AuthoritativePortfolioBook):
@@ -402,19 +417,58 @@ class DurableLedger:
                 self._book_operation_owner = None
 
     def authoritative_book(self, *, base_currency: str) -> AuthoritativePortfolioBook:
-        """Create the only checkpoint-capable book for a fresh durable ledger."""
-        self._ensure_open()
-        if self._authoritative_book is not None:
-            if self._authoritative_book.base_currency != base_currency.upper():
-                raise InvariantViolation("BOOK_CURRENCY_MISMATCH")
-            return self._authoritative_book
-        if self._ledger.entries():
-            raise InvariantViolation("BOOK_RECONSTRUCTION_REQUIRED")
-        self._authoritative_book = AuthoritativePortfolioBook(
-            base_currency=base_currency,
-            ledger=self,
-        )
-        return self._authoritative_book
+        """Return the only book, restoring only an authenticated current checkpoint."""
+        with self._lock:
+            self._ensure_open()
+            if self._authoritative_book is not None:
+                if self._authoritative_book.base_currency != base_currency.upper():
+                    raise InvariantViolation("BOOK_CURRENCY_MISMATCH")
+                return self._authoritative_book
+            if not self._ledger.entries():
+                self._authoritative_book = AuthoritativePortfolioBook(
+                    base_currency=base_currency,
+                    ledger=self,
+                )
+                return self._authoritative_book
+
+            transaction_started = False
+            before_ledger = self._ledger
+            before_checkpoints = tuple(self._checkpoints)
+            before_authoritative_book = self._authoritative_book
+            try:
+                self._connection.execute("BEGIN IMMEDIATE")
+                transaction_started = True
+                current = self._read_ledger()
+                self._ledger = current
+                self._refresh_checkpoints()
+                if self._anchor_version != _ANCHOR_VERSION:
+                    raise InvariantViolation("BOOK_CHECKPOINT_WITNESS_REQUIRED")
+                if not self._checkpoints:
+                    raise InvariantViolation("BOOK_RECONSTRUCTION_REQUIRED")
+                checkpoint = self._checkpoints[-1]
+                if checkpoint.snapshot.ledger_sha256 != current.sha256():
+                    raise InvariantViolation("BOOK_CHECKPOINT_STALE")
+                restored = AuthoritativePortfolioBook(
+                    base_currency=base_currency,
+                    ledger=self,
+                )
+                self._validate_snapshot(checkpoint.snapshot)
+                restored._restore_snapshot(checkpoint.snapshot)
+                if restored.snapshot() != checkpoint.snapshot:
+                    raise InvariantViolation("BOOK_CHECKPOINT_RESTORE_MISMATCH")
+                if self._read_ledger().sha256() != current.sha256():
+                    raise InvariantViolation("BOOK_CHECKPOINT_STALE")
+                self._authoritative_book = restored
+                self._connection.execute("COMMIT")
+                transaction_started = False
+                return restored
+            except BaseException:
+                if transaction_started:
+                    self._connection.execute("ROLLBACK")
+                self._ledger = before_ledger
+                self._checkpoints = list(before_checkpoints)
+                self._authoritative_book = before_authoritative_book
+                raise
 
     def _bind_execution_owner(self, owner: object) -> None:
         with self._lock:
@@ -424,14 +478,25 @@ class DurableLedger:
             self._bound_execution_owner = owner
 
     def _anchor_payload(self, ledger: Ledger) -> dict[str, object]:
-        row = self._connection.execute(
+        head_row = self._connection.execute(
             "SELECT * FROM ledger_heads ORDER BY head_sequence DESC LIMIT 1"
         ).fetchone()
+        checkpoint_row = self._connection.execute(
+            "SELECT checkpoint_sequence, record_sha256 FROM book_checkpoints "
+            "ORDER BY checkpoint_sequence DESC LIMIT 1"
+        ).fetchone()
         return {
-            "head_sequence": 0 if row is None else int(row["head_sequence"]),
+            "anchor_version": _ANCHOR_VERSION,
+            "head_sequence": 0 if head_row is None else int(head_row["head_sequence"]),
             "ledger_entry_count": len(ledger.entries()),
-            "head_record_sha256": "" if row is None else str(row["head_record_sha256"]),
+            "head_record_sha256": "" if head_row is None else str(head_row["head_record_sha256"]),
             "head_ledger_sha256": ledger.sha256(),
+            "checkpoint_sequence": (
+                0 if checkpoint_row is None else int(checkpoint_row["checkpoint_sequence"])
+            ),
+            "checkpoint_record_sha256": (
+                "" if checkpoint_row is None else str(checkpoint_row["record_sha256"])
+            ),
         }
 
     def _write_anchor(self, ledger: Ledger) -> None:
@@ -486,16 +551,51 @@ class DurableLedger:
                 json.loads(self.anchor_path.read_text(encoding="utf-8")),
                 "JOURNAL_INTEGRITY_FAILURE",
             )
-            payload = {
-                "head_sequence": int(data["head_sequence"]),
-                "ledger_entry_count": int(data["ledger_entry_count"]),
-                "head_record_sha256": str(data["head_record_sha256"]),
-                "head_ledger_sha256": str(data["head_ledger_sha256"]),
-            }
+            version = str(data.get("anchor_version", _LEGACY_ANCHOR_VERSION))
+            if version == _ANCHOR_VERSION:
+                payload = {
+                    "anchor_version": version,
+                    "head_sequence": int(data["head_sequence"]),
+                    "ledger_entry_count": int(data["ledger_entry_count"]),
+                    "head_record_sha256": str(data["head_record_sha256"]),
+                    "head_ledger_sha256": str(data["head_ledger_sha256"]),
+                    "checkpoint_sequence": int(data["checkpoint_sequence"]),
+                    "checkpoint_record_sha256": str(data["checkpoint_record_sha256"]),
+                }
+            elif version == _LEGACY_ANCHOR_VERSION:
+                payload = {
+                    "head_sequence": int(data["head_sequence"]),
+                    "ledger_entry_count": int(data["ledger_entry_count"]),
+                    "head_record_sha256": str(data["head_record_sha256"]),
+                    "head_ledger_sha256": str(data["head_ledger_sha256"]),
+                }
+            else:
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
             if str(data["anchor_sha256"]) != canonical_sha256(payload):
                 raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
-            if payload != self._anchor_payload(ledger):
+            current_payload = self._anchor_payload(ledger)
+            if version == _ANCHOR_VERSION:
+                if payload != current_payload:
+                    head_keys = (
+                        "head_sequence",
+                        "ledger_entry_count",
+                        "head_record_sha256",
+                        "head_ledger_sha256",
+                    )
+                    if any(payload[key] != current_payload[key] for key in head_keys):
+                        raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+                    raise InvariantViolation("BOOK_CHECKPOINT_WITNESS_FAILURE")
+            elif payload != {
+                key: current_payload[key]
+                for key in (
+                    "head_sequence",
+                    "ledger_entry_count",
+                    "head_record_sha256",
+                    "head_ledger_sha256",
+                )
+            }:
                 raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            self._anchor_version = version
         except InvariantViolation:
             raise
         except Exception as exc:
@@ -525,8 +625,83 @@ class DurableLedger:
         self._verify_anchor(candidate)
         return candidate
 
-    @staticmethod
-    def _checkpoint_from_row(row: sqlite3.Row) -> BookCheckpoint:
+    def _validate_snapshot(
+        self,
+        snapshot: PortfolioSnapshot,
+        *,
+        captured_at_ns: int | None = None,
+    ) -> None:
+        if not isinstance(snapshot, PortfolioSnapshot):
+            raise InvariantViolation("INVALID_BOOK_SNAPSHOT")
+        base_currency = snapshot.base_currency
+        if (
+            len(base_currency) != 3
+            or not base_currency.isalpha()
+            or not base_currency.isupper()
+        ):
+            raise InvariantViolation("INVALID_BOOK_CURRENCY")
+        if snapshot.cash.currency != base_currency or snapshot.realized_pnl.currency != base_currency:
+            raise InvariantViolation("INVALID_BOOK_SNAPSHOT_CURRENCY")
+        if (
+            len(snapshot.ledger_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in snapshot.ledger_sha256)
+        ):
+            raise InvariantViolation("INVALID_BOOK_SNAPSHOT_DIGEST")
+        snapshot_ledger = self._ledger_at_snapshot(snapshot.ledger_sha256)
+        if snapshot.cash != snapshot_ledger.balance(
+            f"asset:cash:{base_currency}", base_currency
+        ):
+            raise InvariantViolation("INVALID_BOOK_SNAPSHOT_CASH")
+        instrument_ids = [position.instrument_id for position in snapshot.positions]
+        if any(not instrument_id or instrument_id.strip() != instrument_id for instrument_id in instrument_ids):
+            raise InvariantViolation("INVALID_BOOK_POSITION_ID")
+        if instrument_ids != sorted(instrument_ids) or len(instrument_ids) != len(set(instrument_ids)):
+            raise InvariantViolation("INVALID_BOOK_POSITION_ORDER")
+        for position in snapshot.positions:
+            quantity = position.quantity.value
+            average_cost = position.average_cost
+            if position.currency != base_currency:
+                raise InvariantViolation("INVALID_BOOK_POSITION_CURRENCY")
+            if not quantity.is_finite() or quantity < 0:
+                raise InvariantViolation("INVALID_BOOK_POSITION_QUANTITY")
+            if not isinstance(average_cost, Decimal) or not average_cost.is_finite() or average_cost < 0:
+                raise InvariantViolation("INVALID_BOOK_POSITION_COST")
+            if quantity == 0 and average_cost != 0:
+                raise InvariantViolation("INVALID_BOOK_ZERO_POSITION_COST")
+        if captured_at_ns is not None:
+            greatest_occurred_at_ns = max(
+                (entry.occurred_at_ns for entry in snapshot_ledger.entries()),
+                default=0,
+            )
+            if captured_at_ns < greatest_occurred_at_ns:
+                raise InvariantViolation("INVALID_BOOK_CHECKPOINT_TIME")
+
+    def _ledger_at_snapshot(self, ledger_sha256: str) -> Ledger:
+        candidate = Ledger()
+        if candidate.sha256() == ledger_sha256:
+            return candidate
+        for entry in self._ledger.entries():
+            if not candidate.post(entry):
+                raise InvariantViolation("JOURNAL_INTEGRITY_FAILURE")
+            if candidate.sha256() == ledger_sha256:
+                return candidate
+        raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
+
+    def _checkpoint_record_sha256(
+        self,
+        checkpoint: BookCheckpoint,
+        previous_sha256: str,
+    ) -> str:
+        if self._anchor_version != _ANCHOR_VERSION:
+            return checkpoint.sha256()
+        return canonical_sha256(
+            {
+                "checkpoint": checkpoint.canonical_dict(),
+                "previous_sha256": previous_sha256,
+            }
+        )
+
+    def _checkpoint_from_row(self, row: sqlite3.Row) -> BookCheckpoint:
         try:
             record_json = str(row["record_json"])
             data = _mapping(
@@ -540,8 +715,24 @@ class DurableLedger:
             )
         except Exception as exc:
             raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE") from exc
+        expected_record_sha256 = self._checkpoint_record_sha256(
+            checkpoint,
+            str(row["previous_sha256"]),
+        )
+        transitive_record_sha256 = canonical_sha256(
+            {
+                "checkpoint": checkpoint.canonical_dict(),
+                "previous_sha256": str(row["previous_sha256"]),
+            }
+        )
+        valid_record_sha256s = {expected_record_sha256}
+        if self._anchor_version != _ANCHOR_VERSION:
+            valid_record_sha256s.update(
+                {checkpoint.sha256(), transitive_record_sha256}
+            )
         if (
-            checkpoint.sha256() != str(row["record_sha256"])
+            str(row["record_sha256"])
+            not in valid_record_sha256s
             or canonical_json(checkpoint.canonical_dict()) != record_json
             or checkpoint.checkpoint_id != str(row["checkpoint_id"])
         ):
@@ -560,6 +751,10 @@ class DurableLedger:
             if str(row["previous_sha256"]) != previous_sha256:
                 raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
             checkpoint = self._checkpoint_from_row(row)
+            self._validate_snapshot(
+                checkpoint.snapshot,
+                captured_at_ns=checkpoint.captured_at_ns,
+            )
             self._checkpoints.append(checkpoint)
             previous_sha256 = str(row["record_sha256"])
             expected_sequence += 1
@@ -635,6 +830,7 @@ class DurableLedger:
     def post(self, entry: JournalEntry) -> bool:
         with self._lock:
             self._ensure_open()
+            self._require_writable_witness()
             if self._execution_transaction_active:
                 return self._post_in_transaction(entry)
             self._connection.execute("BEGIN IMMEDIATE")
@@ -740,6 +936,7 @@ class DurableLedger:
     def post_many(self, entries: Iterable[JournalEntry]) -> tuple[bool, ...]:
         with self._lock:
             self._ensure_open()
+            self._require_writable_witness()
             pending = tuple(entries)
             if self._execution_transaction_active:
                 return self._post_many_in_transaction(pending)
@@ -823,8 +1020,7 @@ class DurableLedger:
             self._book_tainted = True
             raise InvariantViolation("BOOK_SOURCE_TAINTED")
         snapshot = book.snapshot()
-        if snapshot.ledger_sha256 != current.sha256():
-            raise InvariantViolation("CHECKPOINT_LEDGER_MISMATCH")
+        self._validate_snapshot(snapshot, captured_at_ns=captured_at_ns)
         checkpoint = BookCheckpoint(checkpoint_id, captured_at_ns, snapshot)
         existing_row = self._connection.execute(
             "SELECT * FROM book_checkpoints WHERE checkpoint_id = ?",
@@ -836,12 +1032,12 @@ class DurableLedger:
                 raise DuplicateConflict(f"BOOK_CHECKPOINT_ID_CONFLICT:{checkpoint_id}")
             return False
         record_json = canonical_json(checkpoint.canonical_dict())
-        record_sha256 = checkpoint.sha256()
         previous = self._connection.execute(
             "SELECT record_sha256 FROM book_checkpoints "
             "ORDER BY checkpoint_sequence DESC LIMIT 1"
         ).fetchone()
         previous_sha256 = "" if previous is None else str(previous["record_sha256"])
+        record_sha256 = self._checkpoint_record_sha256(checkpoint, previous_sha256)
         self._connection.execute(
             """
             INSERT INTO book_checkpoints(
@@ -861,6 +1057,7 @@ class DurableLedger:
     ) -> bool:
         with self._lock:
             self._ensure_open()
+            self._require_writable_witness()
             if self._execution_transaction_active:
                 return self._checkpoint_in_transaction(
                     checkpoint_id,
@@ -871,14 +1068,18 @@ class DurableLedger:
             before_ledger = self._ledger
             before_checkpoints = tuple(self._checkpoints)
             before_tainted = self._book_tainted
+            before_anchor: bytes | None = None
             try:
                 current = self._read_ledger()
                 self._ledger = current
+                before_anchor = self.anchor_path.read_bytes()
                 inserted = self._checkpoint_in_transaction(
                     checkpoint_id,
                     book,
                     captured_at_ns=captured_at_ns,
                 )
+                if inserted:
+                    self._write_anchor(self._ledger)
                 self._connection.execute("COMMIT")
             except BaseException:
                 try:
@@ -887,6 +1088,8 @@ class DurableLedger:
                     self._ledger = before_ledger
                     self._checkpoints = list(before_checkpoints)
                     self._book_tainted = before_tainted
+                    if before_anchor is not None:
+                        self._restore_anchor_bytes(before_anchor)
                 raise
             self._refresh_checkpoints()
             return inserted
@@ -901,6 +1104,7 @@ class DurableLedger:
         """Open the single durable transaction used by authorized execution."""
         with self._lock:
             self._ensure_open()
+            self._require_writable_witness()
             if self._execution_transaction_active:
                 raise InvariantViolation("EXECUTION_TRANSACTION_REENTRANT")
             if owner is None or self._bound_execution_owner is not owner:
@@ -992,7 +1196,11 @@ class DurableLedger:
                     raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
                 if str(row["previous_sha256"]) != previous_sha256:
                     raise InvariantViolation("BOOK_CHECKPOINT_INTEGRITY_FAILURE")
-                self._checkpoint_from_row(row)
+                checkpoint = self._checkpoint_from_row(row)
+                self._validate_snapshot(
+                    checkpoint.snapshot,
+                    captured_at_ns=checkpoint.captured_at_ns,
+                )
                 previous_sha256 = str(row["record_sha256"])
                 expected_sequence += 1
             self._ledger = candidate

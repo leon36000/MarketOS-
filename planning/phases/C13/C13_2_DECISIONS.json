@@ -1,0 +1,28 @@
+{
+  "phase": "C13",
+  "slice": "C13-2",
+  "status": "VERIFIED_SLICE",
+  "decision": "Use an authenticated v2 sidecar witness and an exact current-head checkpoint to restore paper/shadow authoritative books after restart; fail closed on missing, legacy, stale, malformed, or rewritten checkpoint state.",
+  "phase_complete": false,
+  "promotion_allowed": false,
+  "live_trading": "HARD_LOCKED",
+  "profitability": "UNPROVEN",
+  "covered": [
+    "current-head checkpoint restoration",
+    "explicit fresh-path versus existing-database bootstrap",
+    "checkpoint sidecar witness binding",
+    "snapshot invariant validation",
+    "rollback-safe witness updates"
+  ],
+  "open": [
+    "full C13 runtime contracts",
+    "broker adapters and OMS/EMS",
+    "kill switch and cancel-all routing",
+    "FX tax lots corporate actions and production accounting",
+    "security chaos disaster recovery and independent qualification",
+    "C14 cockpit",
+    "C15 qualification",
+    "C16 packaging and integration"
+  ],
+  "rollback": "Revert only the isolated C13-2 implementation if its exit gate fails; preserve C13-0 and C13-1 evidence and all authority locks."
+}

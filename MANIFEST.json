@@ -67,6 +67,11 @@
       "bytes": 94
     },
     {
+      "path": ".gitleaksignore",
+      "sha256": "fe45d6561d5bbecd7e3d2d5ffaa1ec7e6ed1f77d9d2d73fa729c7e2a673345bb",
+      "bytes": 65
+    },
+    {
       "path": "AGENTS.md",
       "sha256": "4cf570de062809cd6e665c240789bf16654d742dd610053dc3b62c86831fd5e0",
       "bytes": 537
@@ -357,6 +362,11 @@
       "bytes": 3510
     },
     {
+      "path": "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md",
+      "sha256": "f5312a42ba6d020ecd17990cf94668f5b24b0ef50fe0073b9903e73e8c8eae40",
+      "bytes": 3220
+    },
+    {
       "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
       "sha256": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
       "bytes": 3061
@@ -532,6 +542,11 @@
       "bytes": 9043
     },
     {
+      "path": "docs/superpowers/plans/2026-08-21-c13-2-checkpoint-authenticated-restart-plan.md",
+      "sha256": "68f9ac558b70f90606f5c7b570c42bc892dfb8f16f7c168fcddf7b66fa190185",
+      "bytes": 19464
+    },
+    {
       "path": "docs/superpowers/specs/2026-08-20-c13-1-pre-trade-execution-safety-design.md",
       "sha256": "89fa20139de6ae2a41b78ae692cd7d9de66c3d46c906acc8241de2bbde4d7f63",
       "bytes": 10808
@@ -540,6 +555,11 @@
       "path": "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
       "sha256": "776580d5c94086c3fe337701a78b35648aef35583df9520000c840be73a614b3",
       "bytes": 7651
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
+      "sha256": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
+      "bytes": 8951
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -777,6 +797,26 @@
       "bytes": 2466
     },
     {
+      "path": "planning/phases/C13/C13_2_DECISIONS.json",
+      "sha256": "2af98f54ee5cd50af5d69a673bac66e95d91f5bb6b21edbb9a5bbbd470bcbc26",
+      "bytes": 1153
+    },
+    {
+      "path": "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md",
+      "sha256": "a9fc38243632377e57e9edcf7efa2cd78dc121bb832c0cfa8d761e187fc28eea",
+      "bytes": 2200
+    },
+    {
+      "path": "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json",
+      "sha256": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
+      "bytes": 1774
+    },
+    {
+      "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
+      "sha256": "bec83eeb0f946ef6393ea8b8aeaba3089725bb7f60f1e078a3b977637fef8b00",
+      "bytes": 2161
+    },
+    {
       "path": "planning/phases/C13/C13_DECISIONS.json",
       "sha256": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
       "bytes": 1382
@@ -788,7 +828,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "a5f2fc1d822e72c631b8f33f87411e75c838ea5761086025696a936630bb3d75",
+      "sha256": "87e44cdbe063827285d2730bc2bcced95e32e4473bdb7feb4d3a553be8d613d3",
       "bytes": 2102
     },
     {
@@ -1038,8 +1078,8 @@
     },
     {
       "path": "src/marketos/authoritative_books.py",
-      "sha256": "c9e60946c87073fee3ee4b2cb7075ce9a3c11ce05c77c95553d1228d14134464",
-      "bytes": 50688
+      "sha256": "b4347d3f8eb64488ef5952b88646dd343c66df06f1db5b49b56836035ab5be11",
+      "bytes": 60714
     },
     {
       "path": "src/marketos/bars.py",
@@ -1213,8 +1253,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "742e4b0a21d20d215601e9fd3c886973e6a00d8153e69dfb9490b733a456d619",
-      "bytes": 30640
+      "sha256": "a806291b46cdcd89c2f886d76492c698abb32a38510501161b0a32377a11221c",
+      "bytes": 41177
     },
     {
       "path": "tests/test_c13_execution_safety.py",
@@ -1505,6 +1545,11 @@
       "path": "tools/verify_architecture_reconciliation.py",
       "sha256": "84c18cccd6f35ec40efcfec9d3079de95a0c263a8cbf8056617bb8db9ed2e950",
       "bytes": 16744
+    },
+    {
+      "path": "tools/verify_c13_checkpoint_reconstruction.py",
+      "sha256": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a",
+      "bytes": 11731
     },
     {
       "path": "tools/verify_c13_contract.py",
