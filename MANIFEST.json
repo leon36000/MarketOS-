@@ -437,6 +437,11 @@
       "bytes": 2563
     },
     {
+      "path": "docs/implementation/SQLITE_EVENT_STORE_INTEGRITY.md",
+      "sha256": "b86e29c8059472a2577f6048bacc5e8abc94cac412fbb190b038061fc4cf404b",
+      "bytes": 4130
+    },
+    {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
       "sha256": "693d4fba9a920cf860794e6b85d3dfabc73854f80bf58bddffbf94252c908a1c",
       "bytes": 675
@@ -547,6 +552,11 @@
       "bytes": 19464
     },
     {
+      "path": "docs/superpowers/plans/2026-08-21-sqlite-event-store-integrity.md",
+      "sha256": "84aea3ead6fbf44d0d05e242cee1ff09378c1a7134014de17abb17dc3b2cfa25",
+      "bytes": 9638
+    },
+    {
       "path": "docs/superpowers/specs/2026-08-20-c13-1-pre-trade-execution-safety-design.md",
       "sha256": "89fa20139de6ae2a41b78ae692cd7d9de66c3d46c906acc8241de2bbde4d7f63",
       "bytes": 10808
@@ -560,6 +570,11 @@
       "path": "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
       "sha256": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
       "bytes": 8951
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-21-sqlite-event-store-integrity-design.md",
+      "sha256": "1f91b7dec03d1b713e0fe41d1015a286bd82d159a12d81a5e157eb44d4c17f2c",
+      "bytes": 5276
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -1218,8 +1233,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "417dc30b195c5dcfa8403b04e8aeabe98ae48d933f1376021e855e13e888e18f",
-      "bytes": 11082
+      "sha256": "f2aafd218e4dbaae5e3e38dd325519c3ccf647dc2b4b1027d8b411793ddda0fd",
+      "bytes": 26865
     },
     {
       "path": "src/marketos/time.py",
@@ -1488,8 +1503,13 @@
     },
     {
       "path": "tests/test_store.py",
-      "sha256": "f033da5c07fdb88d61587d51d100674aeb238e1d32a3c00af756c25f08fa5019",
-      "bytes": 3896
+      "sha256": "d1d007b93ba5dff7c7b77bb6929995d75bda6f60e440355e4f3d814bc58a2b04",
+      "bytes": 9541
+    },
+    {
+      "path": "tests/test_store_integrity_concurrency.py",
+      "sha256": "910a2319fc054d16d35be9b6b1d5173291e279eff2c3cbc4f8eda8b43e34fa00",
+      "bytes": 5362
     },
     {
       "path": "tests/test_takeover_gate.py",
@@ -1578,8 +1598,8 @@
     },
     {
       "path": "tools/verify_foundation.py",
-      "sha256": "67c047cec64316ab0101c4674b5bb1f039c498787faecb0184a8e3a041512bd4",
-      "bytes": 11283
+      "sha256": "118bba6614bcbb3453294643f38d92da7b82cc0177df8371e3ccce08565bd327",
+      "bytes": 11714
     },
     {
       "path": "tools/verify_market_data.py",

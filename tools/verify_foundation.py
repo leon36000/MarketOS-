@@ -98,13 +98,23 @@ def verify() -> dict[str, object]:
                 if not store.verify_chain().ok:
                     raise AssertionError("fresh chain failed")
             connection = sqlite3.connect(path)
-            connection.execute("UPDATE events SET event_json = '{}' WHERE event_id = 'one'")
-            connection.commit()
-            connection.close()
-            with SQLiteEventStore(path) as store:
-                if store.verify_chain().ok:
-                    raise AssertionError("tamper was not detected")
-            return "tamper-detected"
+            try:
+                try:
+                    connection.execute("UPDATE events SET event_json = '{}' WHERE event_id = 'one'")
+                except sqlite3.IntegrityError:
+                    connection.rollback()
+                else:
+                    raise AssertionError("event mutation guard was bypassed")
+                connection.execute("DROP TRIGGER events_no_update")
+                connection.execute("UPDATE events SET event_json = '{}' WHERE event_id = 'one'")
+                connection.commit()
+            finally:
+                connection.close()
+            try:
+                SQLiteEventStore(path)
+            except InvariantViolation:
+                return "tamper-blocked-on-open"
+            raise AssertionError("tampered store opened")
 
     def ledger_check() -> str:
         ledger = Ledger()
