@@ -7,7 +7,7 @@ import threading
 from typing import Any
 
 from .canonical import canonical_sha256
-from .errors import DuplicateConflict, InvariantViolation
+from .errors import DuplicateConflict, ExecutionStateChanged, InvariantViolation
 from .money import Money, Price, Quantity, RoundingPolicy
 from .orders import ExecutionMode, OrderIntent, OrderSide, OrderState, OrderType
 from .portfolio import PortfolioBook, PortfolioSnapshot
@@ -105,6 +105,14 @@ class PreparedExecution:
 
 
 @dataclass(frozen=True, slots=True)
+class PendingExecution:
+    intent: OrderIntent
+    intent_sha256: str
+    report: ExecutionReport
+    updated_market: MarketSnapshot | None
+
+
+@dataclass(frozen=True, slots=True)
 class Fill:
     fill_id: str
     intent_id: str
@@ -192,6 +200,13 @@ class PaperBroker:
         self._markets: dict[str, MarketSnapshot] = {}
         self._reports: dict[str, tuple[str, ExecutionReport]] = {}
         self._lock = threading.RLock()
+        self._envelope_capability: object | None = None
+
+    def _bind_envelope_capability(self, capability: object) -> None:
+        with self._lock:
+            if self._envelope_capability is not None:
+                raise InvariantViolation("PAPER_BROKER_ALREADY_BOUND")
+            self._envelope_capability = capability
 
     def update_market(self, snapshot: MarketSnapshot) -> None:
         with self._lock:
@@ -364,6 +379,157 @@ class PaperBroker:
                 ledger_head_sha256=ledger_head_sha256,
                 market_view_sha256=market_view_sha256,
             )
+
+    def _assert_capability(self, capability: object) -> None:
+        if self._envelope_capability is None or capability is not self._envelope_capability:
+            raise InvariantViolation("PAPER_BROKER_CAPABILITY_INVALID")
+
+    def _commit_authorized(
+        self,
+        prepared: PreparedExecution,
+        *,
+        capability: object,
+        c13_gate_sha256: str,
+    ) -> PendingExecution:
+        """Apply one prepared fill; the caller owns the durable transaction."""
+        with self._lock:
+            self._assert_capability(capability)
+            if not isinstance(prepared, PreparedExecution):
+                raise InvariantViolation("INVALID_PREPARED_EXECUTION")
+            if prepared.intent_sha256 != prepared.intent.sha256():
+                raise InvariantViolation("PREPARED_INTENT_INTEGRITY_FAILURE")
+            current_snapshot = self.portfolio.snapshot()
+            if current_snapshot != prepared.portfolio_snapshot:
+                raise ExecutionStateChanged("EXECUTION_PORTFOLIO_CHANGED")
+            current_view = self._market_view(prepared.intent, current_snapshot)
+            if current_view.sha256() != prepared.market_view_sha256:
+                raise ExecutionStateChanged("EXECUTION_MARKET_VIEW_CHANGED")
+            execution_price = self._execution_price(
+                prepared.intent,
+                current_view.execution,
+            )
+            if execution_price != prepared.execution_price:
+                raise ExecutionStateChanged("EXECUTION_QUOTE_CHANGED")
+            estimated_fee = self._fee(execution_price, prepared.intent.quantity)
+            if estimated_fee != prepared.estimated_fee:
+                raise ExecutionStateChanged("EXECUTION_FEE_CHANGED")
+            if prepared.decision.action is not RiskAction.ALLOW:
+                raise InvariantViolation("PREPARED_EXECUTION_NOT_ALLOWED")
+
+            intent = prepared.intent
+            if intent.order_type is OrderType.LIMIT:
+                assert intent.limit_price is not None
+                marketable = (
+                    execution_price.value <= intent.limit_price.value
+                    if intent.side is OrderSide.BUY
+                    else execution_price.value >= intent.limit_price.value
+                )
+                if not marketable:
+                    report = self._report(
+                        intent=intent,
+                        state=OrderState.CANCELLED,
+                        decision=prepared.decision,
+                        fills=(),
+                        remaining=intent.quantity,
+                        reasons=("LIMIT_NOT_MARKETABLE",),
+                        inserted=True,
+                        c13_gate_sha256=c13_gate_sha256,
+                        portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                        ledger_head_sha256=prepared.ledger_head_sha256,
+                        market_view_sha256=prepared.market_view_sha256,
+                    )
+                    return PendingExecution(intent, prepared.intent_sha256, report, None)
+
+            visible = (
+                current_view.execution.ask_size
+                if intent.side is OrderSide.BUY
+                else current_view.execution.bid_size
+            )
+            fill_value = min(intent.quantity.value, visible.value)
+            if fill_value <= 0:
+                report = self._report(
+                    intent=intent,
+                    state=OrderState.CANCELLED,
+                    decision=prepared.decision,
+                    fills=(),
+                    remaining=intent.quantity,
+                    reasons=("NO_VISIBLE_LIQUIDITY",),
+                    inserted=True,
+                    c13_gate_sha256=c13_gate_sha256,
+                    portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                    ledger_head_sha256=prepared.ledger_head_sha256,
+                    market_view_sha256=prepared.market_view_sha256,
+                )
+                return PendingExecution(intent, prepared.intent_sha256, report, None)
+
+            fill_quantity = Quantity.positive(fill_value)
+            fee = self._fee(execution_price, fill_quantity)
+            fill = Fill(
+                fill_id=f"fill:{intent.idempotency_key}:0",
+                intent_id=intent.intent_id,
+                instrument_id=intent.instrument_id,
+                side=intent.side,
+                quantity=fill_quantity,
+                price=execution_price,
+                fee=fee,
+                occurred_at_ns=prepared.now_ns,
+            )
+            if intent.side is OrderSide.BUY:
+                application = self.portfolio.buy(
+                    fill.fill_id,
+                    intent.instrument_id,
+                    fill.quantity,
+                    fill.price,
+                    fill.fee,
+                    occurred_at_ns=prepared.now_ns,
+                )
+                updated_snapshot = replace(
+                    current_view.execution,
+                    ask_size=Quantity.parse(current_view.execution.ask_size.value - fill_value),
+                )
+            else:
+                application = self.portfolio.sell(
+                    fill.fill_id,
+                    intent.instrument_id,
+                    fill.quantity,
+                    fill.price,
+                    fill.fee,
+                    occurred_at_ns=prepared.now_ns,
+                )
+                updated_snapshot = replace(
+                    current_view.execution,
+                    bid_size=Quantity.parse(current_view.execution.bid_size.value - fill_value),
+                )
+            if not application.inserted:
+                raise ExecutionStateChanged("DUPLICATE_FILL_ENTRY")
+
+            remaining = Quantity.parse(intent.quantity.value - fill_value)
+            state = OrderState.FILLED if remaining.value == 0 else OrderState.PARTIALLY_FILLED
+            report = self._report(
+                intent=intent,
+                state=state,
+                decision=prepared.decision,
+                fills=(fill,),
+                remaining=remaining,
+                reasons=(),
+                inserted=True,
+                c13_gate_sha256=c13_gate_sha256,
+                portfolio_snapshot_sha256=prepared.portfolio_snapshot_sha256,
+                ledger_head_sha256=prepared.ledger_head_sha256,
+                market_view_sha256=prepared.market_view_sha256,
+            )
+            return PendingExecution(intent, prepared.intent_sha256, report, updated_snapshot)
+
+    def _finalize_pending(self, pending: PendingExecution, *, capability: object) -> ExecutionReport:
+        with self._lock:
+            self._assert_capability(capability)
+            if pending.updated_market is not None:
+                self._markets[pending.updated_market.instrument_id] = pending.updated_market
+            self._reports[pending.intent.idempotency_key] = (
+                pending.intent_sha256,
+                pending.report,
+            )
+            return pending.report
 
     def submit(self, *args: Any, **kwargs: Any) -> ExecutionReport:
         del args, kwargs

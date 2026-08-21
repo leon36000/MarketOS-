@@ -145,6 +145,9 @@ class C13GateDecision:
     upstream_decision_sha256: str
     reconciliation_sha256: str
     decision_sha256: str
+    portfolio_snapshot_sha256: str = ""
+    ledger_head_sha256: str = ""
+    market_view_sha256: str = ""
     live_trading_state: str = "HARD_LOCKED"
 
     def canonical_dict(self) -> dict[str, object]:
@@ -154,6 +157,9 @@ class C13GateDecision:
             "reasons": self.reasons,
             "upstream_decision_sha256": self.upstream_decision_sha256,
             "reconciliation_sha256": self.reconciliation_sha256,
+            "portfolio_snapshot_sha256": self.portfolio_snapshot_sha256,
+            "ledger_head_sha256": self.ledger_head_sha256,
+            "market_view_sha256": self.market_view_sha256,
             "live_trading_state": self.live_trading_state,
         }
 
@@ -1131,6 +1137,9 @@ class C13RiskGate:
         reasons: tuple[str, ...],
         upstream_decision_sha256: str,
         reconciliation_sha256: str,
+        portfolio_snapshot_sha256: str = "",
+        ledger_head_sha256: str = "",
+        market_view_sha256: str = "",
     ) -> C13GateDecision:
         payload = {
             "action": action,
@@ -1138,6 +1147,9 @@ class C13RiskGate:
             "reasons": reasons,
             "upstream_decision_sha256": upstream_decision_sha256,
             "reconciliation_sha256": reconciliation_sha256,
+            "portfolio_snapshot_sha256": portfolio_snapshot_sha256,
+            "ledger_head_sha256": ledger_head_sha256,
+            "market_view_sha256": market_view_sha256,
             "live_trading_state": "HARD_LOCKED",
         }
         return C13GateDecision(
@@ -1147,6 +1159,9 @@ class C13RiskGate:
             upstream_decision_sha256=upstream_decision_sha256,
             reconciliation_sha256=reconciliation_sha256,
             decision_sha256=canonical_sha256(payload),
+            portfolio_snapshot_sha256=portfolio_snapshot_sha256,
+            ledger_head_sha256=ledger_head_sha256,
+            market_view_sha256=market_view_sha256,
             live_trading_state="HARD_LOCKED",
         )
 
@@ -1155,6 +1170,10 @@ class C13RiskGate:
         decision: RiskDecision,
         reconciliation: BookReconciliation,
         mode: ExecutionMode | str,
+        *,
+        portfolio_snapshot_sha256: str = "",
+        ledger_head_sha256: str = "",
+        market_view_sha256: str = "",
     ) -> C13GateDecision:
         reasons: list[str] = []
         decision_valid = isinstance(decision, RiskDecision)
@@ -1168,6 +1187,23 @@ class C13RiskGate:
             ExecutionMode.SHADOW,
         }:
             reasons.append("EXECUTION_MODE_NOT_ALLOWED")
+        binding = (
+            portfolio_snapshot_sha256,
+            ledger_head_sha256,
+            market_view_sha256,
+        )
+        if any(binding) and not all(binding):
+            reasons.append("SOURCE_BINDING_INCOMPLETE")
+        if any(
+            value
+            and (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdefABCDEF" for character in value)
+            )
+            for value in binding
+        ):
+            reasons.append("SOURCE_BINDING_INVALID")
         if decision_valid:
             if decision.action is not RiskAction.ALLOW:
                 reasons.append("UPSTREAM_NO_TRADE")
@@ -1203,4 +1239,7 @@ class C13RiskGate:
             reasons=reasons_tuple,
             upstream_decision_sha256=upstream_decision_sha256,
             reconciliation_sha256=reconciliation_sha256,
+            portfolio_snapshot_sha256=portfolio_snapshot_sha256,
+            ledger_head_sha256=ledger_head_sha256,
+            market_view_sha256=market_view_sha256,
         )
