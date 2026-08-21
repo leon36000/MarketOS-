@@ -48,8 +48,8 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "485b08f55569980e95346176224976b73edf46b9a64c9d5214459d5acaf7696b",
-      "bytes": 3474
+      "sha256": "784b6ff371e6a2eb444079d8b86b5664d2159e794d9b5a29c1ea735f79ebc76c",
+      "bytes": 3316
     },
     {
       "path": ".github/workflows/research-governance.yml",
