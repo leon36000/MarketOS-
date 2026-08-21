@@ -25,13 +25,60 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
+      - name: Align the foundation tamper probe with fail-closed opening
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tools/verify_foundation.py")
+          text = path.read_text(encoding="utf-8")
+          old = "\n".join(
+              [
+                  "            connection = sqlite3.connect(path)",
+                  "            connection.execute(\"UPDATE events SET event_json = '{}' WHERE event_id = 'one'\")",
+                  "            connection.commit()",
+                  "            connection.close()",
+                  "            with SQLiteEventStore(path) as store:",
+                  "                if store.verify_chain().ok:",
+                  "                    raise AssertionError(\"tamper was not detected\")",
+                  "            return \"tamper-detected\"",
+              ]
+          )
+          new = "\n".join(
+              [
+                  "            connection = sqlite3.connect(path)",
+                  "            try:",
+                  "                try:",
+                  "                    connection.execute(\"UPDATE events SET event_json = '{}' WHERE event_id = 'one'\")",
+                  "                except sqlite3.IntegrityError:",
+                  "                    connection.rollback()",
+                  "                else:",
+                  "                    raise AssertionError(\"event mutation guard was bypassed\")",
+                  "                connection.execute(\"DROP TRIGGER events_no_update\")",
+                  "                connection.execute(\"UPDATE events SET event_json = '{}' WHERE event_id = 'one'\")",
+                  "                connection.commit()",
+                  "            finally:",
+                  "                connection.close()",
+                  "            try:",
+                  "                SQLiteEventStore(path)",
+                  "            except InvariantViolation:",
+                  "                return \"tamper-blocked-on-open\"",
+                  "            raise AssertionError(\"tampered store opened\")",
+              ]
+          )
+          if text.count(old) != 1:
+              raise SystemExit("unexpected foundation store probe")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
       - name: Focused integrity verification
         env:
           PYTHONPATH: src
           PYTHONDONTWRITEBYTECODE: "1"
         run: |
           set -euo pipefail
-          python -m unittest tests.test_store tests.test_store_integrity_concurrency -v
+          python -m unittest tests.test_store tests.test_store_integrity_concurrency tests.test_foundation_acceptance -v
       - name: Remove one-shot workflow and reconcile derived artifacts
         shell: bash
         run: |
