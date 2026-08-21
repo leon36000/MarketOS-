@@ -4,6 +4,9 @@ from pathlib import Path
 import tempfile
 import unittest
 from dataclasses import replace
+import json
+import subprocess
+import sys
 
 from marketos.authoritative_books import DurableLedger
 from marketos.canonical import canonical_sha256
@@ -440,6 +443,39 @@ class C13EnvelopeTests(unittest.TestCase):
                 Posting("equity:capital:USD", PostingSide.CREDIT, amount),
             ),
         )
+
+
+class C13ExecutionSafetyValidatorTests(unittest.TestCase):
+    def test_c13_1_validator_preserves_bounded_non_promotable_slice(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(root / "tools" / "verify_c13_execution_safety.py"),
+                "--root",
+                str(root),
+                "--json",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"], payload)
+        self.assertEqual(payload["slice"], "C13-1")
+        self.assertEqual(payload["status"], "VERIFIED_SLICE")
+        self.assertEqual(
+            set(payload["partial_requirements"]),
+            {"AUD-RSK-001", "AUD-RSK-002", "AUD-RSK-004", "AUD-RSK-005", "AUD-RSK-009"},
+        )
+        self.assertFalse(payload["phase_complete"])
+        self.assertFalse(payload["promotion_allowed"])
+        self.assertEqual(payload["live_trading_state"], "HARD_LOCKED")
+        self.assertEqual(payload["profitability_state"], "UNPROVEN")
+        self.assertTrue(payload["restart_reconstruction_blocked"])
+        self.assertTrue(payload["simultaneous_db_witness_rewrite_excluded"])
 
 
 if __name__ == "__main__":

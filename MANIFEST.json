@@ -352,6 +352,11 @@
       "bytes": 4717
     },
     {
+      "path": "docs/implementation/C13_1_PRE_TRADE_EXECUTION_SAFETY.md",
+      "sha256": "ffac19c556bbe086d6df69162ee0434d2140c3c65f328a378cf43ee7706d2250",
+      "bytes": 2629
+    },
+    {
       "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
       "sha256": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
       "bytes": 3061
@@ -755,6 +760,21 @@
       "path": "planning/phases/C12/PHASE_BRIEF.md",
       "sha256": "5626a177fb5e95b636ce27b2e53e622ef6e381e5bd44d8398177e157cdbbc306",
       "bytes": 1142
+    },
+    {
+      "path": "planning/phases/C13/C13_1_DECISIONS.json",
+      "sha256": "825984731abc4018132d11ad71277698d70555bd708c777979576b06c4baa6ad",
+      "bytes": 1558
+    },
+    {
+      "path": "planning/phases/C13/C13_1_EXECUTION_CONTRACT.md",
+      "sha256": "19f019853f39e9b606b942a998b2fb871962995858054aa88857190d945f1fc5",
+      "bytes": 4030
+    },
+    {
+      "path": "planning/phases/C13/C13_1_REQUIREMENT_CLOSURE.json",
+      "sha256": "86d581f53e1eded2d4b6722c74091659c2b13874a2fffba529a35bdd4beae0bc",
+      "bytes": 2466
     },
     {
       "path": "planning/phases/C13/C13_DECISIONS.json",
@@ -1198,8 +1218,8 @@
     },
     {
       "path": "tests/test_c13_execution_safety.py",
-      "sha256": "d35ba6a16bdb9d126e8effd459900b6d59d89bce10389b9a7c757f64e68875bd",
-      "bytes": 18879
+      "sha256": "8ada992ff3e9386c37ac185bb97c867439ddb545904477ca95c80733f40f7528",
+      "bytes": 20307
     },
     {
       "path": "tests/test_c1_design.py",
@@ -1490,6 +1510,11 @@
       "path": "tools/verify_c13_contract.py",
       "sha256": "5ffa7b8e0cfc8bc94c4129ae0ca20bfad77672886fe02e97744801f1678a66eb",
       "bytes": 17109
+    },
+    {
+      "path": "tools/verify_c13_execution_safety.py",
+      "sha256": "b79c919f9dd21a6a47aa42b8393a7a9e34c3451921f676695fef478c78fdb981",
+      "bytes": 10549
     },
     {
       "path": "tools/verify_data_foundation.py",
