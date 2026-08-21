@@ -441,11 +441,12 @@ class SQLiteEventStore:
             if row is None or str(row["tbl_name"]) != table:
                 raise InvariantViolation(f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}")
             normalized = self._normalize_sql(row["sql"])
-            required = (
-                f"BEFORE {operation} ON {table.upper()}",
-                f"SELECT RAISE(ABORT, '{message}')",
+            expected = self._normalize_sql(
+                f"CREATE TRIGGER {name} "
+                f"BEFORE {operation} ON {table} "
+                f"BEGIN SELECT RAISE(ABORT, '{message}'); END"
             )
-            if " WHEN " in f" {normalized} " or any(item not in normalized for item in required):
+            if normalized != expected:
                 raise InvariantViolation(f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}")
 
     def _verify_all_rows(
