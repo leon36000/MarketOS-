@@ -16,6 +16,7 @@ from .time import EventTime
 
 _ZERO_HASH = "0" * 64
 _HEX64 = re.compile(r"[0-9a-f]{64}")
+_BEGIN_IMMEDIATE = "BEGIN IMMEDIATE"
 
 
 def _decode(value: Any) -> Any:
@@ -218,6 +219,59 @@ class SQLiteEventStore:
             return str(value)
         return value
 
+    @staticmethod
+    def _validate_sha256(
+        value: str,
+        code: str,
+        sequence: int,
+        errors: list[str],
+    ) -> None:
+        if _HEX64.fullmatch(value) is None:
+            errors.append(f"{code}:{sequence}")
+
+    @staticmethod
+    def _decode_event_item(
+        event_text: str,
+        sequence: int,
+        errors: list[str],
+    ) -> tuple[EventEnvelope | None, str | None]:
+        try:
+            decoded = _decode(json.loads(event_text))
+            event = _event_from_data(decoded)
+            canonical_text = canonical_json(decoded)
+            digest = event.sha256()
+        except (
+            AttributeError,
+            DecimalException,
+            InvariantViolation,
+            KeyError,
+            TypeError,
+            ValueError,
+        ):
+            errors.append(f"EVENT_JSON_INVALID:{sequence}")
+            return None, None
+        if canonical_text != event_text:
+            errors.append(f"EVENT_JSON_NON_CANONICAL:{sequence}")
+        return event, digest
+
+    @classmethod
+    def _verify_chain_link(
+        cls,
+        *,
+        sequence: int,
+        previous: str,
+        item_sha256: str,
+        stored_previous: str,
+        stored_chain: str,
+        errors: list[str],
+    ) -> str:
+        if stored_previous != previous:
+            errors.append(f"PREVIOUS_CHAIN_MISMATCH:{sequence}")
+        computed_chain = cls._chain_hash(sequence, previous, item_sha256)
+        if stored_chain != computed_chain:
+            errors.append(f"CHAIN_HASH_MISMATCH:{sequence}")
+        return computed_chain
+
     @classmethod
     def _verify_event_row(
         cls,
@@ -238,45 +292,24 @@ class SQLiteEventStore:
             errors,
         )
         stored_chain = cls._text(row, "chain_sha256", "CHAIN_SHA256_INVALID", sequence, errors)
-        if _HEX64.fullmatch(stored_sha) is None:
-            errors.append(f"EVENT_SHA256_INVALID:{sequence}")
-        if _HEX64.fullmatch(stored_previous) is None:
-            errors.append(f"PREVIOUS_CHAIN_INVALID:{sequence}")
-        if _HEX64.fullmatch(stored_chain) is None:
-            errors.append(f"CHAIN_SHA256_INVALID:{sequence}")
+        cls._validate_sha256(stored_sha, "EVENT_SHA256_INVALID", sequence, errors)
+        cls._validate_sha256(stored_previous, "PREVIOUS_CHAIN_INVALID", sequence, errors)
+        cls._validate_sha256(stored_chain, "CHAIN_SHA256_INVALID", sequence, errors)
 
-        computed_item_sha = stored_sha
-        try:
-            decoded = _decode(json.loads(event_text))
-            event = _event_from_data(decoded)
-        except (
-            AttributeError,
-            DecimalException,
-            InvariantViolation,
-            KeyError,
-            TypeError,
-            ValueError,
-            json.JSONDecodeError,
-        ):
-            errors.append(f"EVENT_JSON_INVALID:{sequence}")
-        else:
-            try:
-                if canonical_json(decoded) != event_text:
-                    errors.append(f"EVENT_JSON_NON_CANONICAL:{sequence}")
-                computed_item_sha = event.sha256()
-            except (InvariantViolation, TypeError, ValueError):
-                errors.append(f"EVENT_JSON_INVALID:{sequence}")
-            else:
-                if event.event_id != event_id:
-                    errors.append(f"EVENT_ID_MISMATCH:{sequence}")
-                if computed_item_sha != stored_sha:
-                    errors.append(f"EVENT_HASH_MISMATCH:{sequence}")
-
-        if stored_previous != previous:
-            errors.append(f"PREVIOUS_CHAIN_MISMATCH:{sequence}")
-        computed_chain = cls._chain_hash(sequence, previous, computed_item_sha)
-        if stored_chain != computed_chain:
-            errors.append(f"CHAIN_HASH_MISMATCH:{sequence}")
+        event, digest = cls._decode_event_item(event_text, sequence, errors)
+        computed_item_sha = stored_sha if digest is None else digest
+        if event is not None and event.event_id != event_id:
+            errors.append(f"EVENT_ID_MISMATCH:{sequence}")
+        if digest is not None and digest != stored_sha:
+            errors.append(f"EVENT_HASH_MISMATCH:{sequence}")
+        computed_chain = cls._verify_chain_link(
+            sequence=sequence,
+            previous=previous,
+            item_sha256=computed_item_sha,
+            stored_previous=stored_previous,
+            stored_chain=stored_chain,
+            errors=errors,
+        )
         return tuple(dict.fromkeys(errors)), computed_chain
 
     @classmethod
@@ -297,6 +330,24 @@ class SQLiteEventStore:
             record_count=len(materialized),
             head_sha256=previous,
         )
+
+    @staticmethod
+    def _decode_evidence_item(
+        kind: str,
+        payload_text: str,
+        sequence: int,
+        errors: list[str],
+    ) -> str | None:
+        try:
+            payload = _decode(json.loads(payload_text))
+            canonical_text = canonical_json(payload)
+            digest = canonical_sha256({"kind": kind, "payload": payload})
+        except (DecimalException, InvariantViolation, TypeError, ValueError):
+            errors.append(f"EVIDENCE_JSON_INVALID:{sequence}")
+            return None
+        if canonical_text != payload_text:
+            errors.append(f"EVIDENCE_JSON_NON_CANONICAL:{sequence}")
+        return digest
 
     @classmethod
     def _verify_evidence_row(
@@ -332,34 +383,22 @@ class SQLiteEventStore:
         stored_chain = cls._text(row, "chain_sha256", "CHAIN_SHA256_INVALID", sequence, errors)
         if not kind.strip():
             errors.append(f"EVIDENCE_KIND_INVALID:{sequence}")
-        if _HEX64.fullmatch(stored_sha) is None:
-            errors.append(f"EVIDENCE_SHA256_INVALID:{sequence}")
-        if _HEX64.fullmatch(stored_previous) is None:
-            errors.append(f"PREVIOUS_CHAIN_INVALID:{sequence}")
-        if _HEX64.fullmatch(stored_chain) is None:
-            errors.append(f"CHAIN_SHA256_INVALID:{sequence}")
+        cls._validate_sha256(stored_sha, "EVIDENCE_SHA256_INVALID", sequence, errors)
+        cls._validate_sha256(stored_previous, "PREVIOUS_CHAIN_INVALID", sequence, errors)
+        cls._validate_sha256(stored_chain, "CHAIN_SHA256_INVALID", sequence, errors)
 
-        computed_item_sha = stored_sha
-        try:
-            payload = _decode(json.loads(payload_text))
-        except (DecimalException, TypeError, ValueError, json.JSONDecodeError):
-            errors.append(f"EVIDENCE_JSON_INVALID:{sequence}")
-        else:
-            try:
-                if canonical_json(payload) != payload_text:
-                    errors.append(f"EVIDENCE_JSON_NON_CANONICAL:{sequence}")
-                computed_item_sha = canonical_sha256({"kind": kind, "payload": payload})
-            except (InvariantViolation, TypeError, ValueError):
-                errors.append(f"EVIDENCE_JSON_INVALID:{sequence}")
-            else:
-                if computed_item_sha != stored_sha:
-                    errors.append(f"EVIDENCE_HASH_MISMATCH:{sequence}")
-
-        if stored_previous != previous:
-            errors.append(f"PREVIOUS_CHAIN_MISMATCH:{sequence}")
-        computed_chain = cls._chain_hash(sequence, previous, computed_item_sha)
-        if stored_chain != computed_chain:
-            errors.append(f"CHAIN_HASH_MISMATCH:{sequence}")
+        digest = cls._decode_evidence_item(kind, payload_text, sequence, errors)
+        computed_item_sha = stored_sha if digest is None else digest
+        if digest is not None and digest != stored_sha:
+            errors.append(f"EVIDENCE_HASH_MISMATCH:{sequence}")
+        computed_chain = cls._verify_chain_link(
+            sequence=sequence,
+            previous=previous,
+            item_sha256=computed_item_sha,
+            stored_previous=stored_previous,
+            stored_chain=stored_chain,
+            errors=errors,
+        )
         return tuple(dict.fromkeys(errors)), computed_chain
 
     @classmethod
@@ -464,7 +503,7 @@ class SQLiteEventStore:
         return event_rows, evidence_rows, event_verification, evidence_verification
 
     def _initialize_integrity_state(self) -> None:
-        self._connection.execute("BEGIN IMMEDIATE")
+        self._connection.execute(_BEGIN_IMMEDIATE)
         try:
             _, _, event_verification, evidence_verification = self._verify_all_rows()
             self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
@@ -572,7 +611,7 @@ class SQLiteEventStore:
 
     def append(self, event: EventEnvelope) -> StoredEvent:
         self._ensure_open()
-        self._connection.execute("BEGIN IMMEDIATE")
+        self._connection.execute(_BEGIN_IMMEDIATE)
         try:
             event_state, evidence_state, data_version = self._write_integrity_states()
             result = self._append_event_tx(event)
@@ -588,7 +627,7 @@ class SQLiteEventStore:
 
     def append_many(self, events: Iterable[EventEnvelope]) -> tuple[StoredEvent, ...]:
         self._ensure_open()
-        self._connection.execute("BEGIN IMMEDIATE")
+        self._connection.execute(_BEGIN_IMMEDIATE)
         try:
             event_state, evidence_state, data_version = self._write_integrity_states()
             results = tuple(self._append_event_tx(event) for event in events)
@@ -639,7 +678,7 @@ class SQLiteEventStore:
         payload_json = canonical_json(payload)
         evidence_sha256 = canonical_sha256({"kind": kind, "payload": payload})
         self._ensure_open()
-        self._connection.execute("BEGIN IMMEDIATE")
+        self._connection.execute(_BEGIN_IMMEDIATE)
         try:
             event_state, evidence_state, data_version = self._write_integrity_states()
             row = self._connection.execute(
