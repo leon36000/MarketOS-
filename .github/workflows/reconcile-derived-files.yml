@@ -1,5 +1,6 @@
 name: reconcile-derived-files
 
+# Root agent instruction files are repository-contract inputs.
 on:
   workflow_dispatch:
   push:
