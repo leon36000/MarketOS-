@@ -25,8 +25,8 @@
     "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
     "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md": "a9fc38243632377e57e9edcf7efa2cd78dc121bb832c0cfa8d761e187fc28eea",
     "src/marketos/authoritative_books.py": "b4347d3f8eb64488ef5952b88646dd343c66df06f1db5b49b56836035ab5be11",
-    "tests/test_c13_authoritative_books.py": "acfb616e5744c8b582b4a71042bc31f8748c7cee5df4c9816991a4245fec13fa",
+    "tests/test_c13_authoritative_books.py": "a806291b46cdcd89c2f886d76492c698abb32a38510501161b0a32377a11221c",
     "tools/verify_c13_checkpoint_reconstruction.py": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a"
   },
-  "source_tree_sha256": "18b207059e8e461bd611ff72ffe9d56e7e35751c25213a1abe1736ddeb1a0bd6"
+  "source_tree_sha256": "df59973a8464cbacbdf5557e406300ccc9ba281fc97c4863406416b4ff4dd753"
 }

@@ -813,7 +813,7 @@
     },
     {
       "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
-      "sha256": "a2f31bd72a7baee2bfc1a32e5965118576014d224f26bc52e459ce0b52d82021",
+      "sha256": "bec83eeb0f946ef6393ea8b8aeaba3089725bb7f60f1e078a3b977637fef8b00",
       "bytes": 2161
     },
     {
@@ -828,7 +828,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "16c0f3ddbe46ce939c4b0effed9d69718f0f095d62209b587bae96096766b3e5",
+      "sha256": "87e44cdbe063827285d2730bc2bcced95e32e4473bdb7feb4d3a553be8d613d3",
       "bytes": 2102
     },
     {
@@ -1253,8 +1253,8 @@
     },
     {
       "path": "tests/test_c13_authoritative_books.py",
-      "sha256": "acfb616e5744c8b582b4a71042bc31f8748c7cee5df4c9816991a4245fec13fa",
-      "bytes": 41199
+      "sha256": "a806291b46cdcd89c2f886d76492c698abb32a38510501161b0a32377a11221c",
+      "bytes": 41177
     },
     {
       "path": "tests/test_c13_execution_safety.py",

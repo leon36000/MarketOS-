@@ -675,13 +675,13 @@ class C13CheckpointReconstructionTests(unittest.TestCase):
             from marketos.authoritative_books import DurableLedger
 
             with DurableLedger(self.path) as competitor:
+                entered.wait(timeout=5)
                 competitor_attempted.set()
                 competitor.post(C13DurableLedgerTests.entry("fund-2", "1.00"))
                 competitor_committed.set()
 
         worker = threading.Thread(target=compete)
         worker.start()
-        self.assertTrue(competitor_attempted.wait(timeout=5))
         restored = reopened.authoritative_book(base_currency="USD")
         worker.join(timeout=5)
         self.assertFalse(worker.is_alive())
