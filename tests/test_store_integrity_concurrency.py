@@ -80,6 +80,34 @@ class StoreIntegrityConcurrencyTests(unittest.TestCase):
             },
         )
 
+    def test_weakened_trigger_contract_is_rejected_on_reopen(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append(self.event(1))
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.executescript(
+                """
+                DROP TRIGGER events_no_update;
+                CREATE TRIGGER events_no_update
+                BEFORE UPDATE ON events
+                BEGIN
+                    SELECT RAISE(ABORT, 'APPEND_ONLY_EVENTS') WHERE 0;
+                END;
+                """
+            )
+            connection.execute(
+                "UPDATE events SET event_json = event_json WHERE event_id = ?",
+                ("event-1",),
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events_no_update",
+        ):
+            SQLiteEventStore(self.path)
+
     def test_evidence_corruption_blocks_every_public_read_surface(self) -> None:
         store = SQLiteEventStore(self.path)
         store.append(self.event(1))
