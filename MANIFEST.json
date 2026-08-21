@@ -542,6 +542,11 @@
       "bytes": 7651
     },
     {
+      "path": "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
+      "sha256": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
+      "bytes": 8951
+    },
+    {
       "path": "examples/paper_scenario.jsonl",
       "sha256": "5c91680060b7f2c2162f79fa8a18419dbfa57f01f4c288abfb55783442ca1b70",
       "bytes": 1901

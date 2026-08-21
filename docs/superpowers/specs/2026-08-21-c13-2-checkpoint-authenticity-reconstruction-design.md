@@ -34,8 +34,8 @@ The slice protects against:
   checkpoint row digest;
 - a checkpoint row inserted, removed, reordered, or chained outside the
   append-only sequence;
-- a checkpoint whose snapshot is stale, future-dated relative to the ledger,
-  malformed, duplicated, or inconsistent with derived cash;
+- a checkpoint whose snapshot is stale, temporally invalid relative to the
+  ledger, malformed, duplicated, or inconsistent with derived cash;
 - a legacy sidecar being silently upgraded into a trusted checkpoint witness;
 - a concurrent ledger advance during book restoration.
 
@@ -101,6 +101,46 @@ external reconciliation, preserving C13-0 compatibility. They cannot be used
 to restore a non-empty authoritative book. No legacy sidecar is upgraded
 automatically; a future explicit re-baselining operation is outside this
 slice.
+
+### Bootstrap and legacy policy
+
+The constructor records whether the database path existed before opening the
+SQLite connection. Exactly one case may create a genesis sidecar: a genuinely
+new path with no pre-existing database file, no pre-existing sidecar, and zero
+ledger/head/checkpoint rows. An existing database whose sidecar is missing is
+`JOURNAL_INTEGRITY_FAILURE`, even when the database is empty. A version-1
+sidecar remains readable for journal verification and external
+reconciliation, but a non-empty authoritative book remains blocked with
+`BOOK_CHECKPOINT_WITNESS_REQUIRED`; it is never silently upgraded. A
+version-2 sidecar is eligible for restoration only after all checks below
+pass.
+
+### Exact snapshot invariants
+
+Before restoration, the checkpoint snapshot must satisfy all of these exact
+rules:
+
+- `ledger_sha256` is exactly 64 lowercase hexadecimal characters and equals
+  the current verified ledger digest;
+- `base_currency`, cash currency, realized-P&L currency and every position
+  currency are identical uppercase ISO-style three-letter currency codes;
+- positions are sorted by strictly increasing `instrument_id`, contain no
+  duplicates, and every instrument identifier is a non-empty trimmed string;
+- each quantity is finite and non-negative; a zero quantity has average cost
+  exactly zero, while a positive quantity has a finite non-negative average
+  cost;
+- cash and realized P&L use valid finite integer minor units;
+- `captured_at_ns` is a non-negative integer greater than or equal to the
+  greatest `occurred_at_ns` in the verified ledger. No wall-clock claim is
+  made during restart, so “future” means temporally ahead of the ledger
+  evidence, not ahead of the machine clock;
+- the snapshot cash equals `ledger.balance(cash_account, base_currency)`;
+- after restoration, the recomputed snapshot has canonical ordering and an
+  identical digest to the checkpoint snapshot.
+
+Each failed invariant has a stable fail-closed error family beginning with
+`BOOK_CHECKPOINT_` or `BOOK_SNAPSHOT_`; no malformed snapshot is partially
+published as an authoritative book.
 
 ## Files and interfaces
 
