@@ -39,6 +39,16 @@ The exact `{"$decimal": ...}` mapping is reserved for the canonical Decimal
 encoding. Store writes reject that ambiguous user mapping before persistence,
 while genuine `Decimal` values continue to round-trip as Decimal values.
 
+The persistence boundary is deliberately narrower than the general
+fingerprinting helper: payloads may contain JSON scalars, `Decimal`, mappings
+with unique string keys, and reconstructible sequences. Event payload tuples
+are the internal representation produced by `EventEnvelope` for JSON lists;
+evidence payloads use JSON lists. Enums, datetime/UUID/Path values,
+dataclasses, custom `canonical_dict()` objects, sets, non-string keys, key
+collisions, and reserved canonical tags are rejected before persistence.
+Replay canonicalizes its rich execution report into this wire payload before
+writing evidence.
+
 Evidence verification performs the same canonical, item-hash, previous-link and chain checks and requires a non-empty evidence kind.
 
 Malformed JSON is represented by deterministic `ChainVerification.errors`. The diagnostic verifier does not leak parser exceptions.
@@ -68,6 +78,10 @@ Two valid store instances can therefore append sequentially to the same WAL data
 - `EVIDENCE_CHAIN_INTEGRITY_FAILURE:<ordered findings>`
 - `EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:<trigger>`
 - `EVENT_STORE_TAIL_INTEGRITY_FAILURE`
+- `AMBIGUOUS_DECIMAL_MARKER`
+- `AMBIGUOUS_CANONICAL_TAG:<tag>`
+- `NON_CANONICAL_PAYLOAD_KEYS`
+- `NON_RECONSTRUCTIBLE_PAYLOAD_TYPE:<type>`
 - `SQLITE_EVENT_STORE_CLOSED`
 
 Direct SQL mutations retain the SQLite messages `APPEND_ONLY_EVENTS` and `APPEND_ONLY_EVIDENCE`.

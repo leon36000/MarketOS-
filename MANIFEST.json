@@ -443,8 +443,8 @@
     },
     {
       "path": "docs/implementation/SQLITE_EVENT_STORE_INTEGRITY.md",
-      "sha256": "832c5c3c3101401f9a8cc71825a201cd22152e96a584367a877890d9fa0cc513",
-      "bytes": 4619
+      "sha256": "db84c451b55e7c71f9c33440b9155d25b185191a5b324b564e2c90fd488756cd",
+      "bytes": 5367
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -578,8 +578,8 @@
     },
     {
       "path": "docs/superpowers/specs/2026-08-21-sqlite-event-store-integrity-design.md",
-      "sha256": "fbbadc801ca6b818d478bd37ffcbfce040a0d1d7e4ade08c1535868df7b4b723",
-      "bytes": 5804
+      "sha256": "22ad340d2a55bcbf28cae50585539154ddf4339550ccbc7e3c73e136da4f9e59",
+      "bytes": 6597
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -1143,8 +1143,8 @@
     },
     {
       "path": "src/marketos/events.py",
-      "sha256": "2be433a2dd82cc0f15d0a4c1645b26c54b166c0e3d4a11c1bb2489353da41d5b",
-      "bytes": 3732
+      "sha256": "a5516456483e37de8dcdf6029a364d4b4158ede70941f91c850d6e13135b9cbe",
+      "bytes": 4231
     },
     {
       "path": "src/marketos/execution_calibration.py",
@@ -1213,8 +1213,8 @@
     },
     {
       "path": "src/marketos/replay.py",
-      "sha256": "f3c4f8d7a3a115b0130f4550ffe325a21af571cf9f8ee6bfed5516004b19c0fc",
-      "bytes": 14266
+      "sha256": "2de42b64c2fde2a1186dcdaf803e81a7f2c3ae0d39ad96394e4e1ab9b4d59f37",
+      "bytes": 14426
     },
     {
       "path": "src/marketos/rights.py",
@@ -1238,8 +1238,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "829860b48d0caccc437d4c833ecfea6cfddc1b51532c1cba230d412aab9e000c",
-      "bytes": 31262
+      "sha256": "aa728743b20cb556cc73dc0e3177a1c3a158eca29754d71479240a471f4675d5",
+      "bytes": 32910
     },
     {
       "path": "src/marketos/time.py",
@@ -1463,8 +1463,8 @@
     },
     {
       "path": "tests/test_replay.py",
-      "sha256": "4ccef612cc660274421aab800f6c62b7d1c77cc697e0b909bf48076874b800c4",
-      "bytes": 5361
+      "sha256": "7f86f5dd30212e76124ff3aff7328007343c32a4d6202ab4ad4bedb255bbf927",
+      "bytes": 6136
     },
     {
       "path": "tests/test_repository_contract.py",
@@ -1508,8 +1508,8 @@
     },
     {
       "path": "tests/test_store.py",
-      "sha256": "f039d491f4cd754f002d60a2a60ec4e63830579f71d0e7243983fc11932e9da7",
-      "bytes": 13491
+      "sha256": "78a5c5b7eedaa2255eb4b2a4fd678ed420e1fa939b2e9903d307a71d3c58309a",
+      "bytes": 17119
     },
     {
       "path": "tests/test_store_integrity_concurrency.py",

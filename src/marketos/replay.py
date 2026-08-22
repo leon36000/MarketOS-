@@ -19,7 +19,7 @@ from .orders import ExecutionMode, OrderIntent, OrderSide, OrderType, TimeInForc
 from .paper import ExecutionReport, MarketSnapshot, PaperBroker
 from .portfolio import PortfolioSnapshot
 from .risk import RiskKernel, RiskLimits
-from .store import SQLiteEventStore
+from .store import SQLiteEventStore, _decode
 from .time import ClockQuality, EventTime
 
 
@@ -294,7 +294,10 @@ class ReplayEngine:
                     )
                     reports.append(report)
                     if self.store is not None:
-                        self.store.append_evidence("EXECUTION_REPORT", report.canonical_dict())
+                        evidence_payload = _decode(
+                            json.loads(canonical_json(report.canonical_dict()))
+                        )
+                        self.store.append_evidence("EXECUTION_REPORT", evidence_payload)
                 else:
                     raise InvariantViolation(f"UNSUPPORTED_REPLAY_EVENT_KIND:{event.kind.value}")
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, is_dataclass
 from decimal import Decimal, DecimalException
+from enum import Enum
 import json
 from pathlib import Path
 import re
@@ -17,6 +18,7 @@ from .time import EventTime
 _ZERO_HASH = "0" * 64
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _BEGIN_IMMEDIATE = "BEGIN IMMEDIATE"
+_CANONICAL_TAGS = frozenset({"$decimal", "$datetime", "$path", "$uuid"})
 
 
 def _decode(value: Any) -> Any:
@@ -31,10 +33,16 @@ def _decode(value: Any) -> Any:
 
 def _reject_ambiguous_decimal_maps(value: Any) -> None:
     if isinstance(value, Mapping):
-        normalized_keys = {str(key) for key in value}
-        if normalized_keys == {"$decimal"}:
+        normalized_items = tuple((str(key), item) for key, item in value.items())
+        normalized_keys = tuple(key for key, _ in normalized_items)
+        normalized_key_set = set(normalized_keys)
+        if len(normalized_key_set) != len(normalized_keys):
+            raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
+        if normalized_key_set == {"$decimal"}:
             raise InvariantViolation("AMBIGUOUS_DECIMAL_MARKER")
-        for item in value.values():
+        if len(normalized_keys) == 1 and normalized_keys[0] in _CANONICAL_TAGS:
+            raise InvariantViolation(f"AMBIGUOUS_CANONICAL_TAG:{normalized_keys[0]}")
+        for _, item in normalized_items:
             _reject_ambiguous_decimal_maps(item)
         return
     if isinstance(value, (list, tuple, set, frozenset)):
@@ -47,6 +55,33 @@ def _reject_ambiguous_decimal_maps(value: Any) -> None:
     canonical_method = getattr(value, "canonical_dict", None)
     if callable(canonical_method):
         _reject_ambiguous_decimal_maps(canonical_method())
+
+
+def _validate_persistable_payload(value: Any, *, allow_tuple: bool) -> None:
+    _reject_ambiguous_decimal_maps(value)
+    _validate_persistable_value(value, allow_tuple=allow_tuple)
+
+
+def _validate_persistable_value(value: Any, *, allow_tuple: bool) -> None:
+    if isinstance(value, Enum):
+        raise InvariantViolation(
+            f"NON_RECONSTRUCTIBLE_PAYLOAD_TYPE:{type(value).__name__}"
+        )
+    if value is None or isinstance(value, (bool, str, int, Decimal)):
+        return
+    if isinstance(value, Mapping):
+        if any(not isinstance(key, str) for key in value):
+            raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
+        for item in value.values():
+            _validate_persistable_value(item, allow_tuple=allow_tuple)
+        return
+    if isinstance(value, list) or (allow_tuple and isinstance(value, tuple)):
+        for item in value:
+            _validate_persistable_value(item, allow_tuple=allow_tuple)
+        return
+    raise InvariantViolation(
+        f"NON_RECONSTRUCTIBLE_PAYLOAD_TYPE:{type(value).__name__}"
+    )
 
 
 def _mapping(value: Any, code: str) -> Mapping[str, Any]:
@@ -661,7 +696,7 @@ class SQLiteEventStore:
         self._total_changes = self._connection.total_changes
 
     def _append_event_tx(self, event: EventEnvelope) -> StoredEvent:
-        _reject_ambiguous_decimal_maps(event.payload)
+        _validate_persistable_payload(event.payload, allow_tuple=True)
         event_json = canonical_json(event.canonical_dict())
         event_sha256 = event.sha256()
         existing = self._connection.execute(
@@ -761,7 +796,7 @@ class SQLiteEventStore:
     def append_evidence(self, kind: str, payload: Any) -> EvidenceRecord:
         if not isinstance(kind, str) or not kind.strip():
             raise InvariantViolation("MISSING_EVIDENCE_KIND")
-        _reject_ambiguous_decimal_maps(payload)
+        _validate_persistable_payload(payload, allow_tuple=False)
         payload_json = canonical_json(payload)
         evidence_sha256 = canonical_sha256({"kind": kind, "payload": payload})
         self._ensure_open()

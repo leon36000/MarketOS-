@@ -61,6 +61,15 @@ Every evidence row is checked for:
 - exact previous-link equality;
 - exact deterministic chain digest.
 
+The store persistence boundary is narrower than the general fingerprinting
+helper. Accepted payloads are JSON scalars, `Decimal`, mappings with unique
+string keys, and reconstructible sequences. Event payload tuples are the
+internal representation produced by `EventEnvelope` for JSON lists; evidence
+payloads use JSON lists. Enums, datetime/UUID/Path values, dataclasses,
+custom `canonical_dict()` objects, sets, non-string keys, key collisions, and
+reserved canonical tags are rejected before persistence. Rich replay reports
+are explicitly reduced to this canonical wire payload before evidence append.
+
 ## Fail-closed surfaces
 
 Initialization uses `BEGIN IMMEDIATE` and validates both complete ledgers plus all four schema guards before the constructor returns. An invalid database closes its connection and raises `InvariantViolation`.
@@ -96,6 +105,8 @@ The implementation is rejected unless tests prove:
 - event and evidence corruption block reads, count, append and reopen;
 - malformed event and evidence JSON produce structured verification errors;
 - reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;
+- non-reconstructible payload types, reserved tags, and canonical key collisions are rejected;
+- replay execution-report evidence is reduced to a reconstructible canonical wire payload;
 - valid concurrent writers refresh stale verified state;
 - 100 event appends followed by 100 evidence appends perform no full-chain verification after initialization;
 - prior durability, idempotency and atomic batch behavior remains green.

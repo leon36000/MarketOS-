@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from decimal import Decimal
 import json
+from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
-from decimal import Decimal
-from pathlib import Path
+from uuid import UUID
 
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.events import EventEnvelope, EventKind
@@ -156,7 +158,7 @@ class StoreTests(unittest.TestCase):
     def test_reserved_decimal_marker_is_rejected_after_key_normalization(self) -> None:
         marker_mapping = {DecimalMarkerKey(): "5.00"}
         with SQLiteEventStore(self.path) as store:
-            with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
+            with self.assertRaisesRegex(InvariantViolation, "NON_CANONICAL_PAYLOAD_KEYS"):
                 store.append(
                     self.event(
                         "normalized-key-event",
@@ -165,6 +167,84 @@ class StoreTests(unittest.TestCase):
                 )
             with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
                 store.append_evidence("RISK", {"wrapped": marker_mapping})
+            self.assertEqual(store.count(), 0)
+
+    def test_non_reconstructible_payload_types_are_rejected(self) -> None:
+        values = (
+            datetime(2026, 1, 1, tzinfo=timezone.utc),
+            UUID("00000000-0000-0000-0000-000000000001"),
+            Path("payload.txt"),
+            EventKind.SYSTEM,
+            DecimalMarkerDataclass({"value": "safe"}),
+            DecimalMarkerCanonicalObject({"value": "safe"}),
+            frozenset({"safe"}),
+        )
+        with SQLiteEventStore(self.path) as store:
+            for index, value in enumerate(values, start=1):
+                with self.subTest(value=type(value).__name__):
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "NON_RECONSTRUCTIBLE_PAYLOAD_TYPE",
+                    ):
+                        store.append(
+                            self.event(
+                                f"unsupported-event-{index}",
+                                payload={"value": value},
+                            )
+                        )
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "NON_RECONSTRUCTIBLE_PAYLOAD_TYPE",
+                    ):
+                        store.append_evidence("RISK", {"value": value})
+            self.assertEqual(store.count(), 0)
+
+    def test_event_tuples_round_trip_but_evidence_tuples_are_rejected(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append(self.event("tuple-event", payload={"value": (1, 2)}))
+            self.assertEqual(store.read_all()[0].event.payload["value"], (1, 2))
+            with self.assertRaisesRegex(
+                InvariantViolation,
+                "NON_RECONSTRUCTIBLE_PAYLOAD_TYPE",
+            ):
+                store.append_evidence("RISK", {"value": (1, 2)})
+
+    def test_non_decimal_canonical_tags_are_rejected(self) -> None:
+        tagged_values = (
+            {"$datetime": "2026-01-01T00:00:00Z"},
+            {"$path": "payload.txt"},
+            {"$uuid": "00000000-0000-0000-0000-000000000001"},
+        )
+        with SQLiteEventStore(self.path) as store:
+            for index, value in enumerate(tagged_values, start=1):
+                with self.subTest(index=index):
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "AMBIGUOUS_CANONICAL_TAG",
+                    ):
+                        store.append(
+                            self.event(
+                                f"tagged-event-{index}",
+                                payload={"value": value},
+                            )
+                        )
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "AMBIGUOUS_CANONICAL_TAG",
+                    ):
+                        store.append_evidence("RISK", {"value": value})
+
+    def test_mapping_key_collisions_are_rejected(self) -> None:
+        class CollisionKey:
+            def __str__(self) -> str:
+                return "same"
+
+        collision = {CollisionKey(): "object-key", "same": "string-key"}
+        with self.assertRaisesRegex(InvariantViolation, "NON_CANONICAL_PAYLOAD_KEYS"):
+            self.event("collision-event", payload={"value": collision})
+        with SQLiteEventStore(self.path) as store:
+            with self.assertRaisesRegex(InvariantViolation, "NON_CANONICAL_PAYLOAD_KEYS"):
+                store.append_evidence("RISK", {"value": collision})
             self.assertEqual(store.count(), 0)
 
     def test_conflicting_duplicate_is_rejected_without_mutation(self) -> None:
