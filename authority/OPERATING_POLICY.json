@@ -17,6 +17,7 @@
   "review": {
     "required": true,
     "context": "independent_blind",
+    "base_ref": "codex/pr14-pr20-reconciliation-proof",
     "allowed_models": [
       "GPT-5.6 Sol"
     ],

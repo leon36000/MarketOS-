@@ -35,12 +35,20 @@ class OperatingContractTests(unittest.TestCase):
         )
         return result.stdout.strip()
 
+    def _base_sha(self) -> str:
+        return self._git_value(
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            "refs/remotes/origin/codex/pr14-pr20-reconciliation-proof",
+        )
+
     def _receipt(self, **overrides: object) -> Path:
         payload: dict[str, object] = {
             "repository": "leon36000/MarketOS-",
             "reviewer_model": "GPT-5.6 Sol",
             "review_context": "independent_blind",
-            "reviewed_base_sha": self._git_value("rev-parse", "HEAD^"),
+            "reviewed_base_sha": self._base_sha(),
             "reviewed_head_sha": self._git_value("rev-parse", "HEAD"),
             "reviewed_tree_sha": self._git_value("rev-parse", "HEAD^{tree}"),
             "verdict": "APPROVE",
@@ -52,6 +60,7 @@ class OperatingContractTests(unittest.TestCase):
             encoding="utf-8",
             suffix=".json",
             prefix="marketos-review-",
+            dir=ROOT / "authority",
             delete=False,
         )
         self.addCleanup(lambda: Path(handle.name).unlink(missing_ok=True))
@@ -158,11 +167,34 @@ class OperatingContractTests(unittest.TestCase):
         report = verify_operating_contract(
             ROOT,
             review_receipt=receipt,
-            expected_base_sha=self._git_value("rev-parse", "HEAD^"),
+            expected_base_sha=self._base_sha(),
         )
         self.assertFalse(report["ok"])
         self.assertFalse(report["review_bound"])
         self.assertIn("REVIEW_HEAD_SHA_MISMATCH", report["errors"])
+
+    def test_review_receipt_outside_repository_is_rejected(self) -> None:
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=Path(tempfile.gettempdir()),
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_RECEIPT_OUTSIDE_ROOT", report["errors"])
+
+    def test_reachable_but_non_target_base_is_rejected(self) -> None:
+        receipt = self._receipt(
+            reviewed_base_sha=self._git_value("rev-parse", "HEAD^")
+        )
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=receipt,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_BASE_TARGET_MISMATCH", report["errors"])
 
     def test_blocking_finding_cannot_hide_inside_nonblocking_verdict(self) -> None:
         receipt = self._receipt(
@@ -178,7 +210,7 @@ class OperatingContractTests(unittest.TestCase):
         report = verify_operating_contract(
             ROOT,
             review_receipt=receipt,
-            expected_base_sha=self._git_value("rev-parse", "HEAD^"),
+            expected_base_sha=self._base_sha(),
         )
         self.assertFalse(report["ok"])
         self.assertFalse(report["review_bound"])
@@ -189,7 +221,7 @@ class OperatingContractTests(unittest.TestCase):
         report = verify_operating_contract(
             ROOT,
             review_receipt=receipt,
-            expected_base_sha=self._git_value("rev-parse", "HEAD^"),
+            expected_base_sha=self._base_sha(),
         )
         self.assertTrue(report["ok"], report["errors"])
         self.assertTrue(report["review_bound"])

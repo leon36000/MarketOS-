@@ -20,8 +20,8 @@ POLICY_PATH = Path("authority/OPERATING_POLICY.json")
 STATE_PATH = Path("authority/CURRENT_STATE.json")
 SURFACES = ("AGENTS.md", "CLAUDE.md", "PROJECT_INSTRUCTIONS.md")
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
-TREE_RE = re.compile(r"^[0-9a-f]{40}$")
 MARKER_RE = re.compile(r"(?m)^([A-Z][A-Z0-9_]*)=([^\n]+)$")
+MAX_REVIEW_RECEIPT_BYTES = 64 * 1024
 
 EXPECTED_MARKERS = {
     "LUNA_PARALLEL_LIMIT": "2",
@@ -39,6 +39,7 @@ EXPECTED_POLICY = {
     "review": {
         "required": True,
         "context": "independent_blind",
+        "base_ref": "codex/pr14-pr20-reconciliation-proof",
         "allowed_models": ["GPT-5.6 Sol"],
         "allowed_verdicts": [
             "APPROVE",
@@ -113,44 +114,172 @@ def _git_value(root: Path, *args: str) -> str | None:
     return output if returncode == 0 and output else None
 
 
-def _git_reachable_commits(root: Path) -> set[str] | None:
-    returncode, output = _run_git(root, ["rev-list", "--all"])
-    if returncode != 0:
-        return None
-    return {line for line in output.splitlines() if _sha_is_valid(line)}
-
-
 def _policy_matches(policy: dict[str, Any], errors: list[str]) -> None:
     if policy != EXPECTED_POLICY:
         errors.append("OPERATING_POLICY_IDENTITY_OR_RULES_INVALID")
 
 
+def _marker_errors(text: str, relative: str) -> list[str]:
+    errors: list[str] = []
+    marker_counts: dict[str, int] = {}
+    observed: dict[str, str] = {}
+    for key, value in MARKER_RE.findall(text):
+        marker_counts[key] = marker_counts.get(key, 0) + 1
+        observed[key] = value.strip()
+    for key, expected in EXPECTED_MARKERS.items():
+        if marker_counts.get(key) != 1 or observed.get(key) != expected:
+            errors.append(f"POLICY_MARKER_MISMATCH:{relative}:{key}")
+    return errors
+
+
+def _semantic_errors(text: str, relative: str) -> list[str]:
+    errors: list[str] = []
+    for rule_name, pattern in _CONTRADICTION_PATTERNS:
+        if pattern.search(text):
+            errors.append(f"POLICY_SEMANTIC_CONTRADICTION:{relative}:{rule_name}")
+    return errors
+
+
+def _surface_file_errors(path: Path, relative: str) -> list[str]:
+    if path.is_symlink() or not path.is_file():
+        return [f"OPERATING_SURFACE_MISSING_OR_SYMLINK:{relative}"]
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [f"OPERATING_SURFACE_READ_ERROR:{relative}:{type(exc).__name__}"]
+    errors = _marker_errors(text, relative)
+    errors.extend(_semantic_errors(text, relative))
+    return errors
+
+
 def _surface_errors(root: Path, policy: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     for relative in SURFACES:
-        path = root / relative
-        if not path.is_file() or path.is_symlink():
-            errors.append(f"OPERATING_SURFACE_MISSING_OR_SYMLINK:{relative}")
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeError) as exc:
-            errors.append(f"OPERATING_SURFACE_READ_ERROR:{relative}:{type(exc).__name__}")
-            continue
-        marker_matches = MARKER_RE.findall(text)
-        marker_counts: dict[str, int] = {}
-        observed: dict[str, str] = {}
-        for key, value in marker_matches:
-            marker_counts[key] = marker_counts.get(key, 0) + 1
-            observed[key] = value.strip()
-        for key, expected in EXPECTED_MARKERS.items():
-            if marker_counts.get(key) != 1 or observed.get(key) != expected:
-                errors.append(f"POLICY_MARKER_MISMATCH:{relative}:{key}")
-        for rule_name, pattern in _CONTRADICTION_PATTERNS:
-            if pattern.search(text):
-                errors.append(f"POLICY_SEMANTIC_CONTRADICTION:{relative}:{rule_name}")
+        errors.extend(_surface_file_errors(root / relative, relative))
     if policy.get("instruction_surfaces") != list(SURFACES):
         errors.append("POLICY_SURFACE_SET_INVALID")
+    return errors
+
+
+def _safe_review_receipt_path(
+    root: Path,
+    review_receipt: Path,
+) -> tuple[Path | None, str | None]:
+    candidate = review_receipt
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    if candidate.is_symlink():
+        return None, "REVIEW_RECEIPT_SYMLINK_REJECTED"
+    try:
+        resolved = candidate.resolve(strict=True)
+        resolved.relative_to(root)
+    except FileNotFoundError:
+        return None, "REVIEW_RECEIPT_MISSING"
+    except ValueError:
+        return None, "REVIEW_RECEIPT_OUTSIDE_ROOT"
+    except (OSError, RuntimeError):
+        return None, "REVIEW_RECEIPT_PATH_INVALID"
+    if resolved.is_symlink() or not resolved.is_file():
+        return None, "REVIEW_RECEIPT_NOT_REGULAR_FILE"
+    try:
+        if resolved.stat().st_size > MAX_REVIEW_RECEIPT_BYTES:
+            return None, "REVIEW_RECEIPT_TOO_LARGE"
+    except OSError:
+        return None, "REVIEW_RECEIPT_STAT_FAILED"
+    return resolved, None
+
+
+def _review_identity_errors(
+    receipt: dict[str, Any],
+    review_policy: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+    if receipt.get("repository") != EXPECTED_POLICY["repository"]:
+        errors.append("REVIEW_REPOSITORY_MISMATCH")
+    if receipt.get("review_context") != review_policy.get("context"):
+        errors.append("REVIEW_CONTEXT_INVALID")
+    if receipt.get("reviewer_model") not in review_policy.get("allowed_models", []):
+        errors.append("REVIEWER_MODEL_INVALID")
+    if receipt.get("verdict") not in review_policy.get("allowed_verdicts", []):
+        errors.append("REVIEW_VERDICT_INVALID")
+    return errors
+
+
+def _review_sha_errors(
+    root: Path,
+    receipt: dict[str, Any],
+    expected_base_sha: str | None,
+    review_policy: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+    actual_head = _git_value(root, "rev-parse", "HEAD")
+    actual_tree = _git_value(root, "rev-parse", "HEAD^{tree}")
+    if not _sha_is_valid(actual_head) or not _sha_is_valid(actual_tree):
+        errors.append("GIT_CURRENT_HEAD_UNAVAILABLE")
+    if receipt.get("reviewed_head_sha") != actual_head:
+        errors.append("REVIEW_HEAD_SHA_MISMATCH")
+    if receipt.get("reviewed_tree_sha") != actual_tree:
+        errors.append("REVIEW_TREE_SHA_MISMATCH")
+
+    base_ref = review_policy.get("base_ref")
+    authoritative_base_sha: str | None = None
+    if isinstance(base_ref, str) and base_ref:
+        authoritative_base_sha = _git_value(
+            root,
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            f"refs/remotes/origin/{base_ref}",
+        )
+    if not _sha_is_valid(authoritative_base_sha):
+        errors.append("REVIEW_BASE_TARGET_UNAVAILABLE")
+
+    reviewed_base = receipt.get("reviewed_base_sha")
+    if not _sha_is_valid(reviewed_base):
+        errors.append("REVIEW_BASE_SHA_INVALID")
+    elif expected_base_sha is None:
+        errors.append("EXPECTED_BASE_SHA_REQUIRED")
+    elif reviewed_base != expected_base_sha:
+        errors.append("REVIEW_BASE_SHA_MISMATCH")
+    if _sha_is_valid(authoritative_base_sha):
+        if expected_base_sha != authoritative_base_sha:
+            errors.append("REVIEW_EXPECTED_BASE_SHA_MISMATCH")
+        if reviewed_base != authoritative_base_sha:
+            errors.append("REVIEW_BASE_TARGET_MISMATCH")
+    return errors
+
+
+def _review_finding_errors(
+    finding: object,
+    index: int,
+    blocking_severities: set[str],
+) -> list[str]:
+    if not isinstance(finding, dict):
+        return [f"REVIEW_FINDING_INVALID:{index}"]
+    errors: list[str] = []
+    if finding.get("severity") in blocking_severities or finding.get("blocking") is True:
+        errors.append("REVIEW_BLOCKING_FINDING")
+    summary = finding.get("summary")
+    if not isinstance(summary, str) or not summary.strip():
+        errors.append(f"REVIEW_FINDING_SUMMARY_INVALID:{index}")
+    return errors
+
+
+def _review_findings_errors(
+    verdict: object,
+    findings: object,
+    review_policy: dict[str, Any],
+) -> list[str]:
+    if not isinstance(findings, list):
+        return ["REVIEW_FINDINGS_INVALID"]
+    errors: list[str] = []
+    blocking_severities = set(review_policy.get("blocking_severities", []))
+    for index, finding in enumerate(findings):
+        errors.extend(_review_finding_errors(finding, index, blocking_severities))
+    if verdict == "APPROVE" and findings:
+        errors.append("REVIEW_FINDINGS_WITH_APPROVE")
+    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
+        errors.append("REVIEW_NONBLOCKING_VERDICT_WITHOUT_FINDINGS")
     return errors
 
 
@@ -163,64 +292,22 @@ def _review_errors(
 ) -> tuple[list[str], bool]:
     if review_receipt is None:
         return [], False
+    safe_path, path_error = _safe_review_receipt_path(root, review_receipt)
+    if path_error is not None:
+        return [path_error], False
     errors: list[str] = []
     review_policy = policy.get("review", {})
     try:
-        receipt = _load_object(review_receipt)
+        receipt = _load_object(safe_path)
     except FileNotFoundError:
         return ["REVIEW_RECEIPT_MISSING"], False
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         return [f"REVIEW_RECEIPT_INVALID:{type(exc).__name__}"], False
 
-    if receipt.get("repository") != EXPECTED_POLICY["repository"]:
-        errors.append("REVIEW_REPOSITORY_MISMATCH")
-    if receipt.get("review_context") != review_policy.get("context"):
-        errors.append("REVIEW_CONTEXT_INVALID")
-    if receipt.get("reviewer_model") not in review_policy.get("allowed_models", []):
-        errors.append("REVIEWER_MODEL_INVALID")
-    verdict = receipt.get("verdict")
-    if verdict not in review_policy.get("allowed_verdicts", []):
-        errors.append("REVIEW_VERDICT_INVALID")
-
-    actual_head = _git_value(root, "rev-parse", "HEAD")
-    actual_tree = _git_value(root, "rev-parse", "HEAD^{tree}")
-    if not _sha_is_valid(actual_head) or not _sha_is_valid(actual_tree):
-        errors.append("GIT_CURRENT_HEAD_UNAVAILABLE")
-    if receipt.get("reviewed_head_sha") != actual_head:
-        errors.append("REVIEW_HEAD_SHA_MISMATCH")
-    if receipt.get("reviewed_tree_sha") != actual_tree:
-        errors.append("REVIEW_TREE_SHA_MISMATCH")
-
-    reviewed_base = receipt.get("reviewed_base_sha")
-    if not _sha_is_valid(reviewed_base):
-        errors.append("REVIEW_BASE_SHA_INVALID")
-    elif expected_base_sha is None:
-        errors.append("EXPECTED_BASE_SHA_REQUIRED")
-    elif reviewed_base != expected_base_sha:
-        errors.append("REVIEW_BASE_SHA_MISMATCH")
-    else:
-        reachable = _git_reachable_commits(root)
-        if reachable is None or reviewed_base not in reachable:
-            errors.append("REVIEW_BASE_SHA_UNREACHABLE")
-
     findings = receipt.get("findings")
-    if not isinstance(findings, list):
-        errors.append("REVIEW_FINDINGS_INVALID")
-        findings = []
-    blocking_severities = set(review_policy.get("blocking_severities", []))
-    for index, finding in enumerate(findings):
-        if not isinstance(finding, dict):
-            errors.append(f"REVIEW_FINDING_INVALID:{index}")
-            continue
-        severity = finding.get("severity")
-        if severity in blocking_severities or finding.get("blocking") is True:
-            errors.append("REVIEW_BLOCKING_FINDING")
-        if not isinstance(finding.get("summary"), str) or not finding["summary"].strip():
-            errors.append(f"REVIEW_FINDING_SUMMARY_INVALID:{index}")
-    if verdict == "APPROVE" and findings:
-        errors.append("REVIEW_FINDINGS_WITH_APPROVE")
-    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
-        errors.append("REVIEW_NONBLOCKING_VERDICT_WITHOUT_FINDINGS")
+    errors.extend(_review_identity_errors(receipt, review_policy))
+    errors.extend(_review_sha_errors(root, receipt, expected_base_sha, review_policy))
+    errors.extend(_review_findings_errors(receipt.get("verdict"), findings, review_policy))
     return errors, not errors
 
 
@@ -239,7 +326,7 @@ def verify_operating_contract(
         policy_loaded = True
     except FileNotFoundError:
         errors.append("OPERATING_POLICY_MISSING")
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         errors.append(f"OPERATING_POLICY_INVALID:{type(exc).__name__}")
     if policy_loaded:
         _policy_matches(policy, errors)
@@ -250,7 +337,7 @@ def verify_operating_contract(
         state = _load_object(root / STATE_PATH)
     except FileNotFoundError:
         errors.append("CURRENT_STATE_MISSING")
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         errors.append(f"CURRENT_STATE_INVALID:{type(exc).__name__}")
     if state.get("live_trading_state") != "HARD_LOCKED":
         errors.append("LIVE_TRADING_LOCK_WEAKENED")

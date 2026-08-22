@@ -19,7 +19,8 @@ Ne pas relancer mécaniquement la suite complète lorsqu'un reçu exact-SHA frai
 
 `tools/verify_operating_contract.py` est le consommateur de la politique
 machine : sans reçu indépendant lié aux base/head/tree exacts, la validation
-peut décrire l'état mais ne peut pas autoriser le merge.
+et à la branche d'intégration autoritative, elle peut décrire l'état mais ne
+peut pas autoriser le merge.
 
 ## Orchestration productive
 
