@@ -1613,8 +1613,8 @@
     },
     {
       "path": "tools/verify_foundation.py",
-      "sha256": "541b5bbd0ffcdf1e0ee97d19dbff96ac165c43616ed5fb856cf77a95fe71f28a",
-      "bytes": 11236
+      "sha256": "99176f3686028307dbf3f121352d53dffc1d37d68522fac90d8aa93ee556dcb2",
+      "bytes": 11388
     },
     {
       "path": "tools/verify_market_data.py",

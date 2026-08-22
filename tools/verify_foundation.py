@@ -12,6 +12,9 @@ import sys
 import tempfile
 from typing import Callable
 
+# The repository-local source path must be installed before these imports when
+# this verifier is executed directly from a checkout.
+# ruff: noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
