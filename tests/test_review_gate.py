@@ -102,6 +102,49 @@ class ReviewGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
             select_withdrawn_review()
 
+    def test_selector_rejects_withdrawn_review_when_api_order_is_reversed(self) -> None:
+        def select_reversed_reviews() -> dict[str, object]:
+            return _select_exact_review(
+                [
+                    _review(
+                        id=2,
+                        state="CHANGES_REQUESTED",
+                        submitted_at="2026-08-22T00:02:00Z",
+                    ),
+                    _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
+                ],
+                repository="leon36000/MarketOS-",
+                pull_request=30,
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                owner_login="leon36000",
+                pr_author="leon36000",
+            )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_reversed_reviews()
+
+    def test_selector_uses_review_id_as_same_timestamp_tiebreaker(self) -> None:
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            _select_exact_review(
+                [
+                    _review(
+                        id=2,
+                        state="CHANGES_REQUESTED",
+                        submitted_at="2026-08-22T00:01:00Z",
+                    ),
+                    _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
+                ],
+                repository="leon36000/MarketOS-",
+                pull_request=30,
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                owner_login="leon36000",
+                pr_author="leon36000",
+            )
+
     def test_selector_rejects_untrusted_reviewer(self) -> None:
         def select_untrusted_review() -> dict[str, object]:
             return _select_exact_review(

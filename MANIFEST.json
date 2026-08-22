@@ -1488,8 +1488,8 @@
     },
     {
       "path": "tests/test_review_gate.py",
-      "sha256": "df9e162cc350ecc396f5e4a18d31fe694b0ba6511e1cfadb6520e20eb67fb292",
-      "bytes": 11548
+      "sha256": "147219cd3d467fd2ef5159a0ae6e8a7f59b4f439565d33229709aa5ce5bd533d",
+      "bytes": 13232
     },
     {
       "path": "tests/test_rights.py",
@@ -1523,8 +1523,8 @@
     },
     {
       "path": "tests/test_trusted_review_gate.py",
-      "sha256": "4f3f91568a90211e31c00aea2313b9486ec60073aa9c00e02aa1e3ce2a171911",
-      "bytes": 5276
+      "sha256": "44575b9bb0e379ad69009f8a465eeccd511377da5b3e25aafaf8c3aa4ceb51ed",
+      "bytes": 6696
     },
     {
       "path": "tests/test_validation.py",
@@ -1558,8 +1558,8 @@
     },
     {
       "path": "tools/trusted_review_gate.py",
-      "sha256": "e558df8010d3150665e012e3438484cbd401631f18a815fe30e2a232de6edfb9",
-      "bytes": 8154
+      "sha256": "8d0809ec8d555022d9fa969b54f3b200f6f4459ae8173404dfd4ae3aad997478",
+      "bytes": 8536
     },
     {
       "path": "tools/validate_c1_design.py",
@@ -1618,8 +1618,8 @@
     },
     {
       "path": "tools/verify_github_review.py",
-      "sha256": "90f251c1d2d356585748f82fb451d84fed83f7f9aaa6f53c24611e7438ae1917",
-      "bytes": 11407
+      "sha256": "2d270b0342400702ca83432a7f7028cb54ac74acb4dddc407a45376caee32169",
+      "bytes": 11789
     },
     {
       "path": "tools/verify_market_data.py",

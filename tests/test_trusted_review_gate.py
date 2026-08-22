@@ -74,6 +74,46 @@ class TrustedReviewGateTests(unittest.TestCase):
             )
         )
 
+    def test_reversed_api_order_still_uses_latest_review(self) -> None:
+        self.assertFalse(
+            _has_latest_exact_review(
+                [
+                    _review(
+                        id=2,
+                        state="CHANGES_REQUESTED",
+                        submitted_at="2026-08-22T00:02:00Z",
+                    ),
+                    _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
+                ],
+                repository="leon36000/MarketOS-",
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                pr_author="leon36000",
+                trusted_reviewers={"trusted-reviewer"},
+            )
+        )
+
+    def test_review_id_breaks_same_timestamp_tie(self) -> None:
+        self.assertFalse(
+            _has_latest_exact_review(
+                [
+                    _review(
+                        id=2,
+                        state="CHANGES_REQUESTED",
+                        submitted_at="2026-08-22T00:01:00Z",
+                    ),
+                    _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
+                ],
+                repository="leon36000/MarketOS-",
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                pr_author="leon36000",
+                trusted_reviewers={"trusted-reviewer"},
+            )
+        )
+
     def test_nonblocking_verdict_rejects_high_or_malformed_findings(self) -> None:
         for findings in (
             [{"severity": "HIGH", "blocking": True, "summary": "unsafe merge"}],

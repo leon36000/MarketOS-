@@ -86,12 +86,20 @@ def _latest_reviews_by_reviewer(
     reviews: list[dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     latest_by_reviewer: dict[str, dict[str, Any]] = {}
-    for review in reviews:
+    for review in sorted(reviews, key=_review_sort_key):
         user = review.get("user")
         reviewer_login = user.get("login") if isinstance(user, dict) else None
         if isinstance(reviewer_login, str) and reviewer_login.strip():
             latest_by_reviewer[reviewer_login] = review
     return latest_by_reviewer
+
+
+def _review_sort_key(review: dict[str, Any]) -> tuple[int, str, int]:
+    submitted_at = review.get("submitted_at")
+    timestamp = submitted_at.strip() if isinstance(submitted_at, str) else ""
+    review_id = review.get("id")
+    numeric_id = review_id if isinstance(review_id, int) else -1
+    return (1 if timestamp else 0, timestamp, numeric_id)
 
 
 def _review_verdict_and_findings(body: object) -> tuple[str, list[object]] | None:
