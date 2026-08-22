@@ -126,16 +126,18 @@ class ReviewGateTests(unittest.TestCase):
             select_reversed_reviews()
 
     def test_selector_uses_review_id_as_same_timestamp_tiebreaker(self) -> None:
-        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
-            _select_exact_review(
-                [
-                    _review(
-                        id=2,
-                        state="CHANGES_REQUESTED",
-                        submitted_at="2026-08-22T00:01:00Z",
-                    ),
-                    _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
-                ],
+        reviews = [
+            _review(
+                id=2,
+                state="CHANGES_REQUESTED",
+                submitted_at="2026-08-22T00:01:00Z",
+            ),
+            _review(id=1, submitted_at="2026-08-22T00:01:00Z"),
+        ]
+
+        def select_tied_reviews() -> dict[str, object]:
+            return _select_exact_review(
+                reviews,
                 repository="leon36000/MarketOS-",
                 pull_request=30,
                 base_sha=BASE_SHA,
@@ -144,6 +146,9 @@ class ReviewGateTests(unittest.TestCase):
                 owner_login="leon36000",
                 pr_author="leon36000",
             )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_tied_reviews()
 
     def test_selector_rejects_untrusted_reviewer(self) -> None:
         def select_untrusted_review() -> dict[str, object]:
