@@ -1,0 +1,37 @@
+{
+  "phase": "C13",
+  "slice": "C13-0",
+  "status": "VERIFIED_SLICE",
+  "decision": "Adopt a local SQLite append-only journal and checkpoint boundary for paper/shadow books; require reconciliation before any risk allow.",
+  "verification": {
+    "runtime_module": "src/marketos/authoritative_books.py",
+    "test_module": "tests/test_c13_authoritative_books.py",
+    "validator": "tools/verify_c13_contract.py",
+    "phase_complete": false,
+    "promotion_allowed": false
+  },
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "promotion_allowed": false,
+    "broker_selected": false,
+    "production_backend_selected": false,
+    "external_order_submission": "FORBIDDEN"
+  },
+  "covered_partial_requirements": [
+    "AUD-RSK-001",
+    "AUD-RSK-004",
+    "AUD-RSK-005",
+    "AUD-RSK-006",
+    "AUD-RSK-009"
+  ],
+  "open_subgates": [
+    "portfolio_optimizer_and_liquidity_constraints",
+    "broker_adapters_oms_ems_and_fill_reconciliation",
+    "kill_switch_cancel_all_and_stale_data_halt_routing",
+    "fx_tax_lot_corporate_action_and_production_accounting",
+    "secrets_chaos_disaster_recovery_and_independent_security_gate",
+    "full_C13_runtime_contracts_and_phase_completion"
+  ],
+  "rollback": "Keep the feature branch isolated, preserve evidence, revert only this slice if its exit gate fails, and leave all authority locks unchanged."
+}

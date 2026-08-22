@@ -2,29 +2,39 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/workflows/architecture-reconciliation.yml",
+      "sha256": "b9a081623b37751266f7ea3395ae0bce17d792ae8eb2cad4d8cefd9873fb52ee",
+      "bytes": 3152
+    },
+    {
+      "path": ".github/workflows/claude-pack-green.yml",
+      "sha256": "e99bf98c9127c8b92a5d6a9a2a1e148ec874b931f3d16e36a2d6e1a700cc73d5",
+      "bytes": 738
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
-      "sha256": "23e44a3dc9bc68397b1902ce3fc9558e353705010d4bc55bc454b22fa4fb5071",
-      "bytes": 2703
+      "sha256": "d9634c164042c7325ad83ba47d4ce8b429655981a0b452c7b098bb6bc8e9a7cc",
+      "bytes": 2742
     },
     {
       "path": ".github/workflows/execution-calibration.yml",
-      "sha256": "508937ac299cc3445bb1051d3a2223e5d161eaf4a35f5578028c3d696e188b3d",
-      "bytes": 3601
+      "sha256": "94dc0418a18078e0f17d7f01a4434d0379a44e557f536066ba5fc7b925d3b1bd",
+      "bytes": 3679
     },
     {
       "path": ".github/workflows/feature-foundation.yml",
-      "sha256": "8615824e1d20b92f1f6024b451f118060aa22eeb898b2f711536dae564aab062",
-      "bytes": 2412
+      "sha256": "e4944daff31d42e154b1cb1fb0cc9b2b85895d335da955771c8e7a50f6339e66",
+      "bytes": 2451
     },
     {
       "path": ".github/workflows/implementation-foundation.yml",
-      "sha256": "68b0fb08fed74a7e007395def59604c5501cb9edde2f9aa2c565a57f3b516257",
-      "bytes": 1783
+      "sha256": "43c2d00a639446acdbc188deffd5cee5803c3acfd9536c1ee2f693c17a0fb152",
+      "bytes": 1822
     },
     {
       "path": ".github/workflows/market-data.yml",
-      "sha256": "afceca9e74beae6ee2adc33a8471fa66c51e1d0b9019653bbf3b0cd0377445d6",
-      "bytes": 2241
+      "sha256": "b350605017e966ed2fa2cccd39fa4c5031ec5e9529190d5757eca12295385f7d",
+      "bytes": 2280
     },
     {
       "path": ".github/workflows/materialize-execution-reality-gap.yml",
@@ -32,24 +42,34 @@
       "bytes": 3001
     },
     {
+      "path": ".github/workflows/proof-engine-green.yml",
+      "sha256": "1cd180be1a2ebc2aca763fd4229cb770c56923cbe0fcaac430a1aaa977e1f8c0",
+      "bytes": 2190
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "e3ce7099767b213fd593bba932b0e003697204039288a888bf15f9acdf65209f",
-      "bytes": 3144
+      "sha256": "784b6ff371e6a2eb444079d8b86b5664d2159e794d9b5a29c1ea735f79ebc76c",
+      "bytes": 3316
     },
     {
       "path": ".github/workflows/research-governance.yml",
-      "sha256": "5e40cc8cd113350a8cac5de3730352e79b89d16d14e8ee311de06b4fd27a7474",
-      "bytes": 3155
+      "sha256": "dea98c1f486aac9e3114340054e74400b3ce735b42ec2d30f5363448195dfdb0",
+      "bytes": 3194
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "86bbe013b254fe6bf02766739e105ffc36b4c2311ecd48d55c63308a2c58270d",
-      "bytes": 1753
+      "sha256": "bca2068c333c99693ed9867491440a86d7455ab6140a956379a4fbc1fc2636cc",
+      "bytes": 1792
     },
     {
       "path": ".gitignore",
       "sha256": "fdc0e03aa724bfc21f8c8b8f05169a5819d1da7b38f584f88001acbbc73a9ef6",
       "bytes": 94
+    },
+    {
+      "path": ".gitleaksignore",
+      "sha256": "fe45d6561d5bbecd7e3d2d5ffaa1ec7e6ed1f77d9d2d73fa729c7e2a673345bb",
+      "bytes": 65
     },
     {
       "path": "AGENTS.md",
@@ -88,13 +108,13 @@
     },
     {
       "path": "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
-      "sha256": "8a4aff66b5fffb0abaa376db33e38f9ca76f2a629251da2821cc92bf871358d5",
-      "bytes": 702
+      "sha256": "77be25a5abd7b1a6a45e8e967722e8e0a79d8ef985fbf1d20e76fd7efb141703",
+      "bytes": 871
     },
     {
       "path": "authority/CURRENT_STATE.json",
-      "sha256": "52be5674e952551c45fb9b963543b914630ece1be452a66d0f085b4570b72762",
-      "bytes": 837
+      "sha256": "fe0839f57442be8fa9bf6501af968ae83df9dcc1186c2d3530f63bda0892cf2f",
+      "bytes": 1368
     },
     {
       "path": "authority/NEON_MEMORY_STATE.json",
@@ -332,6 +352,31 @@
       "bytes": 1076
     },
     {
+      "path": "docs/audit/PR14_PR20_RECONCILIATION.md",
+      "sha256": "16801774d0d15491c2f67fa6ebf0d5fcaa87470a00773d9646d808f295ca31cc",
+      "bytes": 4717
+    },
+    {
+      "path": "docs/implementation/C13_1_PRE_TRADE_EXECUTION_SAFETY.md",
+      "sha256": "fbd1eb48e9bae044e4a041c09b8b085f3c95babea400d138e946995ccddd9755",
+      "bytes": 3510
+    },
+    {
+      "path": "docs/implementation/C13_2_CHECKPOINT_AUTHENTICATED_RESTART.md",
+      "sha256": "f5312a42ba6d020ecd17990cf94668f5b24b0ef50fe0073b9903e73e8c8eae40",
+      "bytes": 3220
+    },
+    {
+      "path": "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
+      "sha256": "2dfcb4a12d666655217cd5ff975c0a3c2f841331cc0f83d1ecf73cddc51b6445",
+      "bytes": 3061
+    },
+    {
+      "path": "docs/implementation/C16_PACK_BUILDER.md",
+      "sha256": "92ef9d853d52dff0551673d4fee39f18d2cd584dcab9e3b99147ef35e14f67e4",
+      "bytes": 1373
+    },
+    {
       "path": "docs/implementation/CANONICAL_MARKET_DATA.md",
       "sha256": "ecc37f2f827cf8bc6ef914a7ea7577528fbdd41e9fd3239a5c4f3f66ebd3a37f",
       "bytes": 2156
@@ -365,6 +410,11 @@
       "path": "docs/implementation/MARKET_CALENDAR_FEATURE_STORE_REVIEW.md",
       "sha256": "289c606ad8f1d9bdf987ac86c305894fcdddf5090830049071fd7d23ef919aed",
       "bytes": 1816
+    },
+    {
+      "path": "docs/implementation/PROOF_ENGINE_V2.md",
+      "sha256": "9b9c926db34fbda15dfe5f105a028fe3f73d0d99f5d60a1e9bc1e9744b544fc9",
+      "bytes": 2816
     },
     {
       "path": "docs/implementation/RESEARCH_GOVERNANCE_KERNEL.md",
@@ -475,6 +525,41 @@
       "path": "docs/superpowers/plans/2026-08-14-research-governance-kernel.md",
       "sha256": "0945be6d58d9418e0f0d6f1fee65287ee2b099f0ea94e62dc41c5d95e7e29707",
       "bytes": 8405
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-20-c13-1-pre-trade-execution-safety.md",
+      "sha256": "c4d6651c062e378f3459b430cd9785bad8976e0a422e74c3bc7ae8449fea08b8",
+      "bytes": 19092
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
+      "sha256": "5710a2006d71b023fdadf8ac4eddff8ba9c0d9580f3ba2e22ecb15c55364c5b3",
+      "bytes": 16878
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-20-proof-binding.md",
+      "sha256": "95c523b59f392f9e49e017c7938a9748992f366edd29bf546ea7f0acc81da6f5",
+      "bytes": 9043
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-21-c13-2-checkpoint-authenticated-restart-plan.md",
+      "sha256": "68f9ac558b70f90606f5c7b570c42bc892dfb8f16f7c168fcddf7b66fa190185",
+      "bytes": 19464
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-20-c13-1-pre-trade-execution-safety-design.md",
+      "sha256": "89fa20139de6ae2a41b78ae692cd7d9de66c3d46c906acc8241de2bbde4d7f63",
+      "bytes": 10808
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-20-c13-authoritative-books-risk-veto-design.md",
+      "sha256": "776580d5c94086c3fe337701a78b35648aef35583df9520000c840be73a614b3",
+      "bytes": 7651
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
+      "sha256": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
+      "bytes": 8951
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -593,8 +678,28 @@
     },
     {
       "path": "planning/PHASE_INDEX.json",
-      "sha256": "54b489d5e01a982c749af49e5f3988f0da445c604ba13682fceee817fd1e5bcf",
+      "sha256": "97a28e11538c6ca3e7451e008f0d1504f6dad6c440841ff9229f8fe969913011",
       "bytes": 5336
+    },
+    {
+      "path": "planning/architecture/PR14_PR20_RECONCILIATION.json",
+      "sha256": "8989b808a5fb9062adc53b367b1d0462f155246b77ff57f5da6edea2b79afcec",
+      "bytes": 9368
+    },
+    {
+      "path": "planning/architecture/PROOF_BINDING.json",
+      "sha256": "234946e88de08b434ba383371ca83e99d69fc6ffb80dc18eb0f1c91aa5fedc0f",
+      "bytes": 3320
+    },
+    {
+      "path": "planning/architecture/PROOF_ENGINE_POLICY.json",
+      "sha256": "cb478acaee2c80ccf01f91162dcffdc5537dd9a757b1804d89419b1e8a73083f",
+      "bytes": 1320
+    },
+    {
+      "path": "planning/architecture/REQUIREMENTS_108_119_RECONCILIATION.json",
+      "sha256": "95b6a5fa5e86d91c0dbf02f81452c17b6276b951905229d2e6877ee01e9f6333",
+      "bytes": 824
     },
     {
       "path": "planning/phases/C1/C1_DECISIONS.json",
@@ -675,6 +780,61 @@
       "path": "planning/phases/C12/PHASE_BRIEF.md",
       "sha256": "5626a177fb5e95b636ce27b2e53e622ef6e381e5bd44d8398177e157cdbbc306",
       "bytes": 1142
+    },
+    {
+      "path": "planning/phases/C13/C13_1_DECISIONS.json",
+      "sha256": "825984731abc4018132d11ad71277698d70555bd708c777979576b06c4baa6ad",
+      "bytes": 1558
+    },
+    {
+      "path": "planning/phases/C13/C13_1_EXECUTION_CONTRACT.md",
+      "sha256": "b27e30ddc26dff98e9b3bce47ef3c5673802230c53f82efb4314ed2da9fa52aa",
+      "bytes": 4682
+    },
+    {
+      "path": "planning/phases/C13/C13_1_REQUIREMENT_CLOSURE.json",
+      "sha256": "86d581f53e1eded2d4b6722c74091659c2b13874a2fffba529a35bdd4beae0bc",
+      "bytes": 2466
+    },
+    {
+      "path": "planning/phases/C13/C13_2_DECISIONS.json",
+      "sha256": "2af98f54ee5cd50af5d69a673bac66e95d91f5bb6b21edbb9a5bbbd470bcbc26",
+      "bytes": 1153
+    },
+    {
+      "path": "planning/phases/C13/C13_2_EXECUTION_CONTRACT.md",
+      "sha256": "a9fc38243632377e57e9edcf7efa2cd78dc121bb832c0cfa8d761e187fc28eea",
+      "bytes": 2200
+    },
+    {
+      "path": "planning/phases/C13/C13_2_REQUIREMENT_CLOSURE.json",
+      "sha256": "15f013880cdc781ffa58fc415269d5d62ce7727d335114820540d5dddefdcc98",
+      "bytes": 1774
+    },
+    {
+      "path": "planning/phases/C13/C13_2_SOURCE_RECEIPT.json",
+      "sha256": "bec83eeb0f946ef6393ea8b8aeaba3089725bb7f60f1e078a3b977637fef8b00",
+      "bytes": 2161
+    },
+    {
+      "path": "planning/phases/C13/C13_DECISIONS.json",
+      "sha256": "cf7cb742c36448cda68221618e1f959816fdc1d09e4cf9e23253bd3f52dfd817",
+      "bytes": 1382
+    },
+    {
+      "path": "planning/phases/C13/C13_REQUIREMENT_CLOSURE.json",
+      "sha256": "a700b016559a61ebb84a4b373cfec515147c47ecdc36ff3576c49c147dd608fd",
+      "bytes": 2413
+    },
+    {
+      "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
+      "sha256": "87e44cdbe063827285d2730bc2bcced95e32e4473bdb7feb4d3a553be8d613d3",
+      "bytes": 2102
+    },
+    {
+      "path": "planning/phases/C13/EXECUTION_CONTRACT.md",
+      "sha256": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
+      "bytes": 5530
     },
     {
       "path": "planning/phases/C13/PHASE_BRIEF.md",
@@ -917,6 +1077,11 @@
       "bytes": 48
     },
     {
+      "path": "src/marketos/authoritative_books.py",
+      "sha256": "b4347d3f8eb64488ef5952b88646dd343c66df06f1db5b49b56836035ab5be11",
+      "bytes": 60714
+    },
+    {
       "path": "src/marketos/bars.py",
       "sha256": "b1cbacb8ff4027732f76a542cf721fd7bee0ca0895066456f2c93006831396da",
       "bytes": 9566
@@ -953,8 +1118,8 @@
     },
     {
       "path": "src/marketos/errors.py",
-      "sha256": "ed20f5bba132dad43957e4bf286b3dac012cf8e5cb98478d764b7506377abfed",
-      "bytes": 352
+      "sha256": "3ea4032221e9af3cd776a6aa57c6495920ffe724dff3c6c7abea06f95bc0c027",
+      "bytes": 484
     },
     {
       "path": "src/marketos/events.py",
@@ -970,6 +1135,11 @@
       "path": "src/marketos/execution_evidence.py",
       "sha256": "0196f24dc4e861ecb0ef6f0db24d86dd1a0d5b542575599e7237ba2b53c6f023",
       "bytes": 23832
+    },
+    {
+      "path": "src/marketos/execution_safety.py",
+      "sha256": "a155f04a9f7f123828a7eb42f17bab98759bba16cb2fecccb1e43ff7ffb6c6e4",
+      "bytes": 10492
     },
     {
       "path": "src/marketos/experiments.py",
@@ -1008,8 +1178,8 @@
     },
     {
       "path": "src/marketos/paper.py",
-      "sha256": "c214ab9e1cafd380c098e040d86a30aa585d6af08bc6fa2bf9e471b20c50cdfa",
-      "bytes": 13707
+      "sha256": "5cdb0a2947c7bd6bcedc76ae9d4af81e2d5fd5d3edd1321ff7ea64e2b8ad22f6",
+      "bytes": 25269
     },
     {
       "path": "src/marketos/portfolio.py",
@@ -1023,8 +1193,8 @@
     },
     {
       "path": "src/marketos/replay.py",
-      "sha256": "f8c09204c57da1ae4b859d75f872762a4121f6ec5d038e6e9602ef25c45c8a81",
-      "bytes": 13448
+      "sha256": "f3c4f8d7a3a115b0130f4550ffe325a21af571cf9f8ee6bfed5516004b19c0fc",
+      "bytes": 14266
     },
     {
       "path": "src/marketos/rights.py",
@@ -1033,8 +1203,8 @@
     },
     {
       "path": "src/marketos/risk.py",
-      "sha256": "48e9565bfde963fe8c7b943f53e367b73098f17cc13a8db80f7aa418dc5c3972",
-      "bytes": 8505
+      "sha256": "5d571730714f92eb138be869ebbd27d60304542f645afdf19c43cb0a6a832a66",
+      "bytes": 10117
     },
     {
       "path": "src/marketos/sessions.py",
@@ -1067,6 +1237,11 @@
       "bytes": 0
     },
     {
+      "path": "tests/test_architecture_reconciliation_acceptance.py",
+      "sha256": "5d2d46e79a860d48615c9c87f339e029ee8d6367de62499b851dd7ef5b654da4",
+      "bytes": 1724
+    },
+    {
       "path": "tests/test_bars.py",
       "sha256": "0976a50768d425ca12a3691fd635026315852447280271ab42ca1a171feeac2e",
       "bytes": 4687
@@ -1075,6 +1250,16 @@
       "path": "tests/test_c10_c12_design.py",
       "sha256": "f87a39f945f46771ec740614d39650329048f131571e8ff858694f9411f74695",
       "bytes": 6390
+    },
+    {
+      "path": "tests/test_c13_authoritative_books.py",
+      "sha256": "a806291b46cdcd89c2f886d76492c698abb32a38510501161b0a32377a11221c",
+      "bytes": 41177
+    },
+    {
+      "path": "tests/test_c13_execution_safety.py",
+      "sha256": "a49b8679ab0ee23ce65a6dfc815b7d39bde18e7108327ed834a499731009c981",
+      "bytes": 32568
     },
     {
       "path": "tests/test_c1_design.py",
@@ -1177,6 +1362,11 @@
       "bytes": 11179
     },
     {
+      "path": "tests/test_final_pack.py",
+      "sha256": "ca870603db3b55dd34ff3ab7fd77a7dc10b7e69c119b705f23857077809e509c",
+      "bytes": 7828
+    },
+    {
       "path": "tests/test_foundation_acceptance.py",
       "sha256": "dc9b9188633ff95edcf7ecdf478d9498d94acf595c89b1c95827d96516e87e3f",
       "bytes": 2019
@@ -1218,8 +1408,8 @@
     },
     {
       "path": "tests/test_paper.py",
-      "sha256": "25024db20d86d0289168ddd2eba8c5bb0f06e7ef0ffc78bcd203d6749189baba",
-      "bytes": 6127
+      "sha256": "10c214ee8e84bb708e3c423323bb3e7325c8c073e08a60d777c297a12ae0eee4",
+      "bytes": 6673
     },
     {
       "path": "tests/test_portfolio.py",
@@ -1230,6 +1420,21 @@
       "path": "tests/test_promotion.py",
       "sha256": "d7a037ad3450853bba8cd8461b53f23b45efb43f7503996634d033e660737dd7",
       "bytes": 16298
+    },
+    {
+      "path": "tests/test_proof_binding.py",
+      "sha256": "044c0c26140d146b5f1dcb8e0b47ae8ebc035e1419f14b07ba425d5d39db3c08",
+      "bytes": 4876
+    },
+    {
+      "path": "tests/test_proof_engine.py",
+      "sha256": "9d7f1e4fae93f9721cd2cb64a25845718e6bd9b9aff56b8045c52b68fb12c5ea",
+      "bytes": 3560
+    },
+    {
+      "path": "tests/test_proof_engine_acceptance.py",
+      "sha256": "7afa6b300ae3c1a580ec50a0b8c566e4388b6765e993886f47e473c5e9679a93",
+      "bytes": 1219
     },
     {
       "path": "tests/test_regenerate_derived.py",
@@ -1245,6 +1450,11 @@
       "path": "tests/test_repository_contract.py",
       "sha256": "572163e9c4e9f8abb9ff82877189825d53864b0c6f79c100bd43d9c395b3f0f4",
       "bytes": 6935
+    },
+    {
+      "path": "tests/test_requirements_reconciliation.py",
+      "sha256": "45c464bbf2cca35f36fd663533fa6c73529659ffcb43d9b5b053663918e326e3",
+      "bytes": 1816
     },
     {
       "path": "tests/test_research_governance_acceptance.py",
@@ -1263,8 +1473,8 @@
     },
     {
       "path": "tests/test_risk.py",
-      "sha256": "eabfb152a526a4ab850bb9d5080378cc4990e41339cf1640154596ed70acbbc0",
-      "bytes": 5094
+      "sha256": "7ba28c135d120ad74d22be86005cb50c6ce02fcd129f5d5eef8e1eb0c078e7a0",
+      "bytes": 5372
     },
     {
       "path": "tests/test_sessions.py",
@@ -1282,6 +1492,11 @@
       "bytes": 3896
     },
     {
+      "path": "tests/test_takeover_gate.py",
+      "sha256": "2aa8272d67d3ac1262ccb9a94a9c0ad5253f4ca9e96c8a749fbbb212c5759a7b",
+      "bytes": 1281
+    },
+    {
       "path": "tests/test_validation.py",
       "sha256": "1bbbb8f49c365825f9f0fb7f5b344ab50fcc0a52bfaa8f42b5ab63133d56d895",
       "bytes": 9297
@@ -1295,6 +1510,11 @@
       "path": "tools/__init__.py",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
+    },
+    {
+      "path": "tools/build_claude_pack.py",
+      "sha256": "1d02b3bd07951e30aef1194c2e7e2fbcbd3707aee8b6d9d8d08dff9ec40f17eb",
+      "bytes": 20945
     },
     {
       "path": "tools/ingest_requirements.py",
@@ -1322,6 +1542,26 @@
       "bytes": 12139
     },
     {
+      "path": "tools/verify_architecture_reconciliation.py",
+      "sha256": "84c18cccd6f35ec40efcfec9d3079de95a0c263a8cbf8056617bb8db9ed2e950",
+      "bytes": 16744
+    },
+    {
+      "path": "tools/verify_c13_checkpoint_reconstruction.py",
+      "sha256": "a6e1951942cd8794f93db1bc0827de69ef0ea23fa85bdf849de051262b1c971a",
+      "bytes": 11731
+    },
+    {
+      "path": "tools/verify_c13_contract.py",
+      "sha256": "5ffa7b8e0cfc8bc94c4129ae0ca20bfad77672886fe02e97744801f1678a66eb",
+      "bytes": 17109
+    },
+    {
+      "path": "tools/verify_c13_execution_safety.py",
+      "sha256": "46eb503e955e7f8aba820dfeb7d86daaaaa6b9f45d6eba3b234e367983efed6d",
+      "bytes": 24615
+    },
+    {
       "path": "tools/verify_data_foundation.py",
       "sha256": "6af52c78c2415dbb8d76e4183c1ae3769147ac12be0e87135c38728e898a14d5",
       "bytes": 11378
@@ -1338,8 +1578,8 @@
     },
     {
       "path": "tools/verify_foundation.py",
-      "sha256": "bd08ba931d039e06e88cf59895fd165aaae5d0bd8cd944757e6b078e28a924af",
-      "bytes": 10102
+      "sha256": "67c047cec64316ab0101c4674b5bb1f039c498787faecb0184a8e3a041512bd4",
+      "bytes": 11283
     },
     {
       "path": "tools/verify_market_data.py",
@@ -1350,6 +1590,21 @@
       "path": "tools/verify_neon_memory.py",
       "sha256": "a4d78d8494040946e47a9d588ff90ea3ef4d798c8d17acfa4d202b98cfc8f22e",
       "bytes": 1258
+    },
+    {
+      "path": "tools/verify_proof_binding.py",
+      "sha256": "685e00f0a7039d068ff30319a38f16527a3acccf4d50a089ca5115695840eeb3",
+      "bytes": 8796
+    },
+    {
+      "path": "tools/verify_proof_engine.py",
+      "sha256": "863b2876d9b3612e6d0f9c2e558107e8de93d67579bfdc80ec4302e3c3340ce8",
+      "bytes": 10364
+    },
+    {
+      "path": "tools/verify_requirements_reconciliation.py",
+      "sha256": "15094bb7f8a5fa2a31c6cef974ba3b57e4895f0181307af667fc30f1f65e2979",
+      "bytes": 4645
     },
     {
       "path": "tools/verify_research_governance.py",

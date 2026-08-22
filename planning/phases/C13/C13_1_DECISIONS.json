@@ -1,0 +1,41 @@
+{
+  "phase": "C13",
+  "slice": "C13-1",
+  "status": "VERIFIED_SLICE",
+  "decision": "Adopt one provenance-bound, transaction-safe paper/shadow pre-trade envelope; keep C13 partial and all live/promotion locks closed.",
+  "verification": {
+    "runtime_module": "src/marketos/execution_safety.py",
+    "test_module": "tests/test_c13_execution_safety.py",
+    "validator": "tools/verify_c13_execution_safety.py",
+    "phase_complete": false,
+    "promotion_allowed": false
+  },
+  "locks": {
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "promotion_allowed": false,
+    "external_order_submission": "FORBIDDEN"
+  },
+  "covered_partial_requirements": [
+    "AUD-RSK-001",
+    "AUD-RSK-002",
+    "AUD-RSK-004",
+    "AUD-RSK-005",
+    "AUD-RSK-009"
+  ],
+  "explicit_exclusions": [
+    "BOOK_RECONSTRUCTION_REQUIRED_ON_REOPEN",
+    "SIMULTANEOUS_DATABASE_AND_WITNESS_REWRITE",
+    "BROKER_OMS_EMS_AND_EXTERNAL_ROUTE",
+    "OPTIMIZER_KILL_SWITCH_ACCOUNTING_SECURITY_DR_AND_C14_C15_C16"
+  ],
+  "open_subgates": [
+    "portfolio_optimizer_and_liquidity_constraints",
+    "broker_adapters_oms_ems_and_fill_reconciliation",
+    "kill_switch_cancel_all_and_stale_data_halt_routing",
+    "fx_tax_lot_corporate_action_and_production_accounting",
+    "secrets_chaos_disaster_recovery_and_independent_security_gate",
+    "full_C13_runtime_contracts_and_phase_completion"
+  ],
+  "rollback": "Keep the feature branch isolated, preserve C13-0 evidence, revert only this bounded slice if its exit gate fails, and leave all authority locks unchanged."
+}

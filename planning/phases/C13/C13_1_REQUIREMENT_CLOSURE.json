@@ -1,0 +1,72 @@
+{
+  "phase": "C13",
+  "slice": "C13-1",
+  "status": "VERIFIED_SLICE",
+  "requirements": [
+    {
+      "id": "AUD-RSK-001",
+      "state": "PARTIAL_VERIFIED_C13_1",
+      "artifacts": [
+        "src/marketos/execution_safety.py",
+        "src/marketos/risk.py",
+        "tests/test_c13_execution_safety.py",
+        "tools/verify_c13_execution_safety.py"
+      ],
+      "boundary": "Pre-trade source binding and deterministic veto are covered; optimizer and full C13 risk surface remain open."
+    },
+    {
+      "id": "AUD-RSK-002",
+      "state": "PARTIAL_VERIFIED_C13_1",
+      "artifacts": [
+        "src/marketos/paper.py",
+        "src/marketos/execution_safety.py",
+        "tests/test_c13_execution_safety.py"
+      ],
+      "boundary": "Execution quote, portfolio and mark provenance are bound; production routing and full qualification remain open."
+    },
+    {
+      "id": "AUD-RSK-004",
+      "state": "PARTIAL_VERIFIED_C13_1",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "src/marketos/execution_safety.py",
+        "tests/test_c13_execution_safety.py"
+      ],
+      "boundary": "Expected-head atomic paper mutation and rollback are covered; operational kill-switch and cancel-all routing remain open."
+    },
+    {
+      "id": "AUD-RSK-005",
+      "state": "PARTIAL_VERIFIED_C13_1",
+      "artifacts": [
+        "src/marketos/authoritative_books.py",
+        "src/marketos/paper.py",
+        "tests/test_c13_execution_safety.py"
+      ],
+      "boundary": "Fill/checkpoint accounting is atomic for the bounded paper book; FX, tax lots, corporate actions and production accounting remain open."
+    },
+    {
+      "id": "AUD-RSK-009",
+      "state": "PARTIAL_VERIFIED_C13_1",
+      "artifacts": [
+        "src/marketos/execution_safety.py",
+        "tools/verify_c13_execution_safety.py",
+        "docs/implementation/C13_1_PRE_TRADE_EXECUTION_SAFETY.md"
+      ],
+      "boundary": "Execution evidence and rollback witness are covered; the all-domain evidence ledger and independent security gate remain open."
+    }
+  ],
+  "hard_boundary": {
+    "phase_complete": false,
+    "software_implementation_complete": false,
+    "live_trading": "HARD_LOCKED",
+    "profitability": "UNPROVEN",
+    "promotion_allowed": false
+  },
+  "critical_open_gaps_preserved": [
+    "C13_RUNTIME_CONTRACTS",
+    "C14_COCKPIT_AND_OPERABILITY",
+    "C15_QUALIFICATION",
+    "C16_PACKAGING_AND_INTEGRATION",
+    "REQUIREMENTS_119_VS_108"
+  ]
+}
