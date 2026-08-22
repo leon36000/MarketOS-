@@ -443,8 +443,8 @@
     },
     {
       "path": "docs/implementation/SQLITE_EVENT_STORE_INTEGRITY.md",
-      "sha256": "803a8302887078e873dc822dc314881a969a267e8605f3d2ddfd80f345fdf293",
-      "bytes": 6272
+      "sha256": "39679ce99c371b755e943b810f3613a6baba43f36f4ab3f76f28386ac510e0b6",
+      "bytes": 6307
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -578,8 +578,8 @@
     },
     {
       "path": "docs/superpowers/specs/2026-08-21-sqlite-event-store-integrity-design.md",
-      "sha256": "da0cfeee5177021a0c0b8bebace06ebdace96d8dc0c578eb0412c273813c7078",
-      "bytes": 7561
+      "sha256": "bdb911fc5729a0134c03d6ce71038ca4b370aaf92bee0ad19077f6ab4f6c7d5b",
+      "bytes": 7567
     },
     {
       "path": "examples/paper_scenario.jsonl",

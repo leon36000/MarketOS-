@@ -115,6 +115,6 @@ The implementation is rejected unless tests prove:
 - reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;
 - non-reconstructible payload types, reserved tags, and canonical key collisions are rejected;
 - replay execution-report evidence is reduced to a reconstructible canonical wire payload;
-- valid concurrent writers refresh stale verified state;
+- valid multi-connection writers refresh stale verified state;
 - 100 event appends followed by 100 evidence appends perform no full-chain verification after initialization;
 - prior durability, idempotency and atomic batch behavior remains green.

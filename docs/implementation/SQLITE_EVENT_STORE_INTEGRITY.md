@@ -108,7 +108,7 @@ Permanent tests cover:
 - corrupted event/evidence reads, count, append and reopen;
 - malformed JSON diagnostics;
 - atomic batch and duplicate behavior;
-- concurrent valid writers;
+- valid multi-connection writers refresh stale verified state;
 - no full-chain revalidation during 200 ordinary appends after initialization.
 
 The exact RED/GREEN workflow receipts and independent review state are recorded on PR33 and issue #32.
