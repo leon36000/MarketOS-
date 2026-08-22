@@ -1413,8 +1413,8 @@
     },
     {
       "path": "tests/test_operating_contract.py",
-      "sha256": "2cd95124b5ceff02edfcca11f78e75698225d9306973e00927ad7651447c223d",
-      "bytes": 8488
+      "sha256": "2f04ac0e970e953d90298656619c463ea334eb2bc411aa498ac6e28c2e5bc16c",
+      "bytes": 8487
     },
     {
       "path": "tests/test_paper.py",

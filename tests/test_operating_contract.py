@@ -185,7 +185,7 @@ class OperatingContractTests(unittest.TestCase):
 
     def test_reachable_but_non_target_base_is_rejected(self) -> None:
         receipt = self._receipt(
-            reviewed_base_sha=self._git_value("rev-parse", "HEAD^")
+            reviewed_base_sha=self._git_value("rev-parse", "HEAD")
         )
         report = verify_operating_contract(
             ROOT,
