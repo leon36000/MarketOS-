@@ -1,7 +1,7 @@
 """SQLite-backed immutable event and evidence ledgers."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from decimal import Decimal, DecimalException
 import json
 from pathlib import Path
@@ -39,6 +39,13 @@ def _reject_ambiguous_decimal_maps(value: Any) -> None:
     if isinstance(value, (list, tuple, set, frozenset)):
         for item in value:
             _reject_ambiguous_decimal_maps(item)
+        return
+    if is_dataclass(value) and not isinstance(value, type):
+        _reject_ambiguous_decimal_maps(asdict(value))
+        return
+    canonical_method = getattr(value, "canonical_dict", None)
+    if callable(canonical_method):
+        _reject_ambiguous_decimal_maps(canonical_method())
 
 
 def _mapping(value: Any, code: str) -> Mapping[str, Any]:

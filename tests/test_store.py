@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 import sqlite3
 import tempfile
@@ -11,6 +12,19 @@ from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.events import EventEnvelope, EventKind
 from marketos.store import SQLiteEventStore
 from marketos.time import EventTime
+
+
+@dataclass(frozen=True)
+class DecimalMarkerDataclass:
+    value: dict[str, str]
+
+
+class DecimalMarkerCanonicalObject:
+    def __init__(self, value: dict[str, str]) -> None:
+        self.value = value
+
+    def canonical_dict(self) -> dict[str, dict[str, str]]:
+        return {"value": self.value}
 
 
 class StoreTests(unittest.TestCase):
@@ -108,6 +122,31 @@ class StoreTests(unittest.TestCase):
             self.assertIsInstance(evidence_value, Decimal)
             self.assertEqual(event_value, Decimal("1"))
             self.assertEqual(evidence_value, Decimal("2"))
+
+    def test_reserved_decimal_marker_is_rejected_inside_canonical_wrappers(self) -> None:
+        wrappers = (
+            DecimalMarkerDataclass({"$decimal": "3.00"}),
+            DecimalMarkerCanonicalObject({"$decimal": "4.00"}),
+        )
+        with SQLiteEventStore(self.path) as store:
+            for index, wrapper in enumerate(wrappers, start=1):
+                with self.subTest(wrapper=type(wrapper).__name__):
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "AMBIGUOUS_DECIMAL_MARKER",
+                    ):
+                        store.append(
+                            self.event(
+                                f"wrapped-event-{index}",
+                                payload={"wrapped": wrapper},
+                            )
+                        )
+                    with self.assertRaisesRegex(
+                        InvariantViolation,
+                        "AMBIGUOUS_DECIMAL_MARKER",
+                    ):
+                        store.append_evidence("RISK", {"wrapped": wrapper})
+            self.assertEqual(store.count(), 0)
 
     def test_conflicting_duplicate_is_rejected_without_mutation(self) -> None:
         with SQLiteEventStore(self.path) as store:
