@@ -28,8 +28,8 @@
     "planning/phases/C13/EXECUTION_CONTRACT.md": "095f3e871bb57d52943c0d607f73e27ccde17b1555f60a3eaccaf9b9d1152986",
     "src/marketos/authoritative_books.py": "b4347d3f8eb64488ef5952b88646dd343c66df06f1db5b49b56836035ab5be11",
     "tests/test_c13_authoritative_books.py": "a806291b46cdcd89c2f886d76492c698abb32a38510501161b0a32377a11221c",
-    "tests/test_c13_source_parent_validation.py": "3ac96488939697cd29dc444540ae9854bef5f448eb04d71f084d501fd41c8aac",
-    "tools/verify_c13_contract.py": "44ecec1a2f20109c8e50f4a37e2b19430d2fa3f20ffc6bc2bb47a474e2f00135"
+    "tests/test_c13_source_parent_validation.py": "1bd27b7fb5fc82883c764193ed5244982be920dff2f5d1b364bff883e10c2f0e",
+    "tools/verify_c13_contract.py": "b7509633474291970edb2e967d9e6c243a628b7800cbd32d0b5a2f181fc3001a"
   },
-  "source_tree_sha256": "1c9aaa08e0d0623fd53e77c65062eb468c9f25aa683f3bd0928eb8bae8ff3724"
+  "source_tree_sha256": "e8f7638067192568c13990f7b6ab62ec7d699390ecea23dc0676897508359e45"
 }

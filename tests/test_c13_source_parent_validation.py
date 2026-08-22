@@ -49,25 +49,39 @@ class C13SourceParentValidationTests(unittest.TestCase):
             self.fail("C13 source-parent validation helper is not implemented")
         self.assertFalse(check(ROOT, "f" * 40))
 
-    def test_validated_parent_sha_uses_safe_bounded_git_call(self) -> None:
+    def test_validated_parent_sha_uses_safe_bounded_git_stdin(self) -> None:
         check = getattr(verify_c13_contract, "_source_parent_is_ancestor", None)
         if check is None:
             self.fail("C13 source-parent validation helper is not implemented")
         unknown = "f" * 40
-        completed = subprocess.CompletedProcess(
-            ["git", "merge-base", "--is-ancestor", unknown, "HEAD"],
-            1,
+        head = "a" * 40
+        head_result = subprocess.CompletedProcess(
+            ["git", "rev-parse", "HEAD"],
+            0,
+            stdout=head + "\n",
+            stderr="",
+        )
+        relation_result = subprocess.CompletedProcess(
+            ["git", "rev-list", "--max-count=1", "--ancestry-path", "--stdin"],
+            0,
             stdout="",
             stderr="",
         )
-        with patch("tools.verify_c13_contract.subprocess.run", return_value=completed) as run:
+        with patch(
+            "tools.verify_c13_contract.subprocess.run",
+            side_effect=[head_result, relation_result],
+        ) as run:
             self.assertFalse(check(ROOT, unknown))
-        run.assert_called_once()
         self.assertEqual(
-            run.call_args.args[0],
-            ["git", "merge-base", "--is-ancestor", unknown, "HEAD"],
+            run.call_args_list[0].args[0],
+            ["git", "rev-parse", "HEAD"],
         )
-        self.assertEqual(run.call_args.kwargs["timeout"], 10)
+        self.assertEqual(
+            run.call_args_list[1].args[0],
+            ["git", "rev-list", "--max-count=1", "--ancestry-path", "--stdin"],
+        )
+        self.assertEqual(run.call_args_list[1].kwargs["input"], f"{unknown}..{head}\n")
+        self.assertEqual(run.call_args_list[1].kwargs["timeout"], 10)
 
     def test_git_timeout_fails_closed(self) -> None:
         check = getattr(verify_c13_contract, "_source_parent_is_ancestor", None)
