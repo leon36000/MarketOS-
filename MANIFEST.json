@@ -1513,8 +1513,8 @@
     },
     {
       "path": "tests/test_store_schema_contract.py",
-      "sha256": "5814772901d4efa995ccab4aad2fe468cc92add0ac16cc6c5595b4ff64339f26",
-      "bytes": 1616
+      "sha256": "b511ffd10d50b4aa6dc03ec629def6d1ee2b3b57a5562b66210dc017529a19ae",
+      "bytes": 1642
     },
     {
       "path": "tests/test_takeover_gate.py",
