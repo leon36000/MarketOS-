@@ -191,14 +191,15 @@ class SQLiteEventStore:
         try:
             self._connection.execute("PRAGMA foreign_keys = ON")
             self._connection.execute("PRAGMA synchronous = FULL")
-            if self.path != ":memory:":
-                self._connection.execute("PRAGMA journal_mode = WAL")
-            if self._has_existing_ledger_objects():
+            existing_ledger_objects = self._has_existing_ledger_objects()
+            if existing_ledger_objects:
                 self._verify_table_contracts()
                 self._verify_trigger_contracts(require_all=False)
                 _, _, event_verification, evidence_verification = self._verify_all_rows()
                 self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
                 self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
+            if self.path != ":memory:":
+                self._connection.execute("PRAGMA journal_mode = WAL")
             self._create_schema()
             self._initialize_integrity_state()
         except Exception:

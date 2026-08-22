@@ -87,6 +87,31 @@ class StoreSchemaContractTests(unittest.TestCase):
             connection.close()
         self.assertEqual(objects, (("table", "events"),))
 
+    def test_invalid_existing_schema_is_not_switched_to_wal_before_rejection(self) -> None:
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.execute(
+                "CREATE TABLE events (sequence INTEGER PRIMARY KEY, event_id TEXT)"
+            )
+            connection.commit()
+        finally:
+            connection.close()
+        database_before = self.path.read_bytes()
+
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events",
+        ):
+            SQLiteEventStore(self.path)
+
+        self.assertEqual(self.path.read_bytes(), database_before)
+        connection = sqlite3.connect(self.path)
+        try:
+            journal_mode = str(connection.execute("PRAGMA journal_mode").fetchone()[0])
+        finally:
+            connection.close()
+        self.assertEqual(journal_mode.lower(), "delete")
+
 
 if __name__ == "__main__":
     unittest.main()

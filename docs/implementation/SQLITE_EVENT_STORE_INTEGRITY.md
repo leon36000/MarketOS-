@@ -103,6 +103,7 @@ Permanent tests cover:
 - migration of a compatible legacy schema;
 - rejection of historical non-reconstructible payloads;
 - rejection of an incompatible existing schema without adding ledger objects;
+- rejection of an incompatible existing schema without changing its journal mode;
 - corrupted event/evidence reads, count, append and reopen;
 - malformed JSON diagnostics;
 - atomic batch and duplicate behavior;

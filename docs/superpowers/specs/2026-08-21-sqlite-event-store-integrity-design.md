@@ -108,6 +108,7 @@ The implementation is rejected unless tests prove:
 - guard installation on a legacy compatible schema;
 - historical non-reconstructible payloads fail closed;
 - incompatible existing schemas are rejected without added ledger objects;
+- incompatible existing schemas are rejected without a journal-mode mutation;
 - event and evidence corruption block reads, count, append and reopen;
 - malformed event and evidence JSON produce structured verification errors;
 - reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;
