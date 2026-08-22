@@ -188,6 +188,8 @@ def verify_trusted_review_gate(
     head_sha: str,
     pr_author: str,
 ) -> dict[str, object]:
+    if not isinstance(pr_author, str) or not pr_author.strip():
+        return {"ok": False, "errors": ["PR_AUTHOR_INVALID"]}
     trusted_reviewers = _trusted_reviewers()
     if not trusted_reviewers:
         return {"ok": False, "errors": ["TRUSTED_REVIEWER_ALLOWLIST_EMPTY"]}
