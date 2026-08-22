@@ -12,6 +12,9 @@ lie les invariants des trois surfaces d'instructions et la preuve de revue
 au SHA exact et à la branche d'intégration résolue localement, avec artefact
 d'analyse hashé et provenance GitHub externe contrôlée par le gate de la
 branche de base protégée ; elle ne lève jamais les verrous financiers.
+La variable de dépôt `MARKETOS_TRUSTED_REVIEWERS` doit contenir les identités
+GitHub approuvées par l'administrateur ; absente ou vide, elle interdit le
+merge.
 
 ## Mission
 
