@@ -443,8 +443,8 @@
     },
     {
       "path": "docs/implementation/SQLITE_EVENT_STORE_INTEGRITY.md",
-      "sha256": "24b219f939475f16717cbef3959449fbbbeb3c56931c27c0c175c76b6c7bf3b5",
-      "bytes": 6053
+      "sha256": "803a8302887078e873dc822dc314881a969a267e8605f3d2ddfd80f345fdf293",
+      "bytes": 6272
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -578,8 +578,8 @@
     },
     {
       "path": "docs/superpowers/specs/2026-08-21-sqlite-event-store-integrity-design.md",
-      "sha256": "90cf49299d736abb4076cd6eea90e5ed2949ba67133428b91d698b53979f0ccb",
-      "bytes": 7400
+      "sha256": "da0cfeee5177021a0c0b8bebace06ebdace96d8dc0c578eb0412c273813c7078",
+      "bytes": 7561
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -1238,8 +1238,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "62c3355febc021e936e8510dec90069c97543cf0e6c08f1c4eeff51f3ca42a8f",
-      "bytes": 34138
+      "sha256": "7a9a0d6584a9e52f75b85a9c946207d55a66d12d800bad56a916d5f31bdec26c",
+      "bytes": 34935
     },
     {
       "path": "src/marketos/time.py",
@@ -1518,8 +1518,8 @@
     },
     {
       "path": "tests/test_store_schema_contract.py",
-      "sha256": "8b460f47cf6f3f4368b8781fef6088874c5f2ec614448cdca13a945d97dd2122",
-      "bytes": 3784
+      "sha256": "980758cd65b4f3506bd0bb67c8ce1474f765c6244a8c19b489cfdb4ea9330671",
+      "bytes": 5936
     },
     {
       "path": "tests/test_takeover_gate.py",

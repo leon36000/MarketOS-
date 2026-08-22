@@ -58,7 +58,7 @@ Malformed JSON is represented by deterministic `ChainVerification.errors`. The d
 
 ### Fail-closed constructor and reads
 
-The constructor validates both complete chains and all four guards under `BEGIN IMMEDIATE`. Existing ledger databases are preflighted before schema creation; only a compatible schema with valid rows may receive missing guards. An invalid existing database closes its connection before raising without silent repair.
+The constructor validates both complete chains and all four guards under `BEGIN IMMEDIATE`. Existing ledger databases perform their table/row preflight and installation of missing guards inside one writer transaction, so no writer can change the database between validation and schema completion. Only a compatible schema with valid rows may receive missing guards. An invalid existing database closes its connection before raising without silent repair.
 
 `read_all()`, `read_evidence()` and `count()` validate both ledgers in one transactionally stable snapshot. A corrupted evidence ledger therefore blocks an event read or count, and corrupted events block evidence reads. This is an intentional store-wide authority boundary.
 
@@ -104,6 +104,7 @@ Permanent tests cover:
 - rejection of historical non-reconstructible payloads;
 - rejection of an incompatible existing schema without adding ledger objects;
 - rejection of an incompatible existing schema without changing its journal mode;
+- writer exclusion throughout existing-schema preflight and guard installation;
 - corrupted event/evidence reads, count, append and reopen;
 - malformed JSON diagnostics;
 - atomic batch and duplicate behavior;

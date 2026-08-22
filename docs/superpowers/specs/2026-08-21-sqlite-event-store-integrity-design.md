@@ -76,7 +76,7 @@ record that cannot be reinserted.
 
 ## Fail-closed surfaces
 
-Initialization preflights existing tables, existing guards and both complete ledgers before schema creation, then uses `BEGIN IMMEDIATE` to validate the final state. Only a compatible database with valid rows may receive missing guards. An invalid database closes its connection, performs no silent repair, and raises `InvariantViolation`.
+Initialization opens a `BEGIN IMMEDIATE` writer transaction before preflighting an existing schema; table/row validation and installation of missing guards remain in that same transaction. This closes the validation-to-migration race. Only a compatible database with valid rows may receive missing guards. An invalid database closes its connection, performs no silent repair, and raises `InvariantViolation`.
 
 `read_all()`, `read_evidence()` and `count()` materialize one transactionally stable snapshot, validate both chains and the schema guards, and return nothing if either ledger is invalid. This global boundary prevents an intact event chain from masking a corrupted evidence chain or the reverse.
 
@@ -109,6 +109,7 @@ The implementation is rejected unless tests prove:
 - historical non-reconstructible payloads fail closed;
 - incompatible existing schemas are rejected without added ledger objects;
 - incompatible existing schemas are rejected without a journal-mode mutation;
+- existing-schema preflight excludes concurrent writers until guard installation completes;
 - event and evidence corruption block reads, count, append and reopen;
 - malformed event and evidence JSON produce structured verification errors;
 - reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;

@@ -193,15 +193,25 @@ class SQLiteEventStore:
             self._connection.execute("PRAGMA synchronous = FULL")
             existing_ledger_objects = self._has_existing_ledger_objects()
             if existing_ledger_objects:
-                self._verify_table_contracts()
-                self._verify_trigger_contracts(require_all=False)
-                _, _, event_verification, evidence_verification = self._verify_all_rows()
-                self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
-                self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
-            if self.path != ":memory:":
-                self._connection.execute("PRAGMA journal_mode = WAL")
-            self._create_schema()
-            self._initialize_integrity_state()
+                self._connection.execute(_BEGIN_IMMEDIATE)
+                try:
+                    self._verify_table_contracts()
+                    self._verify_trigger_contracts(require_all=False)
+                    _, _, event_verification, evidence_verification = self._verify_all_rows()
+                    self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
+                    self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
+                    self._create_schema()
+                    self._initialize_integrity_state(transaction_open=True)
+                    self._connection.execute("COMMIT")
+                except Exception:
+                    if self._connection.in_transaction:
+                        self._connection.execute("ROLLBACK")
+                    raise
+            else:
+                if self.path != ":memory:":
+                    self._connection.execute("PRAGMA journal_mode = WAL")
+                self._create_schema()
+                self._initialize_integrity_state()
         except Exception:
             self._connection.close()
             self._closed = True
@@ -217,7 +227,7 @@ class SQLiteEventStore:
         return row is not None
 
     def _create_schema(self) -> None:
-        self._connection.executescript(
+        for statement in (
             """
             CREATE TABLE IF NOT EXISTS events (
                 sequence INTEGER PRIMARY KEY,
@@ -226,17 +236,23 @@ class SQLiteEventStore:
                 previous_chain_sha256 TEXT NOT NULL,
                 chain_sha256 TEXT NOT NULL UNIQUE,
                 event_json TEXT NOT NULL
-            );
+            )
+            """,
+            """
             CREATE TRIGGER IF NOT EXISTS events_no_update
             BEFORE UPDATE ON events
             BEGIN
                 SELECT RAISE(ABORT, 'APPEND_ONLY_EVENTS');
             END;
+            """,
+            """
             CREATE TRIGGER IF NOT EXISTS events_no_delete
             BEFORE DELETE ON events
             BEGIN
                 SELECT RAISE(ABORT, 'APPEND_ONLY_EVENTS');
             END;
+            """,
+            """
             CREATE TABLE IF NOT EXISTS evidence (
                 sequence INTEGER PRIMARY KEY,
                 kind TEXT NOT NULL,
@@ -244,19 +260,24 @@ class SQLiteEventStore:
                 previous_chain_sha256 TEXT NOT NULL,
                 chain_sha256 TEXT NOT NULL UNIQUE,
                 payload_json TEXT NOT NULL
-            );
+            )
+            """,
+            """
             CREATE TRIGGER IF NOT EXISTS evidence_no_update
             BEFORE UPDATE ON evidence
             BEGIN
                 SELECT RAISE(ABORT, 'APPEND_ONLY_EVIDENCE');
             END;
+            """,
+            """
             CREATE TRIGGER IF NOT EXISTS evidence_no_delete
             BEFORE DELETE ON evidence
             BEGIN
                 SELECT RAISE(ABORT, 'APPEND_ONLY_EVIDENCE');
             END;
-            """
-        )
+            """,
+        ):
+            self._connection.execute(statement)
 
     def _ensure_open(self) -> None:
         if self._closed:
@@ -646,8 +667,9 @@ class SQLiteEventStore:
         evidence_verification = self.verify_evidence_rows(evidence_rows)
         return event_rows, evidence_rows, event_verification, evidence_verification
 
-    def _initialize_integrity_state(self) -> None:
-        self._connection.execute(_BEGIN_IMMEDIATE)
+    def _initialize_integrity_state(self, *, transaction_open: bool = False) -> None:
+        if not transaction_open:
+            self._connection.execute(_BEGIN_IMMEDIATE)
         try:
             _, _, event_verification, evidence_verification = self._verify_all_rows()
             self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
@@ -655,7 +677,8 @@ class SQLiteEventStore:
             self._verify_schema_contracts()
             data_version = self._data_version_value()
             total_changes = self._connection.total_changes
-            self._connection.execute("COMMIT")
+            if not transaction_open:
+                self._connection.execute("COMMIT")
         except Exception:
             if self._connection.in_transaction:
                 self._connection.execute("ROLLBACK")

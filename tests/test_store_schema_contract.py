@@ -112,6 +112,61 @@ class StoreSchemaContractTests(unittest.TestCase):
             connection.close()
         self.assertEqual(journal_mode.lower(), "delete")
 
+    def test_existing_schema_preflight_holds_the_writer_lock(self) -> None:
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.executescript(
+                """
+                CREATE TABLE events (
+                    sequence INTEGER PRIMARY KEY,
+                    event_id TEXT NOT NULL UNIQUE,
+                    event_sha256 TEXT NOT NULL,
+                    previous_chain_sha256 TEXT NOT NULL,
+                    chain_sha256 TEXT NOT NULL UNIQUE,
+                    event_json TEXT NOT NULL
+                );
+                CREATE TABLE evidence (
+                    sequence INTEGER PRIMARY KEY,
+                    kind TEXT NOT NULL,
+                    evidence_sha256 TEXT NOT NULL,
+                    previous_chain_sha256 TEXT NOT NULL,
+                    chain_sha256 TEXT NOT NULL UNIQUE,
+                    payload_json TEXT NOT NULL
+                );
+                """
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+        lock_observations: list[str] = []
+
+        class CoordinatedStore(SQLiteEventStore):
+            def __init__(self, path: Path) -> None:
+                self._probe_complete = False
+                super().__init__(path)
+
+            def _verify_all_rows(self):
+                result = super()._verify_all_rows()
+                if not self._probe_complete:
+                    self._probe_complete = True
+                    probe = sqlite3.connect(self.path, isolation_level=None, timeout=0)
+                    try:
+                        try:
+                            probe.execute("BEGIN IMMEDIATE")
+                        except sqlite3.OperationalError as exc:
+                            lock_observations.append(str(exc))
+                        else:
+                            lock_observations.append("UNLOCKED")
+                            probe.execute("ROLLBACK")
+                    finally:
+                        probe.close()
+                return result
+
+        with CoordinatedStore(self.path):
+            pass
+        self.assertEqual(lock_observations, ["database is locked"])
+
 
 if __name__ == "__main__":
     unittest.main()
