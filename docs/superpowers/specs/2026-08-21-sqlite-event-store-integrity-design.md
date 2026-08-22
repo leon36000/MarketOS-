@@ -43,6 +43,10 @@ Every event row is checked for:
 - exact previous-link equality;
 - exact deterministic chain digest.
 
+The canonical Decimal marker is reserved: an exact user mapping of
+`{"$decimal": ...}` is rejected before persistence so the decoder remains
+injective over accepted payloads. Genuine `Decimal` values remain supported.
+
 Malformed JSON is represented in `ChainVerification.errors`; it must never escape as a raw `JSONDecodeError` from a verifier.
 
 ## Evidence-chain verification
@@ -91,6 +95,7 @@ The implementation is rejected unless tests prove:
 - guard installation on a legacy compatible schema;
 - event and evidence corruption block reads, count, append and reopen;
 - malformed event and evidence JSON produce structured verification errors;
+- reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;
 - valid concurrent writers refresh stale verified state;
 - 100 event appends followed by 100 evidence appends perform no full-chain verification after initialization;
 - prior durability, idempotency and atomic batch behavior remains green.

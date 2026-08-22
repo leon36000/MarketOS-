@@ -29,6 +29,18 @@ def _decode(value: Any) -> Any:
     return value
 
 
+def _reject_ambiguous_decimal_maps(value: Any) -> None:
+    if isinstance(value, Mapping):
+        if set(value) == {"$decimal"}:
+            raise InvariantViolation("AMBIGUOUS_DECIMAL_MARKER")
+        for item in value.values():
+            _reject_ambiguous_decimal_maps(item)
+        return
+    if isinstance(value, (list, tuple, set, frozenset)):
+        for item in value:
+            _reject_ambiguous_decimal_maps(item)
+
+
 def _mapping(value: Any, code: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise InvariantViolation(code)
@@ -641,6 +653,7 @@ class SQLiteEventStore:
         self._total_changes = self._connection.total_changes
 
     def _append_event_tx(self, event: EventEnvelope) -> StoredEvent:
+        _reject_ambiguous_decimal_maps(event.payload)
         event_json = canonical_json(event.canonical_dict())
         event_sha256 = event.sha256()
         existing = self._connection.execute(
@@ -740,6 +753,7 @@ class SQLiteEventStore:
     def append_evidence(self, kind: str, payload: Any) -> EvidenceRecord:
         if not isinstance(kind, str) or not kind.strip():
             raise InvariantViolation("MISSING_EVIDENCE_KIND")
+        _reject_ambiguous_decimal_maps(payload)
         payload_json = canonical_json(payload)
         evidence_sha256 = canonical_sha256({"kind": kind, "payload": payload})
         self._ensure_open()

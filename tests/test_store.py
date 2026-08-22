@@ -4,6 +4,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
 
 from marketos.errors import DuplicateConflict, InvariantViolation
@@ -18,7 +19,13 @@ class StoreTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / "events.sqlite3"
 
-    def event(self, event_id: str, value: int = 1, sequence: int = 1) -> EventEnvelope:
+    def event(
+        self,
+        event_id: str,
+        value: int = 1,
+        sequence: int = 1,
+        payload: dict[str, object] | None = None,
+    ) -> EventEnvelope:
         return EventEnvelope(
             event_id=event_id,
             kind=EventKind.SYSTEM,
@@ -27,7 +34,7 @@ class StoreTests(unittest.TestCase):
             source_priority=0,
             source_sequence=sequence,
             schema_version="1",
-            payload={"value": value},
+            payload={"value": value} if payload is None else payload,
         )
 
     def force_update(
@@ -69,6 +76,38 @@ class StoreTests(unittest.TestCase):
             self.assertFalse(second.inserted)
             self.assertEqual(second.sequence, first.sequence)
             self.assertEqual(store.count(), 1)
+
+    def test_reserved_decimal_marker_is_rejected_before_event_insert(self) -> None:
+        event = self.event(
+            "reserved-event",
+            payload={"value": {"$decimal": "1.00"}},
+        )
+        with SQLiteEventStore(self.path) as store:
+            with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
+                store.append(event)
+            self.assertEqual(store.count(), 0)
+
+    def test_reserved_decimal_marker_is_rejected_before_evidence_insert(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
+                store.append_evidence("RISK", {"value": {"$decimal": "1.00"}})
+            self.assertEqual(store.read_evidence(), ())
+
+    def test_decimal_values_round_trip_without_marker_collision(self) -> None:
+        with SQLiteEventStore(self.path) as store:
+            store.append(
+                self.event(
+                    "decimal-event",
+                    payload={"value": Decimal("1.00")},
+                )
+            )
+            store.append_evidence("RISK", {"value": Decimal("2.00")})
+            event_value = store.read_all()[0].event.payload["value"]
+            evidence_value = store.read_evidence()[0].payload["value"]
+            self.assertIsInstance(event_value, Decimal)
+            self.assertIsInstance(evidence_value, Decimal)
+            self.assertEqual(event_value, Decimal("1"))
+            self.assertEqual(evidence_value, Decimal("2"))
 
     def test_conflicting_duplicate_is_rejected_without_mutation(self) -> None:
         with SQLiteEventStore(self.path) as store:

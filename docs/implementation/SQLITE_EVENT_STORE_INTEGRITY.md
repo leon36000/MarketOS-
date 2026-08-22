@@ -35,6 +35,10 @@ Event verification reconstructs the complete `EventEnvelope` and enforces:
 - previous-link equality;
 - deterministic chain digest equality.
 
+The exact `{"$decimal": ...}` mapping is reserved for the canonical Decimal
+encoding. Store writes reject that ambiguous user mapping before persistence,
+while genuine `Decimal` values continue to round-trip as Decimal values.
+
 Evidence verification performs the same canonical, item-hash, previous-link and chain checks and requires a non-empty evidence kind.
 
 Malformed JSON is represented by deterministic `ChainVerification.errors`. The diagnostic verifier does not leak parser exceptions.
