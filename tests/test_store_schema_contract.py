@@ -41,11 +41,12 @@ class StoreSchemaContractTests(unittest.TestCase):
                 END;
                 """
             )
+            event = self.event()
             with self.assertRaisesRegex(
                 InvariantViolation,
                 "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events_temp_after_insert",
             ):
-                store.append(self.event())
+                store.append(event)
         finally:
             store.close()
 
