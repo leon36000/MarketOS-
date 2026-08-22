@@ -161,7 +161,7 @@ def _has_latest_exact_review(
     trusted_reviewers: set[str],
 ) -> bool:
     latest_by_reviewer: dict[str, dict[str, Any]] = {}
-    for review in reviews:
+    for review in sorted(reviews, key=_review_sort_key):
         user = review.get("user")
         reviewer_login = user.get("login") if isinstance(user, dict) else None
         if isinstance(reviewer_login, str) and reviewer_login.strip():
@@ -178,6 +178,14 @@ def _has_latest_exact_review(
         )
         for review in latest_by_reviewer.values()
     )
+
+
+def _review_sort_key(review: dict[str, Any]) -> tuple[int, str, int]:
+    submitted_at = review.get("submitted_at")
+    timestamp = submitted_at.strip() if isinstance(submitted_at, str) else ""
+    review_id = review.get("id")
+    numeric_id = review_id if isinstance(review_id, int) else -1
+    return (1 if timestamp else 0, timestamp, numeric_id)
 
 
 def verify_trusted_review_gate(
