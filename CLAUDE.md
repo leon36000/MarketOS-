@@ -18,9 +18,9 @@ Au début d'une session ou lorsque le head a changé :
 Ne pas relancer mécaniquement la suite complète lorsqu'un reçu exact-SHA frais couvre déjà le même état. Toute preuve complète reste reproductible et accessible, mais le contexte modèle demeure borné.
 
 `tools/verify_operating_contract.py` est le consommateur de la politique
-machine : sans reçu indépendant lié aux base/head/tree exacts, la validation
-et à la branche d'intégration autoritative, elle peut décrire l'état mais ne
-peut pas autoriser le merge.
+machine : sans reçu indépendant lié aux base/head/tree exacts et à la branche
+d'intégration autoritative, avec artefact d'analyse et digest, elle peut
+décrire l'état mais ne peut pas autoriser le merge.
 
 ## Orchestration productive
 

@@ -9,8 +9,11 @@ expected base, current HEAD and current tree.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
+import stat
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -22,6 +25,8 @@ SURFACES = ("AGENTS.md", "CLAUDE.md", "PROJECT_INSTRUCTIONS.md")
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 MARKER_RE = re.compile(r"(?m)^([A-Z][A-Z0-9_]*)=([^\n]+)$")
 MAX_REVIEW_RECEIPT_BYTES = 64 * 1024
+MAX_REVIEW_ARTIFACT_BYTES = 256 * 1024
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 EXPECTED_MARKERS = {
     "LUNA_PARALLEL_LIMIT": "2",
@@ -40,6 +45,12 @@ EXPECTED_POLICY = {
         "required": True,
         "context": "independent_blind",
         "base_ref": "codex/pr14-pr20-reconciliation-proof",
+        "evidence": {
+            "required": True,
+            "max_artifact_bytes": 262144,
+            "minimum_analysis_chars": 32,
+            "minimum_evidence_items": 1,
+        },
         "allowed_models": ["GPT-5.6 Sol"],
         "allowed_verdicts": [
             "APPROVE",
@@ -161,32 +172,69 @@ def _surface_errors(root: Path, policy: dict[str, Any]) -> list[str]:
     return errors
 
 
-def _safe_review_receipt_path(
+def _safe_bounded_path(
     root: Path,
-    review_receipt: Path,
+    raw_path: object,
+    label: str,
 ) -> tuple[Path | None, str | None]:
-    candidate = review_receipt
+    if not isinstance(raw_path, (str, Path)) or not str(raw_path).strip():
+        return None, f"{label}_PATH_INVALID"
+    candidate = Path(raw_path)
     if not candidate.is_absolute():
         candidate = root / candidate
     if candidate.is_symlink():
-        return None, "REVIEW_RECEIPT_SYMLINK_REJECTED"
+        return None, f"{label}_SYMLINK_REJECTED"
     try:
         resolved = candidate.resolve(strict=True)
         resolved.relative_to(root)
     except FileNotFoundError:
-        return None, "REVIEW_RECEIPT_MISSING"
+        return None, f"{label}_MISSING"
     except ValueError:
-        return None, "REVIEW_RECEIPT_OUTSIDE_ROOT"
+        return None, f"{label}_OUTSIDE_ROOT"
     except (OSError, RuntimeError):
-        return None, "REVIEW_RECEIPT_PATH_INVALID"
-    if resolved.is_symlink() or not resolved.is_file():
-        return None, "REVIEW_RECEIPT_NOT_REGULAR_FILE"
-    try:
-        if resolved.stat().st_size > MAX_REVIEW_RECEIPT_BYTES:
-            return None, "REVIEW_RECEIPT_TOO_LARGE"
-    except OSError:
-        return None, "REVIEW_RECEIPT_STAT_FAILED"
+        return None, f"{label}_PATH_INVALID"
     return resolved, None
+
+
+def _read_bounded_file(
+    root: Path,
+    raw_path: object,
+    label: str,
+    max_bytes: int,
+) -> tuple[bytes | None, str | None]:
+    resolved, path_error = _safe_bounded_path(root, raw_path, label)
+    if path_error is not None:
+        return None, path_error
+    nofollow = getattr(os, "O_NOFOLLOW", None)
+    if nofollow is None:
+        return None, f"{label}_ATOMIC_OPEN_UNAVAILABLE"
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | nofollow
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(resolved, flags)
+        with os.fdopen(descriptor, "rb", closefd=True) as handle:
+            descriptor = None
+            metadata = os.fstat(handle.fileno())
+            if not stat.S_ISREG(metadata.st_mode):
+                return None, f"{label}_NOT_REGULAR_FILE"
+            if metadata.st_size > max_bytes:
+                return None, f"{label}_TOO_LARGE"
+            content = handle.read(max_bytes + 1)
+            if len(content) > max_bytes:
+                return None, f"{label}_TOO_LARGE"
+            return content, None
+    except OSError:
+        return None, f"{label}_READ_FAILED"
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _load_object_bytes(content: bytes) -> dict[str, Any]:
+    value = json.loads(content)
+    if not isinstance(value, dict):
+        raise ValueError("JSON_ROOT_MUST_BE_OBJECT")
+    return value
 
 
 def _review_identity_errors(
@@ -283,6 +331,98 @@ def _review_findings_errors(
     return errors
 
 
+def _review_evidence_metadata_errors(receipt: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    review_id = receipt.get("review_id")
+    if not isinstance(review_id, str) or not review_id.strip():
+        errors.append("REVIEW_ID_INVALID")
+    artifact_digest = receipt.get("review_artifact_sha256")
+    if not isinstance(artifact_digest, str) or SHA256_RE.fullmatch(artifact_digest) is None:
+        errors.append("REVIEW_ARTIFACT_DIGEST_INVALID")
+    if not isinstance(receipt.get("review_artifact_path"), (str, Path)):
+        errors.append("REVIEW_ARTIFACT_PATH_INVALID")
+    return errors
+
+
+def _artifact_binding_errors(
+    receipt: dict[str, Any],
+    artifact: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+    for field in (
+        "review_id",
+        "repository",
+        "reviewer_model",
+        "review_context",
+        "reviewed_base_sha",
+        "reviewed_head_sha",
+        "reviewed_tree_sha",
+        "verdict",
+        "findings",
+    ):
+        if artifact.get(field) != receipt.get(field):
+            errors.append(f"REVIEW_ARTIFACT_BINDING_MISMATCH:{field}")
+    return errors
+
+
+def _artifact_analysis_errors(
+    artifact: dict[str, Any],
+    evidence_policy: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+    minimum_chars = evidence_policy.get("minimum_analysis_chars", 32)
+    analysis = artifact.get("analysis")
+    if (
+        not isinstance(minimum_chars, int)
+        or not isinstance(analysis, str)
+        or len(analysis.strip()) < minimum_chars
+    ):
+        errors.append("REVIEW_ARTIFACT_ANALYSIS_INVALID")
+
+    evidence = artifact.get("evidence")
+    minimum_items = evidence_policy.get("minimum_evidence_items", 1)
+    if not isinstance(evidence, list) or not isinstance(minimum_items, int):
+        return errors + ["REVIEW_ARTIFACT_EVIDENCE_INVALID"]
+    if len(evidence) < minimum_items:
+        errors.append("REVIEW_ARTIFACT_EVIDENCE_INSUFFICIENT")
+    for index, item in enumerate(evidence):
+        if not isinstance(item, dict):
+            errors.append(f"REVIEW_ARTIFACT_EVIDENCE_ITEM_INVALID:{index}")
+            continue
+        if not isinstance(item.get("command"), str) or not item["command"].strip():
+            errors.append(f"REVIEW_ARTIFACT_EVIDENCE_COMMAND_INVALID:{index}")
+        if not isinstance(item.get("result"), str) or not item["result"].strip():
+            errors.append(f"REVIEW_ARTIFACT_EVIDENCE_RESULT_INVALID:{index}")
+    return errors
+
+
+def _review_evidence_errors(
+    root: Path,
+    receipt: dict[str, Any],
+    review_policy: dict[str, Any],
+) -> list[str]:
+    errors = _review_evidence_metadata_errors(receipt)
+    artifact_path = receipt.get("review_artifact_path")
+    artifact_bytes, read_error = _read_bounded_file(
+        root,
+        artifact_path,
+        "REVIEW_ARTIFACT",
+        MAX_REVIEW_ARTIFACT_BYTES,
+    )
+    if read_error is not None:
+        return errors + [read_error]
+    actual_digest = hashlib.sha256(artifact_bytes).hexdigest()
+    if actual_digest != receipt.get("review_artifact_sha256"):
+        return errors + ["REVIEW_ARTIFACT_DIGEST_MISMATCH"]
+    try:
+        artifact = _load_object_bytes(artifact_bytes)
+    except (UnicodeError, ValueError) as exc:
+        return errors + [f"REVIEW_ARTIFACT_INVALID:{type(exc).__name__}"]
+    errors.extend(_artifact_binding_errors(receipt, artifact))
+    errors.extend(_artifact_analysis_errors(artifact, review_policy.get("evidence", {})))
+    return errors
+
+
 def _review_errors(
     *,
     root: Path,
@@ -292,22 +432,26 @@ def _review_errors(
 ) -> tuple[list[str], bool]:
     if review_receipt is None:
         return [], False
-    safe_path, path_error = _safe_review_receipt_path(root, review_receipt)
-    if path_error is not None:
-        return [path_error], False
+    receipt_bytes, read_error = _read_bounded_file(
+        root,
+        review_receipt,
+        "REVIEW_RECEIPT",
+        MAX_REVIEW_RECEIPT_BYTES,
+    )
+    if read_error is not None:
+        return [read_error], False
     errors: list[str] = []
     review_policy = policy.get("review", {})
     try:
-        receipt = _load_object(safe_path)
-    except FileNotFoundError:
-        return ["REVIEW_RECEIPT_MISSING"], False
-    except (OSError, ValueError) as exc:
+        receipt = _load_object_bytes(receipt_bytes)
+    except (UnicodeError, ValueError) as exc:
         return [f"REVIEW_RECEIPT_INVALID:{type(exc).__name__}"], False
 
     findings = receipt.get("findings")
     errors.extend(_review_identity_errors(receipt, review_policy))
     errors.extend(_review_sha_errors(root, receipt, expected_base_sha, review_policy))
     errors.extend(_review_findings_errors(receipt.get("verdict"), findings, review_policy))
+    errors.extend(_review_evidence_errors(root, receipt, review_policy))
     return errors, not errors
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -43,6 +44,26 @@ class OperatingContractTests(unittest.TestCase):
             "refs/remotes/origin/codex/pr14-pr20-reconciliation-proof",
         )
 
+    def _write_authority_bytes(self, data: bytes, prefix: str) -> Path:
+        handle = tempfile.NamedTemporaryFile(
+            mode="wb",
+            suffix=".json",
+            prefix=prefix,
+            dir=ROOT / "authority",
+            delete=False,
+        )
+        with handle:
+            handle.write(data)
+        path = Path(handle.name)
+        self.addCleanup(path.unlink, missing_ok=True)
+        return path
+
+    def _write_authority_json(self, payload: object, prefix: str) -> Path:
+        return self._write_authority_bytes(
+            json.dumps(payload, sort_keys=True).encode("utf-8"),
+            prefix,
+        )
+
     def _receipt(self, **overrides: object) -> Path:
         payload: dict[str, object] = {
             "repository": "leon36000/MarketOS-",
@@ -51,22 +72,56 @@ class OperatingContractTests(unittest.TestCase):
             "reviewed_base_sha": self._base_sha(),
             "reviewed_head_sha": self._git_value("rev-parse", "HEAD"),
             "reviewed_tree_sha": self._git_value("rev-parse", "HEAD^{tree}"),
+            "review_id": "sol-review-test-001",
             "verdict": "APPROVE",
             "findings": [],
         }
         payload.update(overrides)
-        handle = tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            suffix=".json",
-            prefix="marketos-review-",
-            dir=ROOT / "authority",
-            delete=False,
+        artifact = {
+            "review_id": payload["review_id"],
+            "repository": payload["repository"],
+            "reviewer_model": payload["reviewer_model"],
+            "review_context": payload["review_context"],
+            "reviewed_base_sha": payload["reviewed_base_sha"],
+            "reviewed_head_sha": payload["reviewed_head_sha"],
+            "reviewed_tree_sha": payload["reviewed_tree_sha"],
+            "verdict": payload["verdict"],
+            "analysis": (
+                "Independent review reproduced the exact SHA, policy, locks, "
+                "tests and failure paths before the verdict."
+            ),
+            "evidence": [
+                {
+                    "command": "python3 tools/verify_operating_contract.py --root . --json",
+                    "result": "PASS on the exact review tree",
+                }
+            ],
+            "findings": payload["findings"],
+        }
+        artifact_path = self._write_authority_json(
+            artifact,
+            "marketos-review-artifact-",
         )
-        self.addCleanup(lambda: Path(handle.name).unlink(missing_ok=True))
-        with handle:
-            json.dump(payload, handle)
-        return Path(handle.name)
+        payload["review_artifact_path"] = str(artifact_path.relative_to(ROOT))
+        payload["review_artifact_sha256"] = hashlib.sha256(
+            artifact_path.read_bytes()
+        ).hexdigest()
+        return self._write_authority_json(payload, "marketos-review-")
+
+    def _minimal_receipt(self) -> Path:
+        return self._write_authority_json(
+            {
+                "repository": "leon36000/MarketOS-",
+                "reviewer_model": "GPT-5.6 Sol",
+                "review_context": "independent_blind",
+                "reviewed_base_sha": self._base_sha(),
+                "reviewed_head_sha": self._git_value("rev-parse", "HEAD"),
+                "reviewed_tree_sha": self._git_value("rev-parse", "HEAD^{tree}"),
+                "verdict": "APPROVE",
+                "findings": [],
+            },
+            "marketos-minimal-review-",
+        )
 
     def test_current_policy_is_consumed_and_preserves_hard_locks(self) -> None:
         report = verify_operating_contract(ROOT)
@@ -182,6 +237,57 @@ class OperatingContractTests(unittest.TestCase):
         self.assertFalse(report["ok"])
         self.assertFalse(report["review_bound"])
         self.assertIn("REVIEW_RECEIPT_OUTSIDE_ROOT", report["errors"])
+
+    def test_minimal_self_declared_receipt_is_rejected(self) -> None:
+        receipt = self._minimal_receipt()
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=receipt,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_ID_INVALID", report["errors"])
+
+    def test_tampered_review_artifact_digest_is_rejected(self) -> None:
+        receipt = self._receipt()
+        payload = json.loads(receipt.read_text(encoding="utf-8"))
+        artifact = ROOT / payload["review_artifact_path"]
+        artifact.write_bytes(artifact.read_bytes() + b"tampered")
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=receipt,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_ARTIFACT_DIGEST_MISMATCH", report["errors"])
+
+    def test_review_receipt_symlink_is_rejected(self) -> None:
+        receipt = self._receipt()
+        link = ROOT / "authority" / ".marketos-review-link.json"
+        link.symlink_to(receipt)
+        self.addCleanup(link.unlink, missing_ok=True)
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=link,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertIn("REVIEW_RECEIPT_SYMLINK_REJECTED", report["errors"])
+
+    def test_oversized_review_receipt_is_rejected(self) -> None:
+        receipt = self._write_authority_bytes(
+            b"0" * (64 * 1024 + 1),
+            "marketos-oversized-review-",
+        )
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=receipt,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertIn("REVIEW_RECEIPT_TOO_LARGE", report["errors"])
 
     def test_reachable_but_non_target_base_is_rejected(self) -> None:
         receipt = self._receipt(

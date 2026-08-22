@@ -18,6 +18,12 @@
     "required": true,
     "context": "independent_blind",
     "base_ref": "codex/pr14-pr20-reconciliation-proof",
+    "evidence": {
+      "required": true,
+      "max_artifact_bytes": 262144,
+      "minimum_analysis_chars": 32,
+      "minimum_evidence_items": 1
+    },
     "allowed_models": [
       "GPT-5.6 Sol"
     ],

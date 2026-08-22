@@ -73,13 +73,13 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "ce0035eadd2d802660633ffbc3c9318a8f40481293588c4e509b8879624e052d",
-      "bytes": 6696
+      "sha256": "0d14002c0f5c16633a3d371fc10837a3883191bd0e32b4935dc0bbba59dc071c",
+      "bytes": 6753
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "efb1dfa061e5f02f1302f21471789d29e2c87e7eb739d7ff4331e337f2204f04",
-      "bytes": 4373
+      "sha256": "e89d3bf16d05dc081d68d90991865df1a8f85bcf016f8c793f99e8e98df17626",
+      "bytes": 4393
     },
     {
       "path": "Makefile",
@@ -88,8 +88,8 @@
     },
     {
       "path": "PROJECT_INSTRUCTIONS.md",
-      "sha256": "216732281763352bfd1178386eb551ec8010e1cfe8616df2be2eebc661133097",
-      "bytes": 5977
+      "sha256": "6526ca19c32a5466385b1ae7eade48a294ddf11857b75b1ce97271689ba78c99",
+      "bytes": 6009
     },
     {
       "path": "README.md",
@@ -123,8 +123,8 @@
     },
     {
       "path": "authority/OPERATING_POLICY.json",
-      "sha256": "6fcca4bbb0702c75002261c8b6a000137175bd0e95249196c3f6b58aa5a663a7",
-      "bytes": 938
+      "sha256": "0474aedfcfabfea5ac140e42202f2d450ce14643ff61bc6ccbec683104a05489",
+      "bytes": 1093
     },
     {
       "path": "canon/CANON_POINTER.json",
@@ -1413,8 +1413,8 @@
     },
     {
       "path": "tests/test_operating_contract.py",
-      "sha256": "2f04ac0e970e953d90298656619c463ea334eb2bc411aa498ac6e28c2e5bc16c",
-      "bytes": 8487
+      "sha256": "6b3be87c612433dc6a71d429b5dd79065a2bf2e0b2f785b3d33605d48f4291e3",
+      "bytes": 12734
     },
     {
       "path": "tests/test_paper.py",
@@ -1603,8 +1603,8 @@
     },
     {
       "path": "tools/verify_operating_contract.py",
-      "sha256": "21d7adca17b419322f375e1dca4578c9745e16eb2cc39d98f7aa225ec542d887",
-      "bytes": 13560
+      "sha256": "f475e1ed142218ad7c8d8e72730adbf2dc117306ed5a62e9f9b50e72c75d8a51",
+      "bytes": 18632
     },
     {
       "path": "tools/verify_proof_binding.py",

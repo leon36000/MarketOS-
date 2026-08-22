@@ -10,8 +10,9 @@ La politique machine `authority/OPERATING_POLICY.json` est consommée par
 `tools/verify_operating_contract.py` et par la validation du dépôt. Elle
 rejette les contradictions des surfaces d'instructions et ne signale un
 merge autorisé qu'avec un reçu de revue indépendant lié aux base/head/tree
-exacts et à la branche de base d'intégration résolue par la politique ;
-l'absence de reçu reste une frontière non-promotable.
+exacts et à la branche de base d'intégration résolue par la politique, ainsi
+qu'un artefact d'analyse hashé et reproductible ; l'absence de preuve reste
+une frontière non-promotable.
 
 ## Mission
 
