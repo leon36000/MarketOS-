@@ -57,6 +57,11 @@
       "bytes": 3194
     },
     {
+      "path": ".github/workflows/trusted-review-gate.yml",
+      "sha256": "754dcc02fc7c8d6b0a19d9771eac40d6c717dc22296447a1fd5636bacc80ab76",
+      "bytes": 1178
+    },
+    {
       "path": ".github/workflows/validate.yml",
       "sha256": "bca2068c333c99693ed9867491440a86d7455ab6140a956379a4fbc1fc2636cc",
       "bytes": 1792
@@ -828,7 +833,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "66f834d655bf151d6c0f0c29c4351f8e3927d5a7ff2f5b883ade4af17e2dbd99",
+      "sha256": "f8e2bccdffc1f226fe4f7b35601e72841de9a5af1d21ce8cd322814db825af22",
       "bytes": 2270
     },
     {
@@ -1263,8 +1268,8 @@
     },
     {
       "path": "tests/test_c13_source_parent_validation.py",
-      "sha256": "81e3b57b7c3eafa88ba1304e986d90957b5711221b07f244cd338a2d093dd886",
-      "bytes": 1647
+      "sha256": "e77ac24f6e0703cc20756bbebee9b7c7093dfd25db788b0a3e5d51cc7978684d",
+      "bytes": 2448
     },
     {
       "path": "tests/test_c1_design.py",
@@ -1530,6 +1535,11 @@
       "path": "tools/regenerate_derived.py",
       "sha256": "d44a2eb62b3f32380a3eb8d4bf38766c1bc845b0b18e0e03d85336dc5eb613d9",
       "bytes": 3809
+    },
+    {
+      "path": "tools/trusted_review_gate.py",
+      "sha256": "8d0809ec8d555022d9fa969b54f3b200f6f4459ae8173404dfd4ae3aad997478",
+      "bytes": 8536
     },
     {
       "path": "tools/validate_c1_design.py",
