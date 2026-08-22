@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from pathlib import Path
+import tempfile
 import unittest
 
 from marketos.errors import InvariantViolation
@@ -8,6 +10,7 @@ from marketos.events import EventEnvelope, EventKind, sort_events
 from marketos.money import Money, Quantity
 from marketos.replay import ReplayCheckpoint, ReplayConfig, ReplayEngine, ReplayStatus
 from marketos.risk import RiskLimits
+from marketos.store import SQLiteEventStore
 from marketos.time import EventTime
 
 
@@ -24,7 +27,13 @@ class ReplayTests(unittest.TestCase):
             max_clock_error_ns=10,
         )
 
-    def engine(self, *, max_events: int | None = None, knowledge_cutoff_ns: int | None = None) -> ReplayEngine:
+    def engine(
+        self,
+        *,
+        max_events: int | None = None,
+        knowledge_cutoff_ns: int | None = None,
+        store: SQLiteEventStore | None = None,
+    ) -> ReplayEngine:
         return ReplayEngine(
             config=ReplayConfig(
                 run_id="run-1",
@@ -36,6 +45,7 @@ class ReplayTests(unittest.TestCase):
                 knowledge_cutoff_ns=knowledge_cutoff_ns,
             ),
             risk_limits=self.limits(),
+            store=store,
         )
 
     def event(self, event_id: str, kind: EventKind, available: int, sequence: int, payload: dict) -> EventEnvelope:
@@ -95,6 +105,15 @@ class ReplayTests(unittest.TestCase):
         second = self.engine().run(self.events())
         self.assertEqual(first.fingerprint, second.fingerprint)
         self.assertEqual(first.reports, second.reports)
+
+    def test_store_replay_persists_reconstructible_report_payloads(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="marketos-replay-store-") as temp_dir:
+            with SQLiteEventStore(Path(temp_dir) / "events.sqlite3") as store:
+                result = self.engine(store=store).run(self.events())
+                self.assertEqual(result.status, ReplayStatus.COMPLETE)
+                evidence = store.read_evidence()
+                self.assertEqual(len(evidence), 2)
+                self.assertTrue(all(isinstance(item.payload, dict) for item in evidence))
 
     def test_checkpoint_json_roundtrip_and_resume_match_full_run(self) -> None:
         ordered = list(sort_events(self.events()))
