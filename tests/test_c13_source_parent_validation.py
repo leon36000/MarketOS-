@@ -49,21 +49,35 @@ class C13SourceParentValidationTests(unittest.TestCase):
             self.fail("C13 source-parent validation helper is not implemented")
         self.assertFalse(check(ROOT, "f" * 40))
 
-    def test_receipt_value_is_not_forwarded_to_git(self) -> None:
+    def test_validated_parent_sha_uses_safe_bounded_git_call(self) -> None:
         check = getattr(verify_c13_contract, "_source_parent_is_ancestor", None)
         if check is None:
             self.fail("C13 source-parent validation helper is not implemented")
         unknown = "f" * 40
         completed = subprocess.CompletedProcess(
-            ["git", "rev-list", "HEAD"],
-            0,
-            stdout="a" * 40 + "\n",
+            ["git", "merge-base", "--is-ancestor", unknown, "HEAD"],
+            1,
+            stdout="",
             stderr="",
         )
         with patch("tools.verify_c13_contract.subprocess.run", return_value=completed) as run:
             self.assertFalse(check(ROOT, unknown))
         run.assert_called_once()
-        self.assertNotIn(unknown, run.call_args.args[0])
+        self.assertEqual(
+            run.call_args.args[0],
+            ["git", "merge-base", "--is-ancestor", unknown, "HEAD"],
+        )
+        self.assertEqual(run.call_args.kwargs["timeout"], 10)
+
+    def test_git_timeout_fails_closed(self) -> None:
+        check = getattr(verify_c13_contract, "_source_parent_is_ancestor", None)
+        if check is None:
+            self.fail("C13 source-parent validation helper is not implemented")
+        with patch(
+            "tools.verify_c13_contract.subprocess.run",
+            side_effect=subprocess.TimeoutExpired("git", 10),
+        ):
+            self.assertFalse(check(ROOT, "f" * 40))
 
 
 if __name__ == "__main__":

@@ -43,26 +43,24 @@ _SHA1_RE = re.compile(r"[0-9a-f]{40}")
 def _source_parent_is_ancestor(root: Path, value: object) -> bool:
     """Return whether an exact lowercase SHA-1 is reachable from ``HEAD``.
 
-    The receipt value is never forwarded to a subprocess. Git produces the
-    trusted ancestry set, and the receipt value is compared only after a
-    strict allowlist check.
+    Only the strictly validated SHA is passed as a positional argument, and
+    Git performs the ancestry check without materializing the full history.
     """
 
     if not isinstance(value, str) or _SHA1_RE.fullmatch(value) is None:
         return False
     try:
         result = subprocess.run(
-            ["git", "rev-list", "HEAD"],
+            ["git", "merge-base", "--is-ancestor", value, "HEAD"],
             cwd=root,
             capture_output=True,
             text=True,
             check=False,
+            timeout=10,
         )
-    except OSError:
+    except (OSError, subprocess.SubprocessError):
         return False
-    if result.returncode != 0:
-        return False
-    return value in {line for line in result.stdout.splitlines() if line}
+    return result.returncode == 0
 
 C13_SOURCE_PATHS = (
     "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",

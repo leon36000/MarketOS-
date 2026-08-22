@@ -833,7 +833,7 @@
     },
     {
       "path": "planning/phases/C13/C13_SOURCE_RECEIPT.json",
-      "sha256": "f8e2bccdffc1f226fe4f7b35601e72841de9a5af1d21ce8cd322814db825af22",
+      "sha256": "5d1701ac394ebf68d2a3070a588678b5aeaa6f0ba27543cf6545dc45fec644ee",
       "bytes": 2270
     },
     {
@@ -1268,8 +1268,8 @@
     },
     {
       "path": "tests/test_c13_source_parent_validation.py",
-      "sha256": "e77ac24f6e0703cc20756bbebee9b7c7093dfd25db788b0a3e5d51cc7978684d",
-      "bytes": 2448
+      "sha256": "3ac96488939697cd29dc444540ae9854bef5f448eb04d71f084d501fd41c8aac",
+      "bytes": 3060
     },
     {
       "path": "tests/test_c1_design.py",
@@ -1568,8 +1568,8 @@
     },
     {
       "path": "tools/verify_c13_contract.py",
-      "sha256": "59225d4e034b4b80476ffbb861941d343e612bd5b94ad72b379ff5d43974c86f",
-      "bytes": 17564
+      "sha256": "44ecec1a2f20109c8e50f4a37e2b19430d2fa3f20ffc6bc2bb47a474e2f00135",
+      "bytes": 17528
     },
     {
       "path": "tools/verify_c13_execution_safety.py",
