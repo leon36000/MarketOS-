@@ -31,7 +31,8 @@ def _decode(value: Any) -> Any:
 
 def _reject_ambiguous_decimal_maps(value: Any) -> None:
     if isinstance(value, Mapping):
-        if set(value) == {"$decimal"}:
+        normalized_keys = {str(key) for key in value}
+        if normalized_keys == {"$decimal"}:
             raise InvariantViolation("AMBIGUOUS_DECIMAL_MARKER")
         for item in value.values():
             _reject_ambiguous_decimal_maps(item)

@@ -27,6 +27,11 @@ class DecimalMarkerCanonicalObject:
         return {"value": self.value}
 
 
+class DecimalMarkerKey:
+    def __str__(self) -> str:
+        return "$decimal"
+
+
 class StoreTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory(prefix="marketos-store-")
@@ -146,6 +151,20 @@ class StoreTests(unittest.TestCase):
                         "AMBIGUOUS_DECIMAL_MARKER",
                     ):
                         store.append_evidence("RISK", {"wrapped": wrapper})
+            self.assertEqual(store.count(), 0)
+
+    def test_reserved_decimal_marker_is_rejected_after_key_normalization(self) -> None:
+        marker_mapping = {DecimalMarkerKey(): "5.00"}
+        with SQLiteEventStore(self.path) as store:
+            with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
+                store.append(
+                    self.event(
+                        "normalized-key-event",
+                        payload={"wrapped": marker_mapping},
+                    )
+                )
+            with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
+                store.append_evidence("RISK", {"wrapped": marker_mapping})
             self.assertEqual(store.count(), 0)
 
     def test_conflicting_duplicate_is_rejected_without_mutation(self) -> None:

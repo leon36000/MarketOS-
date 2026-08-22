@@ -1238,8 +1238,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "c195afd044312bf4a4a848d94a75236ae62b1d0453597868485c28dbca77d2e9",
-      "bytes": 31203
+      "sha256": "829860b48d0caccc437d4c833ecfea6cfddc1b51532c1cba230d412aab9e000c",
+      "bytes": 31262
     },
     {
       "path": "src/marketos/time.py",
@@ -1508,8 +1508,8 @@
     },
     {
       "path": "tests/test_store.py",
-      "sha256": "fe16ba9575bf818857a16d12e5c4e40a0b2376ba6fcbea2584741c174e1f4e3e",
-      "bytes": 12704
+      "sha256": "f039d491f4cd754f002d60a2a60ec4e63830579f71d0e7243983fc11932e9da7",
+      "bytes": 13491
     },
     {
       "path": "tests/test_store_integrity_concurrency.py",
