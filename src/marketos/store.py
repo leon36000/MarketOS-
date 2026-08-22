@@ -193,12 +193,27 @@ class SQLiteEventStore:
             self._connection.execute("PRAGMA synchronous = FULL")
             if self.path != ":memory:":
                 self._connection.execute("PRAGMA journal_mode = WAL")
+            if self._has_existing_ledger_objects():
+                self._verify_table_contracts()
+                self._verify_trigger_contracts(require_all=False)
+                _, _, event_verification, evidence_verification = self._verify_all_rows()
+                self._require_valid(event_verification, "EVENT_CHAIN_INTEGRITY_FAILURE")
+                self._require_valid(evidence_verification, "EVIDENCE_CHAIN_INTEGRITY_FAILURE")
             self._create_schema()
             self._initialize_integrity_state()
         except Exception:
             self._connection.close()
             self._closed = True
             raise
+
+    def _has_existing_ledger_objects(self) -> bool:
+        names = tuple(self._TABLE_CONTRACTS)
+        placeholders = ",".join("?" for _ in names)
+        row = self._connection.execute(
+            f"SELECT 1 FROM sqlite_master WHERE name IN ({placeholders}) LIMIT 1",
+            names,
+        ).fetchone()
+        return row is not None
 
     def _create_schema(self) -> None:
         self._connection.executescript(
@@ -316,6 +331,7 @@ class SQLiteEventStore:
         try:
             decoded = _decode(json.loads(event_text))
             event = _event_from_data(decoded)
+            _validate_persistable_payload(event.payload, allow_tuple=True)
             canonical_text = canonical_json(decoded)
             digest = event.sha256()
         except (
@@ -418,6 +434,7 @@ class SQLiteEventStore:
     ) -> str | None:
         try:
             payload = _decode(json.loads(payload_text))
+            _validate_persistable_payload(payload, allow_tuple=False)
             canonical_text = canonical_json(payload)
             digest = canonical_sha256({"kind": kind, "payload": payload})
         except (DecimalException, InvariantViolation, TypeError, ValueError):
@@ -573,7 +590,7 @@ class SQLiteEventStore:
             ).fetchall()
         )
 
-    def _verify_trigger_contracts(self) -> None:
+    def _verify_trigger_contracts(self, *, require_all: bool = True) -> None:
         temporary_rows = self._protected_trigger_rows("sqlite_temp_master")
         if temporary_rows:
             unexpected = min(str(row["name"]) for row in temporary_rows)
@@ -589,7 +606,13 @@ class SQLiteEventStore:
             )
         for name, (table, operation, message) in self._TRIGGER_CONTRACTS.items():
             row = by_name.get(name)
-            if row is None or str(row["tbl_name"]) != table:
+            if row is None:
+                if require_all:
+                    raise InvariantViolation(
+                        f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}"
+                    )
+                continue
+            if str(row["tbl_name"]) != table:
                 raise InvariantViolation(
                     f"EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:{name}"
                 )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sqlite3
 import tempfile
 import unittest
 
@@ -49,6 +50,42 @@ class StoreSchemaContractTests(unittest.TestCase):
                 store.append(event)
         finally:
             store.close()
+
+    def test_invalid_existing_schema_is_not_repaired_before_rejection(self) -> None:
+        connection = sqlite3.connect(self.path)
+        try:
+            connection.execute(
+                "CREATE TABLE events (sequence INTEGER PRIMARY KEY, event_id TEXT)"
+            )
+            connection.commit()
+        finally:
+            connection.close()
+
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            "EVENT_STORE_SCHEMA_INTEGRITY_FAILURE:events",
+        ):
+            SQLiteEventStore(self.path)
+
+        connection = sqlite3.connect(self.path)
+        try:
+            objects = tuple(
+                connection.execute(
+                    """
+                    SELECT type, name
+                    FROM sqlite_master
+                    WHERE name IN (
+                        'events', 'evidence', 'events_no_update',
+                        'events_no_delete', 'evidence_no_update',
+                        'evidence_no_delete'
+                    )
+                    ORDER BY type, name
+                    """
+                ).fetchall()
+            )
+        finally:
+            connection.close()
+        self.assertEqual(objects, (("table", "events"),))
 
 
 if __name__ == "__main__":

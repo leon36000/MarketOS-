@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from uuid import UUID
 
+from marketos.canonical import canonical_json, canonical_sha256
 from marketos.errors import DuplicateConflict, InvariantViolation
 from marketos.events import EventEnvelope, EventKind
 from marketos.store import SQLiteEventStore
@@ -129,6 +130,51 @@ class StoreTests(unittest.TestCase):
             self.assertIsInstance(evidence_value, Decimal)
             self.assertEqual(event_value, Decimal("1"))
             self.assertEqual(evidence_value, Decimal("2"))
+
+    def test_historical_reserved_tag_rows_fail_closed_on_open(self) -> None:
+        event = self.event(
+            "historical-tagged-event",
+            payload={"value": {"$datetime": "2026-01-01T00:00:00Z"}},
+        )
+        event_json = canonical_json(event.canonical_dict())
+        event_sha256 = event.sha256()
+        chain_sha256 = SQLiteEventStore._chain_hash(1, "0" * 64, event_sha256)
+        with SQLiteEventStore(self.path) as store:
+            store._connection.execute(
+                """
+                INSERT INTO events(
+                    sequence, event_id, event_sha256, previous_chain_sha256,
+                    chain_sha256, event_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (1, event.event_id, event_sha256, "0" * 64, chain_sha256, event_json),
+            )
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            r"EVENT_CHAIN_INTEGRITY_FAILURE.*EVENT_JSON_INVALID:1",
+        ):
+            SQLiteEventStore(self.path)
+
+    def test_historical_evidence_reserved_tag_rows_fail_closed_on_open(self) -> None:
+        payload = {"value": {"$datetime": "2026-01-01T00:00:00Z"}}
+        payload_json = canonical_json(payload)
+        evidence_sha256 = canonical_sha256({"kind": "RISK", "payload": payload})
+        chain_sha256 = SQLiteEventStore._chain_hash(1, "0" * 64, evidence_sha256)
+        with SQLiteEventStore(self.path) as store:
+            store._connection.execute(
+                """
+                INSERT INTO evidence(
+                    sequence, kind, evidence_sha256, previous_chain_sha256,
+                    chain_sha256, payload_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (1, "RISK", evidence_sha256, "0" * 64, chain_sha256, payload_json),
+            )
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            r"EVIDENCE_CHAIN_INTEGRITY_FAILURE.*EVIDENCE_JSON_INVALID:1",
+        ):
+            SQLiteEventStore(self.path)
 
     def test_reserved_decimal_marker_is_rejected_inside_canonical_wrappers(self) -> None:
         wrappers = (
@@ -312,7 +358,10 @@ class StoreTests(unittest.TestCase):
         finally:
             store.close()
         self.assertEqual(self.sql_count("events"), 1)
-        with self.assertRaisesRegex(InvariantViolation, "EVENT_CHAIN_INTEGRITY_FAILURE"):
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            r"(EVENT_CHAIN_INTEGRITY_FAILURE|EVENT_STORE_SCHEMA_INTEGRITY_FAILURE)",
+        ):
             SQLiteEventStore(self.path)
 
     def test_forced_evidence_tamper_blocks_read_append_and_reopen(self) -> None:
@@ -337,7 +386,10 @@ class StoreTests(unittest.TestCase):
         finally:
             store.close()
         self.assertEqual(self.sql_count("evidence"), 1)
-        with self.assertRaisesRegex(InvariantViolation, "EVIDENCE_CHAIN_INTEGRITY_FAILURE"):
+        with self.assertRaisesRegex(
+            InvariantViolation,
+            r"(EVIDENCE_CHAIN_INTEGRITY_FAILURE|EVENT_STORE_SCHEMA_INTEGRITY_FAILURE)",
+        ):
             SQLiteEventStore(self.path)
 
     def test_chain_tamper_is_reported_without_json_decode_escape(self) -> None:

@@ -28,7 +28,7 @@ The schema installs four permanent triggers:
 - `events_no_update` and `events_no_delete`, both raising `APPEND_ONLY_EVENTS`;
 - `evidence_no_update` and `evidence_no_delete`, both raising `APPEND_ONLY_EVIDENCE`.
 
-Schema initialization uses `CREATE TRIGGER IF NOT EXISTS`, so an existing compatible database receives missing guards. Initialization authenticates the normalized `CREATE TABLE` definitions, including primary-key and uniqueness constraints, requires exactly the four persistent guards, rejects every additional persistent or temporary trigger on the protected ledgers, and rejects a missing, conditional or semantically different contract as `EVENT_STORE_SCHEMA_INTEGRITY_FAILURE`.
+Schema initialization uses `CREATE TRIGGER IF NOT EXISTS`, so an existing compatible database receives missing guards. For an existing ledger database, initialization first authenticates the complete table contracts, every existing trigger and both complete ledgers; an incompatible schema, weakened trigger or corrupt row is rejected before any schema object is created. After that preflight, missing guards may be installed, and the final state requires exactly the four persistent guards, rejects every additional persistent or temporary trigger on the protected ledgers, and rejects a missing, conditional or semantically different contract as `EVENT_STORE_SCHEMA_INTEGRITY_FAILURE`.
 
 ## Event-chain verification
 
@@ -38,6 +38,7 @@ Every event row is checked for:
 - text and lowercase SHA-256 field shape;
 - decodable canonical JSON bytes;
 - successful reconstruction of `EventEnvelope` and its domain invariants;
+- the reconstructible payload boundary, including historical rows;
 - equality between the indexed `event_id` and reconstructed event identity;
 - equality between the stored event digest and the reconstructed digest;
 - exact previous-link equality;
@@ -69,10 +70,13 @@ payloads use JSON lists. Enums, datetime/UUID/Path values, dataclasses,
 custom `canonical_dict()` objects, sets, non-string keys, key collisions, and
 reserved canonical tags are rejected before persistence. Rich replay reports
 are explicitly reduced to this canonical wire payload before evidence append.
+Historical rows are checked against the same boundary during reconstruction;
+an already-persisted reserved tag therefore fails closed instead of producing a
+record that cannot be reinserted.
 
 ## Fail-closed surfaces
 
-Initialization uses `BEGIN IMMEDIATE` and validates both complete ledgers plus all four schema guards before the constructor returns. An invalid database closes its connection and raises `InvariantViolation`.
+Initialization preflights existing tables, existing guards and both complete ledgers before schema creation, then uses `BEGIN IMMEDIATE` to validate the final state. Only a compatible database with valid rows may receive missing guards. An invalid database closes its connection, performs no silent repair, and raises `InvariantViolation`.
 
 `read_all()`, `read_evidence()` and `count()` materialize one transactionally stable snapshot, validate both chains and the schema guards, and return nothing if either ledger is invalid. This global boundary prevents an intact event chain from masking a corrupted evidence chain or the reverse.
 
@@ -102,6 +106,8 @@ The implementation is rejected unless tests prove:
 
 - all four direct mutation vetoes;
 - guard installation on a legacy compatible schema;
+- historical non-reconstructible payloads fail closed;
+- incompatible existing schemas are rejected without added ledger objects;
 - event and evidence corruption block reads, count, append and reopen;
 - malformed event and evidence JSON produce structured verification errors;
 - reserved Decimal-marker maps are rejected before persistence while real Decimal values round-trip;
