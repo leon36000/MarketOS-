@@ -28,6 +28,7 @@ MARKER_RE = re.compile(r"(?m)^([A-Z][A-Z0-9_]*)=([^\n]+)$")
 MAX_REVIEW_RECEIPT_BYTES = 64 * 1024
 MAX_REVIEW_ARTIFACT_BYTES = 256 * 1024
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+TRUSTED_REVIEWERS_ENV = "MARKETOS_TRUSTED_REVIEWERS"
 
 EXPECTED_MARKERS = {
     "LUNA_PARALLEL_LIMIT": "2",
@@ -58,6 +59,7 @@ EXPECTED_POLICY = {
             "required_state": "APPROVED",
             "owner_login": "leon36000",
             "reject_owner_login": True,
+            "trusted_reviewer_source": "MARKETOS_TRUSTED_REVIEWERS",
         },
         "allowed_models": ["GPT-5.6 Sol"],
         "allowed_verdicts": [
@@ -332,6 +334,15 @@ def _fetch_github_review(
     return payload
 
 
+def _trusted_reviewer_logins() -> set[str]:
+    raw = os.environ.get(TRUSTED_REVIEWERS_ENV, "")
+    return {login.strip() for login in raw.split(",") if login.strip()}
+
+
+def _canonical_findings_marker(findings: object) -> str:
+    return json.dumps(findings, sort_keys=True, separators=(",", ":"))
+
+
 def _review_body_errors(
     body: object,
     receipt: dict[str, Any],
@@ -346,6 +357,7 @@ def _review_body_errors(
         "MARKETOS_REVIEW_VERDICT": receipt.get("verdict"),
         "MARKETOS_REVIEW_MODEL": receipt.get("reviewer_model"),
         "MARKETOS_REVIEW_CONTEXT": receipt.get("review_context"),
+        "MARKETOS_REVIEW_FINDINGS_JSON": _canonical_findings_marker(receipt.get("findings")),
     }
     return [
         f"REVIEW_SOURCE_MARKER_MISSING:{key}"
@@ -394,6 +406,11 @@ def _review_source_binding_errors(
         errors.append("REVIEW_SOURCE_REVIEWER_INVALID")
     if provenance.get("reject_owner_login") is True and reviewer_login == provenance.get("owner_login"):
         errors.append("REVIEW_SOURCE_SELF_REVIEW_REJECTED")
+    trusted_reviewers = _trusted_reviewer_logins()
+    if not trusted_reviewers:
+        errors.append("REVIEW_TRUSTED_REVIEWER_ALLOWLIST_EMPTY")
+    elif reviewer_login not in trusted_reviewers:
+        errors.append("REVIEW_SOURCE_REVIEWER_UNTRUSTED")
     if receipt.get("reviewer_login") != reviewer_login:
         errors.append("REVIEW_SOURCE_REVIEWER_MISMATCH")
     if source.get("state") != provenance.get("required_state"):

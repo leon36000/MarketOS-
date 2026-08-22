@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class OperatingContractTests(unittest.TestCase):
     def setUp(self) -> None:
+        self._trusted_reviewer_patch = patch.dict(
+            os.environ,
+            {"MARKETOS_TRUSTED_REVIEWERS": "external-sol-reviewer"},
+        )
+        self._trusted_reviewer_patch.start()
+        self.addCleanup(self._trusted_reviewer_patch.stop)
         self._github_source_patch = patch(
             "tools.verify_operating_contract._fetch_github_review",
             return_value=self._github_review_source(),
@@ -88,6 +95,7 @@ class OperatingContractTests(unittest.TestCase):
                 "MARKETOS_REVIEW_VERDICT=APPROVE\n"
                 "MARKETOS_REVIEW_MODEL=GPT-5.6 Sol\n"
                 "MARKETOS_REVIEW_CONTEXT=independent_blind\n"
+                "MARKETOS_REVIEW_FINDINGS_JSON=[]\n"
                 "Independent analysis and reproducible evidence are attached."
             ),
         }

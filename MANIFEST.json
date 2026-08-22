@@ -58,8 +58,13 @@
     },
     {
       "path": ".github/workflows/review-gate.yml",
-      "sha256": "738a6be896812cd6548130676dfa4eead86209ac4449c6f460985a1d31fbe302",
-      "bytes": 971
+      "sha256": "ebb803a8904211936ff29e18612589fe5c1e0dde13d2aa55a9c2f3f905b7140c",
+      "bytes": 1113
+    },
+    {
+      "path": ".github/workflows/trusted-review-gate.yml",
+      "sha256": "754dcc02fc7c8d6b0a19d9771eac40d6c717dc22296447a1fd5636bacc80ab76",
+      "bytes": 1178
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -78,13 +83,13 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "16a6b44797e7d91378e1af8777f8c226c297864c55bad2b40e559ae1ccadb670",
-      "bytes": 6973
+      "sha256": "a1d24f30188859a4d43551e2cb4894a9dcc7c3b44f3cd2107f0603d9db39a884",
+      "bytes": 7184
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "65269063e4b56764ecc395b9e7db9bcfa35fe0b9a53d4fb5ef058d64bded113b",
-      "bytes": 4624
+      "sha256": "60ec778699e980b0154b507d220352a3afa4d3f3ffe5d0f48d682f1705d734a0",
+      "bytes": 4859
     },
     {
       "path": "Makefile",
@@ -93,8 +98,8 @@
     },
     {
       "path": "PROJECT_INSTRUCTIONS.md",
-      "sha256": "f6dbb229cef14f06d1cbf568b18a0c3743932a188dcdc7a021be0d1557eb73b4",
-      "bytes": 6038
+      "sha256": "ec662e19f34e1a0f6fb5135b68cbb189cee1c9216df1c6d134fb19addfd29fe9",
+      "bytes": 6095
     },
     {
       "path": "README.md",
@@ -113,8 +118,8 @@
     },
     {
       "path": "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
-      "sha256": "858a2e933d7c434ed7e01ee050eb8e7379bad569918eec0991b65963b92858e1",
-      "bytes": 1030
+      "sha256": "004b660f411fb2a911a2c9ee2dc778d363c7e4875702d5daedb0085b4308036c",
+      "bytes": 1115
     },
     {
       "path": "authority/CURRENT_STATE.json",
@@ -128,8 +133,8 @@
     },
     {
       "path": "authority/OPERATING_POLICY.json",
-      "sha256": "20960a49542344c1f7138e8f88b8d65baa6f7ec429f39e50f478c73650905fdc",
-      "bytes": 1275
+      "sha256": "ad502ee76422210bed367cbf7eb04a19dd1803dff292c3970e7291da7632e282",
+      "bytes": 1338
     },
     {
       "path": "canon/CANON_POINTER.json",
@@ -1418,8 +1423,8 @@
     },
     {
       "path": "tests/test_operating_contract.py",
-      "sha256": "da247369ce64ec442a5ece996c3aa1decf6227d78827e3a5a57b31a42a3f471b",
-      "bytes": 16320
+      "sha256": "f65b5713cb7bd196f750deb32d9c630291d5f074023945585a82aa8f0a09b112",
+      "bytes": 16641
     },
     {
       "path": "tests/test_paper.py",
@@ -1483,8 +1488,8 @@
     },
     {
       "path": "tests/test_review_gate.py",
-      "sha256": "6a203364656e06ff924850ddf93ad0e93ea352f113ecd60758c9e7b464717b84",
-      "bytes": 7145
+      "sha256": "a114e225caf1a9e3d3cf80b23212dea03d1262c340f5c4a8237c491027111def",
+      "bytes": 9115
     },
     {
       "path": "tests/test_rights.py",
@@ -1517,6 +1522,11 @@
       "bytes": 1281
     },
     {
+      "path": "tests/test_trusted_review_gate.py",
+      "sha256": "de04df190778f19a1bad804d3d3275f8e85585614b5007dad1af4fb24fc11215",
+      "bytes": 3388
+    },
+    {
       "path": "tests/test_validation.py",
       "sha256": "1bbbb8f49c365825f9f0fb7f5b344ab50fcc0a52bfaa8f42b5ab63133d56d895",
       "bytes": 9297
@@ -1547,6 +1557,11 @@
       "bytes": 3809
     },
     {
+      "path": "tools/trusted_review_gate.py",
+      "sha256": "f953ff0069676536d84e3a6f9887daf3a1bfb8d67031db8f0e3f5da627be4cd4",
+      "bytes": 7016
+    },
+    {
       "path": "tools/validate_c1_design.py",
       "sha256": "4ca4305387e1518f90178fc1c58c8f7d5b268e629404e54c5092976089c6d332",
       "bytes": 8665
@@ -1558,8 +1573,8 @@
     },
     {
       "path": "tools/validate_repository.py",
-      "sha256": "021f951453888eeaf37cda67862c521348c5ef2d4bb23b39dfe9f6827dac6644",
-      "bytes": 12800
+      "sha256": "2b050b886e0df9c5dac8dce65e72ada547ff663b4c1b7ed5fb66a10bc3b26a4c",
+      "bytes": 12881
     },
     {
       "path": "tools/verify_architecture_reconciliation.py",
@@ -1603,8 +1618,8 @@
     },
     {
       "path": "tools/verify_github_review.py",
-      "sha256": "6ed2402babb789d06d61b14cfc766f343fafd5d376603d70b67c0c23715695b4",
-      "bytes": 7928
+      "sha256": "5e4e42e6e77e33dd92e1b2370391e2e13948e474b6c555e7db2aac3d05168e84",
+      "bytes": 9091
     },
     {
       "path": "tools/verify_market_data.py",
@@ -1618,8 +1633,8 @@
     },
     {
       "path": "tools/verify_operating_contract.py",
-      "sha256": "45232c57c983a3e0973e69198cd1b14f1280700bafe5be300abd28706f0da424",
-      "bytes": 25560
+      "sha256": "5e56c495da74beccc406f70dc28e286dea22ddd2f1e8461d2ebd3a6267445380",
+      "bytes": 26330
     },
     {
       "path": "tools/verify_proof_binding.py",

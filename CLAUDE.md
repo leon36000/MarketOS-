@@ -22,9 +22,13 @@ machine : sans reçu indépendant lié aux base/head/tree exacts et à la branch
 d'intégration autoritative, avec artefact d'analyse et digest, elle peut
 décrire l'état mais ne peut pas autoriser le merge.
 
-Le workflow `review-gate` doit en plus trouver une revue GitHub externe
-`APPROVED` dont l'auteur n'est pas le propriétaire et dont le body porte les
-marqueurs exacts base/head/tree/verdict ; un artefact local seul ne suffit pas.
+Le workflow `trusted-review-gate`, chargé depuis la branche de base protégée,
+doit en plus trouver une revue GitHub externe `APPROVED` dont l'auteur n'est
+pas le propriétaire ni l'auteur de la PR, dont le dernier état est encore
+approuvé, et dont le body porte les marqueurs exacts base/head/tree/verdict et
+findings. L'identité doit être dans l'allowlist GitHub
+`MARKETOS_TRUSTED_REVIEWERS`; un artefact local ou un nom de modèle déclaré ne
+suffit pas.
 
 ## Orchestration productive
 

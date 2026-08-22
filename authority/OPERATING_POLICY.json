@@ -29,7 +29,8 @@
       "required": true,
       "required_state": "APPROVED",
       "owner_login": "leon36000",
-      "reject_owner_login": true
+      "reject_owner_login": true,
+      "trusted_reviewer_source": "MARKETOS_TRUSTED_REVIEWERS"
     },
     "allowed_models": [
       "GPT-5.6 Sol"

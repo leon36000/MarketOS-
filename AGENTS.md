@@ -15,8 +15,11 @@ qu'un artefact d'analyse hashé et reproductible ; l'absence de preuve reste
 une frontière non-promotable.
 
 La provenance de promotion doit aussi venir d'une revue GitHub externe
-`APPROVED`, non écrite par le propriétaire, liée au commit exact et vérifiée
-par `tools/verify_github_review.py` et le workflow `review-gate`.
+`APPROVED`, non écrite par le propriétaire, liée au commit exact et à l'arbre
+exact. Le workflow `trusted-review-gate`, chargé depuis la branche de base
+protégée, vérifie le dernier état du reviewer contre l'allowlist configurée
+par `MARKETOS_TRUSTED_REVIEWERS`; `review-gate` et
+`tools/verify_github_review.py` reproduisent ce contrôle côté PR.
 
 ## Mission
 

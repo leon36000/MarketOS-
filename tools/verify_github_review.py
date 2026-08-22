@@ -18,9 +18,17 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from tools.verify_operating_contract import verify_operating_contract
+    from tools.verify_operating_contract import (
+        _canonical_findings_marker,
+        _trusted_reviewer_logins,
+        verify_operating_contract,
+    )
 except ModuleNotFoundError:  # pragma: no cover - direct script execution
-    from verify_operating_contract import verify_operating_contract
+    from verify_operating_contract import (
+        _canonical_findings_marker,
+        _trusted_reviewer_logins,
+        verify_operating_contract,
+    )
 
 
 def _fetch_github_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
@@ -62,24 +70,45 @@ def _select_exact_review(
     tree_sha: str,
     owner_login: str,
 ) -> dict[str, Any]:
-    for review in reversed(reviews):
+    latest_by_reviewer: dict[str, dict[str, Any]] = {}
+    for review in reviews:
         user = review.get("user")
         reviewer_login = user.get("login") if isinstance(user, dict) else None
+        if isinstance(reviewer_login, str) and reviewer_login.strip():
+            latest_by_reviewer[reviewer_login] = review
+
+    trusted_reviewers = _trusted_reviewer_logins()
+    for reviewer_login, review in latest_by_reviewer.items():
         body = review.get("body")
         if review.get("state") != "APPROVED":
             continue
-        if reviewer_login == owner_login or not isinstance(reviewer_login, str):
+        if reviewer_login == owner_login or reviewer_login not in trusted_reviewers:
             continue
         if review.get("commit_id") != head_sha:
+            continue
+        verdict = _marker(body, "MARKETOS_REVIEW_VERDICT")
+        if verdict not in {"APPROVE", "APPROVE_WITH_NONBLOCKING_FINDINGS"}:
+            continue
+        findings_text = _marker(body, "MARKETOS_REVIEW_FINDINGS_JSON")
+        try:
+            findings = json.loads(findings_text) if findings_text is not None else None
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(findings, list):
+            continue
+        if verdict == "APPROVE" and findings:
+            continue
+        if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
             continue
         markers = {
             "MARKETOS_REVIEW_REPOSITORY": repository,
             "MARKETOS_REVIEW_BASE_SHA": base_sha,
             "MARKETOS_REVIEW_HEAD_SHA": head_sha,
             "MARKETOS_REVIEW_TREE_SHA": tree_sha,
-            "MARKETOS_REVIEW_VERDICT": "APPROVE",
+            "MARKETOS_REVIEW_VERDICT": verdict,
             "MARKETOS_REVIEW_MODEL": "GPT-5.6 Sol",
             "MARKETOS_REVIEW_CONTEXT": "independent_blind",
+            "MARKETOS_REVIEW_FINDINGS_JSON": _canonical_findings_marker(findings),
         }
         if any(_marker(body, key) != expected for key, expected in markers.items()):
             continue
@@ -95,8 +124,8 @@ def _select_exact_review(
             "reviewed_base_sha": base_sha,
             "reviewed_head_sha": head_sha,
             "reviewed_tree_sha": tree_sha,
-            "verdict": "APPROVE",
-            "findings": [],
+            "verdict": verdict,
+            "findings": findings,
             "repository": repository,
             "review": review,
         }
