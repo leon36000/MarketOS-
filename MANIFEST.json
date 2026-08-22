@@ -1488,8 +1488,8 @@
     },
     {
       "path": "tests/test_review_gate.py",
-      "sha256": "a114e225caf1a9e3d3cf80b23212dea03d1262c340f5c4a8237c491027111def",
-      "bytes": 9115
+      "sha256": "7c731b272113be7c2ff1502ddc6c23066101ba4aafc0eaafe8647443b5c5c705",
+      "bytes": 9327
     },
     {
       "path": "tests/test_rights.py",
@@ -1618,8 +1618,8 @@
     },
     {
       "path": "tools/verify_github_review.py",
-      "sha256": "5e4e42e6e77e33dd92e1b2370391e2e13948e474b6c555e7db2aac3d05168e84",
-      "bytes": 9091
+      "sha256": "a3d60350f2d4d35c37a822f35c0794e520f5e372cb67a19742c7e1cb89eb9503",
+      "bytes": 10328
     },
     {
       "path": "tools/verify_market_data.py",

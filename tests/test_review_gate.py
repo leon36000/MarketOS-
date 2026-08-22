@@ -84,8 +84,8 @@ class ReviewGateTests(unittest.TestCase):
             select_stale_review()
 
     def test_selector_rejects_withdrawn_latest_review(self) -> None:
-        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
-            _select_exact_review(
+        def select_withdrawn_review() -> dict[str, object]:
+            return _select_exact_review(
                 [_review(id=1), _review(id=2, state="CHANGES_REQUESTED")],
                 repository="leon36000/MarketOS-",
                 pull_request=30,
@@ -95,9 +95,12 @@ class ReviewGateTests(unittest.TestCase):
                 owner_login="leon36000",
             )
 
-    def test_selector_rejects_untrusted_reviewer(self) -> None:
         with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
-            _select_exact_review(
+            select_withdrawn_review()
+
+    def test_selector_rejects_untrusted_reviewer(self) -> None:
+        def select_untrusted_review() -> dict[str, object]:
+            return _select_exact_review(
                 [_review(user={"login": "arbitrary-external-user"})],
                 repository="leon36000/MarketOS-",
                 pull_request=30,
@@ -106,6 +109,9 @@ class ReviewGateTests(unittest.TestCase):
                 tree_sha=TREE_SHA,
                 owner_login="leon36000",
             )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_untrusted_review()
 
     def test_selector_accepts_permitted_nonblocking_findings(self) -> None:
         selected = _select_exact_review(

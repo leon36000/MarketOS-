@@ -60,6 +60,110 @@ def _marker(body: object, key: str) -> str | None:
     return None
 
 
+def _latest_reviews_by_reviewer(
+    reviews: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    latest_by_reviewer: dict[str, dict[str, Any]] = {}
+    for review in reviews:
+        user = review.get("user")
+        reviewer_login = user.get("login") if isinstance(user, dict) else None
+        if isinstance(reviewer_login, str) and reviewer_login.strip():
+            latest_by_reviewer[reviewer_login] = review
+    return latest_by_reviewer
+
+
+def _review_verdict_and_findings(body: object) -> tuple[str, list[object]] | None:
+    verdict = _marker(body, "MARKETOS_REVIEW_VERDICT")
+    if verdict not in {"APPROVE", "APPROVE_WITH_NONBLOCKING_FINDINGS"}:
+        return None
+    findings_text = _marker(body, "MARKETOS_REVIEW_FINDINGS_JSON")
+    try:
+        findings = json.loads(findings_text) if findings_text is not None else None
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(findings, list):
+        return None
+    if verdict == "APPROVE" and findings:
+        return None
+    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
+        return None
+    return verdict, findings
+
+
+def _review_marker_matches(
+    body: object,
+    *,
+    repository: str,
+    base_sha: str,
+    head_sha: str,
+    tree_sha: str,
+    verdict: str,
+    findings: list[object],
+) -> bool:
+    markers = {
+        "MARKETOS_REVIEW_REPOSITORY": repository,
+        "MARKETOS_REVIEW_BASE_SHA": base_sha,
+        "MARKETOS_REVIEW_HEAD_SHA": head_sha,
+        "MARKETOS_REVIEW_TREE_SHA": tree_sha,
+        "MARKETOS_REVIEW_VERDICT": verdict,
+        "MARKETOS_REVIEW_MODEL": "GPT-5.6 Sol",
+        "MARKETOS_REVIEW_CONTEXT": "independent_blind",
+        "MARKETOS_REVIEW_FINDINGS_JSON": _canonical_findings_marker(findings),
+    }
+    return all(_marker(body, key) == expected for key, expected in markers.items())
+
+
+def _select_review_candidate(
+    review: dict[str, Any],
+    reviewer_login: str,
+    *,
+    repository: str,
+    pull_request: int,
+    base_sha: str,
+    head_sha: str,
+    tree_sha: str,
+    owner_login: str,
+) -> dict[str, Any] | None:
+    trusted_reviewers = _trusted_reviewer_logins()
+    if review.get("state") != "APPROVED":
+        return None
+    if reviewer_login == owner_login or reviewer_login not in trusted_reviewers:
+        return None
+    if review.get("commit_id") != head_sha:
+        return None
+    parsed = _review_verdict_and_findings(review.get("body"))
+    if parsed is None:
+        return None
+    verdict, findings = parsed
+    if not _review_marker_matches(
+        review.get("body"),
+        repository=repository,
+        base_sha=base_sha,
+        head_sha=head_sha,
+        tree_sha=tree_sha,
+        verdict=verdict,
+        findings=findings,
+    ):
+        return None
+    if not isinstance(review.get("id"), int) or not isinstance(review.get("html_url"), str):
+        return None
+    return {
+        "pull_request": pull_request,
+        "review_id": review["id"],
+        "review_url": review["html_url"],
+        "reviewer_login": reviewer_login,
+        "reviewer_model": "GPT-5.6 Sol",
+        "review_context": "independent_blind",
+        "reviewed_base_sha": base_sha,
+        "reviewed_head_sha": head_sha,
+        "reviewed_tree_sha": tree_sha,
+        "verdict": verdict,
+        "findings": findings,
+        "repository": repository,
+        "review": review,
+    }
+
+
 def _select_exact_review(
     reviews: list[dict[str, Any]],
     *,
@@ -70,65 +174,19 @@ def _select_exact_review(
     tree_sha: str,
     owner_login: str,
 ) -> dict[str, Any]:
-    latest_by_reviewer: dict[str, dict[str, Any]] = {}
-    for review in reviews:
-        user = review.get("user")
-        reviewer_login = user.get("login") if isinstance(user, dict) else None
-        if isinstance(reviewer_login, str) and reviewer_login.strip():
-            latest_by_reviewer[reviewer_login] = review
-
-    trusted_reviewers = _trusted_reviewer_logins()
-    for reviewer_login, review in latest_by_reviewer.items():
-        body = review.get("body")
-        if review.get("state") != "APPROVED":
-            continue
-        if reviewer_login == owner_login or reviewer_login not in trusted_reviewers:
-            continue
-        if review.get("commit_id") != head_sha:
-            continue
-        verdict = _marker(body, "MARKETOS_REVIEW_VERDICT")
-        if verdict not in {"APPROVE", "APPROVE_WITH_NONBLOCKING_FINDINGS"}:
-            continue
-        findings_text = _marker(body, "MARKETOS_REVIEW_FINDINGS_JSON")
-        try:
-            findings = json.loads(findings_text) if findings_text is not None else None
-        except json.JSONDecodeError:
-            continue
-        if not isinstance(findings, list):
-            continue
-        if verdict == "APPROVE" and findings:
-            continue
-        if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
-            continue
-        markers = {
-            "MARKETOS_REVIEW_REPOSITORY": repository,
-            "MARKETOS_REVIEW_BASE_SHA": base_sha,
-            "MARKETOS_REVIEW_HEAD_SHA": head_sha,
-            "MARKETOS_REVIEW_TREE_SHA": tree_sha,
-            "MARKETOS_REVIEW_VERDICT": verdict,
-            "MARKETOS_REVIEW_MODEL": "GPT-5.6 Sol",
-            "MARKETOS_REVIEW_CONTEXT": "independent_blind",
-            "MARKETOS_REVIEW_FINDINGS_JSON": _canonical_findings_marker(findings),
-        }
-        if any(_marker(body, key) != expected for key, expected in markers.items()):
-            continue
-        if not isinstance(review.get("id"), int) or not isinstance(review.get("html_url"), str):
-            continue
-        return {
-            "pull_request": pull_request,
-            "review_id": review["id"],
-            "review_url": review["html_url"],
-            "reviewer_login": reviewer_login,
-            "reviewer_model": "GPT-5.6 Sol",
-            "review_context": "independent_blind",
-            "reviewed_base_sha": base_sha,
-            "reviewed_head_sha": head_sha,
-            "reviewed_tree_sha": tree_sha,
-            "verdict": verdict,
-            "findings": findings,
-            "repository": repository,
-            "review": review,
-        }
+    for reviewer_login, review in _latest_reviews_by_reviewer(reviews).items():
+        selected = _select_review_candidate(
+            review,
+            reviewer_login,
+            repository=repository,
+            pull_request=pull_request,
+            base_sha=base_sha,
+            head_sha=head_sha,
+            tree_sha=tree_sha,
+            owner_login=owner_login,
+        )
+        if selected is not None:
+            return selected
     raise ValueError("NO_EXTERNAL_EXACT_HEAD_APPROVAL")
 
 
