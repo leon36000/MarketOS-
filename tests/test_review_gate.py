@@ -59,8 +59,8 @@ class ReviewGateTests(unittest.TestCase):
         self.assertEqual(selected["reviewer_login"], "external-sol-reviewer")
 
     def test_selector_rejects_stale_review(self) -> None:
-        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
-            _select_exact_review(
+        def select_stale_review() -> dict[str, object]:
+            return _select_exact_review(
                 [_review(commit_id="0" * 40)],
                 repository="leon36000/MarketOS-",
                 pull_request=30,
@@ -69,6 +69,9 @@ class ReviewGateTests(unittest.TestCase):
                 tree_sha=TREE_SHA,
                 owner_login="leon36000",
             )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_stale_review()
 
     def test_gate_fails_when_no_external_review_exists(self) -> None:
         current_head = subprocess.check_output(

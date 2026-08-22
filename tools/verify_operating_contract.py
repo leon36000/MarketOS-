@@ -354,31 +354,37 @@ def _review_body_errors(
     ]
 
 
-def _review_provenance_errors(
+def _review_provenance_input_errors(
     receipt: dict[str, Any],
     review_policy: dict[str, Any],
-) -> list[str]:
+) -> tuple[list[str], dict[str, Any], int | None, int | None]:
     provenance = review_policy.get("provenance", {})
+    if not isinstance(provenance, dict):
+        return ["REVIEW_PROVENANCE_POLICY_INVALID"], {}, None, None
+    errors: list[str] = []
     if provenance.get("provider") != "github" or provenance.get("required") is not True:
-        return ["REVIEW_PROVENANCE_POLICY_INVALID"]
+        errors.append("REVIEW_PROVENANCE_POLICY_INVALID")
     if receipt.get("repository") != EXPECTED_POLICY["repository"]:
-        return ["REVIEW_REPOSITORY_MISMATCH"]
+        errors.append("REVIEW_REPOSITORY_MISMATCH")
     pull_request = receipt.get("pull_request")
     review_id = receipt.get("review_id")
     if not isinstance(pull_request, int) or pull_request <= 0:
-        return ["REVIEW_PULL_REQUEST_INVALID"]
+        errors.append("REVIEW_PULL_REQUEST_INVALID")
     if not isinstance(review_id, int) or review_id <= 0:
-        return ["REVIEW_ID_INVALID"]
+        errors.append("REVIEW_ID_INVALID")
     if not isinstance(receipt.get("review_url"), str) or not receipt["review_url"].strip():
-        return ["REVIEW_URL_INVALID"]
-    try:
-        source = _fetch_github_review(
-            receipt["repository"],
-            pull_request,
-            review_id,
-        )
-    except (OSError, ValueError) as exc:
-        return [f"REVIEW_SOURCE_UNAVAILABLE:{type(exc).__name__}"]
+        errors.append("REVIEW_URL_INVALID")
+    valid_pull_request = pull_request if isinstance(pull_request, int) and pull_request > 0 else None
+    valid_review_id = review_id if isinstance(review_id, int) and review_id > 0 else None
+    return errors, provenance, valid_pull_request, valid_review_id
+
+
+def _review_source_binding_errors(
+    source: dict[str, Any],
+    receipt: dict[str, Any],
+    provenance: dict[str, Any],
+    review_id: int,
+) -> list[str]:
     errors: list[str] = []
     if source.get("id") != review_id:
         errors.append("REVIEW_SOURCE_ID_MISMATCH")
@@ -398,6 +404,29 @@ def _review_provenance_errors(
         errors.append("REVIEW_SOURCE_URL_MISMATCH")
     errors.extend(_review_body_errors(source.get("body"), receipt))
     return errors
+
+
+def _review_provenance_errors(
+    receipt: dict[str, Any],
+    review_policy: dict[str, Any],
+) -> list[str]:
+    input_errors, provenance, pull_request, review_id = _review_provenance_input_errors(
+        receipt,
+        review_policy,
+    )
+    if input_errors:
+        return input_errors
+    if pull_request is None or review_id is None:
+        return ["REVIEW_PROVENANCE_INPUT_INVALID"]
+    try:
+        source = _fetch_github_review(
+            receipt["repository"],
+            pull_request,
+            review_id,
+        )
+    except (OSError, ValueError) as exc:
+        return [f"REVIEW_SOURCE_UNAVAILABLE:{type(exc).__name__}"]
+    return _review_source_binding_errors(source, receipt, provenance, review_id)
 
 
 def _review_sha_errors(
