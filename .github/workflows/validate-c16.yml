@@ -1,0 +1,31 @@
+name: validate-c16
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  final-design-and-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Derived files are reconciled
+        run: python tools/regenerate_derived.py --root . --check --json
+      - name: C16 and pack tests
+        run: python -m unittest tests.test_c16_design tests.test_final_pack -v
+      - name: C16 cross-audit
+        run: python tools/validate_c16_design.py --root . --json
+      - name: Repository contract
+        run: python tools/validate_repository.py --root . --json
+      - name: Deterministic clean-extraction pack
+        run: python tools/build_claude_pack.py --root . --output /tmp/MARKET-OS-C16-CI.zip --verify --json
+      - name: Compile Python sources
+        run: python -m compileall -q tools tests
