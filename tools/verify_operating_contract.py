@@ -379,6 +379,14 @@ def _review_body_errors(
     ]
 
 
+def _positive_int_or_none(value: object) -> int | None:
+    return value if isinstance(value, int) and value > 0 else None
+
+
+def _non_empty_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
 def _review_provenance_input_errors(
     receipt: dict[str, Any],
     review_policy: dict[str, Any],
@@ -393,16 +401,16 @@ def _review_provenance_input_errors(
         errors.append("REVIEW_REPOSITORY_MISMATCH")
     pull_request = receipt.get("pull_request")
     review_id = receipt.get("review_id")
-    if not isinstance(pull_request, int) or pull_request <= 0:
+    valid_pull_request = _positive_int_or_none(pull_request)
+    if valid_pull_request is None:
         errors.append("REVIEW_PULL_REQUEST_INVALID")
-    if not isinstance(review_id, int) or review_id <= 0:
+    valid_review_id = _positive_int_or_none(review_id)
+    if valid_review_id is None:
         errors.append("REVIEW_ID_INVALID")
-    if not isinstance(receipt.get("review_url"), str) or not receipt["review_url"].strip():
+    if not _non_empty_text(receipt.get("review_url")):
         errors.append("REVIEW_URL_INVALID")
-    if not isinstance(receipt.get("pull_request_author"), str) or not receipt["pull_request_author"].strip():
+    if not _non_empty_text(receipt.get("pull_request_author")):
         errors.append("REVIEW_PR_AUTHOR_INVALID")
-    valid_pull_request = pull_request if isinstance(pull_request, int) and pull_request > 0 else None
-    valid_review_id = review_id if isinstance(review_id, int) and review_id > 0 else None
     return errors, provenance, valid_pull_request, valid_review_id
 
 
