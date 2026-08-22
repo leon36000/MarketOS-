@@ -39,5 +39,7 @@ jobs:
           jq -e '([.requirements[].id] | sort) == (["AUD-CMP-013","AUD-DAT-004","AUD-DAT-012"] | sort) and .hard_boundary.clean_restore_executed == false' planning/phases/C3/C3_REQUIREMENT_CLOSURE.json
       - name: Repository contract
         run: python tools/validate_repository.py --root . --json
+      - name: Operating contract
+        run: python tools/verify_operating_contract.py --root . --json
       - name: Compile Python sources
         run: python -m compileall -q src tools tests

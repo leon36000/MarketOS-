@@ -1,0 +1,35 @@
+name: review-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  exact-external-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Exact external review
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MARKETOS_TRUSTED_REVIEWERS: ${{ vars.MARKETOS_TRUSTED_REVIEWERS }}
+        run: >-
+          python tools/verify_github_review.py --root .
+          --repository "${{ github.repository }}"
+          --pull-request "${{ github.event.pull_request.number }}"
+          --expected-base-sha "${{ github.event.pull_request.base.sha }}"
+          --expected-head-sha "${{ github.event.pull_request.head.sha }}"
+          --pr-author "${{ github.event.pull_request.user.login }}"
+          --json
