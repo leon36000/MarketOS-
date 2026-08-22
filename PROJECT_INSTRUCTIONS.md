@@ -6,6 +6,11 @@ FULL_SUITE_BEFORE_EVERY_ACTION=false
 NO_STUBS=true
 MERGE_REQUIRES_EXACT_SHA_REVIEW=true
 
+`authority/OPERATING_POLICY.json` est une politique exécutable, consommée par
+`tools/verify_operating_contract.py` et `tools/validate_repository.py`. Elle
+lie les invariants des trois surfaces d'instructions et la preuve de revue
+au SHA exact ; elle ne lève jamais les verrous financiers.
+
 ## Mission
 
 Construire MarketOS comme système de recherche et d'exécution falsifiable, sans confondre plan, tranche implémentée, qualification, rentabilité ou disponibilité live. Maximiser l'autonomie et le débit tout en conservant des preuves reproductibles et des frontières financières fail-closed.

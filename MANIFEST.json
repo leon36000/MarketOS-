@@ -58,8 +58,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "sha256": "bca2068c333c99693ed9867491440a86d7455ab6140a956379a4fbc1fc2636cc",
-      "bytes": 1792
+      "sha256": "0591fcf43d6294abb439a337d57b727708e6dfd193caed23d7c48c7c16746b7e",
+      "bytes": 1896
     },
     {
       "path": ".gitignore",
@@ -73,13 +73,13 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "7901bb2a2f20179eee800a0903587a792fc66787e5373425081712e385baf7ff",
-      "bytes": 6264
+      "sha256": "1f745b5ff4eabb59e0bbcae57533d4094266b2b022b3d44a366adfe3c4923ea0",
+      "bytes": 6630
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "82a0004deeaac3deaaf65abbffa00ad68920865870490a6476c4242b3f5c802d",
-      "bytes": 4074
+      "sha256": "754956c4ff9312ac36e00b6dfeab8257466f309a520e85394443e82b10099d49",
+      "bytes": 4322
     },
     {
       "path": "Makefile",
@@ -88,8 +88,8 @@
     },
     {
       "path": "PROJECT_INSTRUCTIONS.md",
-      "sha256": "2ca0a81c34bf0577d83fbba784132f6b846b8ce7f72b46f8df92cd6189b912b3",
-      "bytes": 5632
+      "sha256": "31e53e4849c530bea33a155f5c3d51050d21bf230e3d93a39b72c8c80e1d261d",
+      "bytes": 5925
     },
     {
       "path": "README.md",
@@ -108,8 +108,8 @@
     },
     {
       "path": "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
-      "sha256": "77be25a5abd7b1a6a45e8e967722e8e0a79d8ef985fbf1d20e76fd7efb141703",
-      "bytes": 871
+      "sha256": "b38049b7de56e3f81cc9a41c4c22de2d989dbc6562d1c3a2ddaed0c6de9ed352",
+      "bytes": 910
     },
     {
       "path": "authority/CURRENT_STATE.json",
@@ -120,6 +120,11 @@
       "path": "authority/NEON_MEMORY_STATE.json",
       "sha256": "c6555253d09683751f4c08089b118d3e48d1a2877a4500d62470702b06954a72",
       "bytes": 530
+    },
+    {
+      "path": "authority/OPERATING_POLICY.json",
+      "sha256": "88738870d44d57b662661ff0e16ad8b0333e9278f58b2062549f33031884ff0d",
+      "bytes": 882
     },
     {
       "path": "canon/CANON_POINTER.json",
@@ -1407,6 +1412,11 @@
       "bytes": 2533
     },
     {
+      "path": "tests/test_operating_contract.py",
+      "sha256": "a8a203bfa1163f55ebb92d9980f7f9d35f9f4f748abcf63093ad9b8f1a510880",
+      "bytes": 7401
+    },
+    {
       "path": "tests/test_paper.py",
       "sha256": "10c214ee8e84bb708e3c423323bb3e7325c8c073e08a60d777c297a12ae0eee4",
       "bytes": 6673
@@ -1538,8 +1548,8 @@
     },
     {
       "path": "tools/validate_repository.py",
-      "sha256": "7140c9de8c2b4ba3eba81dbce7c247f4429e5c7c7df8c0739ea0c667b68e3899",
-      "bytes": 12139
+      "sha256": "15a151c84d548d4b3be80a2b9030205d0f9fad7babfda1b18873e3f64b0c4f75",
+      "bytes": 12684
     },
     {
       "path": "tools/verify_architecture_reconciliation.py",
@@ -1590,6 +1600,11 @@
       "path": "tools/verify_neon_memory.py",
       "sha256": "a4d78d8494040946e47a9d588ff90ea3ef4d798c8d17acfa4d202b98cfc8f22e",
       "bytes": 1258
+    },
+    {
+      "path": "tools/verify_operating_contract.py",
+      "sha256": "4b3fdad17bf03939ab8ee26a907f95dee04d2fda9db4afd9e1916805e87b8f26",
+      "bytes": 10995
     },
     {
       "path": "tools/verify_proof_binding.py",

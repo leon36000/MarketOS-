@@ -10,12 +10,16 @@ MERGE_REQUIRES_EXACT_SHA_REVIEW=true
 
 Au début d'une session ou lorsque le head a changé :
 
-1. lire `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, `authority/CURRENT_STATE.json`, le contrat actif, les issues et le dernier checkpoint ;
+1. lire `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, `authority/OPERATING_POLICY.json`, `authority/CURRENT_STATE.json`, le contrat actif, les issues et le dernier checkpoint ;
 2. vérifier le SHA courant et la fraîcheur des reçus CI ;
 3. exécuter `python tools/validate_repository.py --root . --json` si aucun reçu valide n'existe pour ce SHA ou si une surface globale a changé ;
 4. construire un Context Pack borné par la tranche, puis commencer le travail sans demander au propriétaire de confirmer les choix techniques ordinaires.
 
 Ne pas relancer mécaniquement la suite complète lorsqu'un reçu exact-SHA frais couvre déjà le même état. Toute preuve complète reste reproductible et accessible, mais le contexte modèle demeure borné.
+
+`tools/verify_operating_contract.py` est le consommateur de la politique
+machine : sans reçu indépendant lié aux base/head/tree exacts, la validation
+peut décrire l'état mais ne peut pas autoriser le merge.
 
 ## Orchestration productive
 

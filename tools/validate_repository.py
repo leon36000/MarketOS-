@@ -9,10 +9,16 @@ import re
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools.verify_operating_contract import verify_operating_contract
+except ModuleNotFoundError:  # pragma: no cover - direct script execution
+    from verify_operating_contract import verify_operating_contract
+
 REQUIRED_FILES = [
     "README.md", "AGENTS.md", "CLAUDE.md", "PROJECT_INSTRUCTIONS.md",
     "authority/AUTHORITY_ORDER.json", "authority/CURRENT_STATE.json",
     "authority/NEON_MEMORY_STATE.json", "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
+    "authority/OPERATING_POLICY.json",
     "canon/CANON_POINTER.json", "planning/C0_1_FINAL_RECONCILIATION.md",
     "planning/PHASE_INDEX.json", "planning/phases/C1/PHASE_BRIEF.md",
     "planning/phases/C1/EXECUTION_CONTRACT.md", "requirements/REQUIREMENTS_INDEX.json",
@@ -78,6 +84,13 @@ def validate_repository(root: Path) -> dict[str, Any]:
         errors.append("live_trading_state must remain HARD_LOCKED")
     if state.get("profitability_state") != "UNPROVEN":
         errors.append("profitability_state must remain UNPROVEN")
+
+    operating_contract = verify_operating_contract(root)
+    if not operating_contract["ok"]:
+        errors.extend(
+            f"operating contract: {error}"
+            for error in operating_contract["errors"]
+        )
 
     phase_count = 0
     phase_data: dict[str, Any] = {}
@@ -232,6 +245,7 @@ def validate_repository(root: Path) -> dict[str, Any]:
         "manifested_file_count": len(manifest_paths),
         "live_trading_state": state.get("live_trading_state"),
         "profitability_state": state.get("profitability_state"),
+        "operating_contract_ok": operating_contract["ok"],
     }
 
 

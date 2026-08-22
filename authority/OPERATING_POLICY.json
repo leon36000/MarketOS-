@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "policy_id": "MARKETOS_OPERATING_CONTRACT",
+  "repository": "leon36000/MarketOS-",
+  "instruction_surfaces": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "PROJECT_INSTRUCTIONS.md"
+  ],
+  "required_markers": {
+    "LUNA_PARALLEL_LIMIT": "2",
+    "SOL_BLIND_REVIEW_REQUIRED": "true",
+    "FULL_SUITE_BEFORE_EVERY_ACTION": "false",
+    "NO_STUBS": "true",
+    "MERGE_REQUIRES_EXACT_SHA_REVIEW": "true"
+  },
+  "review": {
+    "required": true,
+    "context": "independent_blind",
+    "allowed_models": [
+      "GPT-5.6 Sol"
+    ],
+    "allowed_verdicts": [
+      "APPROVE",
+      "APPROVE_WITH_NONBLOCKING_FINDINGS"
+    ],
+    "blocking_severities": [
+      "BLOCKER",
+      "HIGH"
+    ],
+    "merge_requires_bound_receipt": true
+  },
+  "locks": {
+    "live_trading_state": "HARD_LOCKED",
+    "profitability_state": "UNPROVEN",
+    "promotion_allowed": false
+  }
+}

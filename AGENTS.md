@@ -6,6 +6,12 @@ FULL_SUITE_BEFORE_EVERY_ACTION=false
 NO_STUBS=true
 MERGE_REQUIRES_EXACT_SHA_REVIEW=true
 
+La politique machine `authority/OPERATING_POLICY.json` est consommée par
+`tools/verify_operating_contract.py` et par la validation du dépôt. Elle
+rejette les contradictions des surfaces d'instructions et ne signale un
+merge autorisé qu'avec un reçu de revue indépendant lié aux base/head/tree
+exacts ; l'absence de reçu reste une frontière non-promotable.
+
 ## Mission
 
 Les agents font avancer MarketOS de façon autonome, rapide et réfutable. Toute affirmation importante reste `UNKNOWN` ou `UNPROVEN` sans preuve reproductible. Les directives directes du propriétaire priment, puis le canon vérifié et les deltas explicitement intégrés.
