@@ -1603,8 +1603,8 @@
     },
     {
       "path": "tools/verify_github_review.py",
-      "sha256": "4a99bb23133bddbad98cb3728355663fab00bca51ae46f2a74f90a8f90f13e54",
-      "bytes": 7777
+      "sha256": "6ed2402babb789d06d61b14cfc766f343fafd5d376603d70b67c0c23715695b4",
+      "bytes": 7928
     },
     {
       "path": "tools/verify_market_data.py",

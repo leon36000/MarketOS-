@@ -17,7 +17,10 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from tools.verify_operating_contract import verify_operating_contract
+try:
+    from tools.verify_operating_contract import verify_operating_contract
+except ModuleNotFoundError:  # pragma: no cover - direct script execution
+    from verify_operating_contract import verify_operating_contract
 
 
 def _fetch_github_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
