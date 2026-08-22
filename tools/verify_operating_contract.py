@@ -416,7 +416,7 @@ def _review_evidence_errors(
         return errors + ["REVIEW_ARTIFACT_DIGEST_MISMATCH"]
     try:
         artifact = _load_object_bytes(artifact_bytes)
-    except (UnicodeError, ValueError) as exc:
+    except ValueError as exc:
         return errors + [f"REVIEW_ARTIFACT_INVALID:{type(exc).__name__}"]
     errors.extend(_artifact_binding_errors(receipt, artifact))
     errors.extend(_artifact_analysis_errors(artifact, review_policy.get("evidence", {})))
@@ -444,7 +444,7 @@ def _review_errors(
     review_policy = policy.get("review", {})
     try:
         receipt = _load_object_bytes(receipt_bytes)
-    except (UnicodeError, ValueError) as exc:
+    except ValueError as exc:
         return [f"REVIEW_RECEIPT_INVALID:{type(exc).__name__}"], False
 
     findings = receipt.get("findings")

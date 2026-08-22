@@ -1603,8 +1603,8 @@
     },
     {
       "path": "tools/verify_operating_contract.py",
-      "sha256": "f475e1ed142218ad7c8d8e72730adbf2dc117306ed5a62e9f9b50e72c75d8a51",
-      "bytes": 18632
+      "sha256": "0cea8119833af5a4f7577cbaeba3d82ff0e7c9bbbbf51a5568dd798ae7ec6ff6",
+      "bytes": 18600
     },
     {
       "path": "tools/verify_proof_binding.py",
