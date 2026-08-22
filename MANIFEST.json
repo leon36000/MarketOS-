@@ -58,8 +58,8 @@
     },
     {
       "path": ".github/workflows/review-gate.yml",
-      "sha256": "ebb803a8904211936ff29e18612589fe5c1e0dde13d2aa55a9c2f3f905b7140c",
-      "bytes": 1113
+      "sha256": "d76f12c946b2322c57da8150fa31e32bf11d8fcdc1978a266b9139134d1774c2",
+      "bytes": 1181
     },
     {
       "path": ".github/workflows/trusted-review-gate.yml",
@@ -1423,8 +1423,8 @@
     },
     {
       "path": "tests/test_operating_contract.py",
-      "sha256": "f65b5713cb7bd196f750deb32d9c630291d5f074023945585a82aa8f0a09b112",
-      "bytes": 16641
+      "sha256": "0c264cd6e2ab3df06023515cfac72c79d640cca7a9ec44dbbe2efb7e2f510b8e",
+      "bytes": 16756
     },
     {
       "path": "tests/test_paper.py",
@@ -1488,8 +1488,8 @@
     },
     {
       "path": "tests/test_review_gate.py",
-      "sha256": "7c731b272113be7c2ff1502ddc6c23066101ba4aafc0eaafe8647443b5c5c705",
-      "bytes": 9327
+      "sha256": "df9e162cc350ecc396f5e4a18d31fe694b0ba6511e1cfadb6520e20eb67fb292",
+      "bytes": 11548
     },
     {
       "path": "tests/test_rights.py",
@@ -1523,8 +1523,8 @@
     },
     {
       "path": "tests/test_trusted_review_gate.py",
-      "sha256": "de04df190778f19a1bad804d3d3275f8e85585614b5007dad1af4fb24fc11215",
-      "bytes": 3388
+      "sha256": "4f3f91568a90211e31c00aea2313b9486ec60073aa9c00e02aa1e3ce2a171911",
+      "bytes": 5276
     },
     {
       "path": "tests/test_validation.py",
@@ -1558,8 +1558,8 @@
     },
     {
       "path": "tools/trusted_review_gate.py",
-      "sha256": "f953ff0069676536d84e3a6f9887daf3a1bfb8d67031db8f0e3f5da627be4cd4",
-      "bytes": 7016
+      "sha256": "e558df8010d3150665e012e3438484cbd401631f18a815fe30e2a232de6edfb9",
+      "bytes": 8154
     },
     {
       "path": "tools/validate_c1_design.py",
@@ -1618,8 +1618,8 @@
     },
     {
       "path": "tools/verify_github_review.py",
-      "sha256": "a3d60350f2d4d35c37a822f35c0794e520f5e372cb67a19742c7e1cb89eb9503",
-      "bytes": 10328
+      "sha256": "90f251c1d2d356585748f82fb451d84fed83f7f9aaa6f53c24611e7438ae1917",
+      "bytes": 11407
     },
     {
       "path": "tools/verify_market_data.py",
@@ -1633,8 +1633,8 @@
     },
     {
       "path": "tools/verify_operating_contract.py",
-      "sha256": "5e56c495da74beccc406f70dc28e286dea22ddd2f1e8461d2ebd3a6267445380",
-      "bytes": 26330
+      "sha256": "8b1321fe049c88c90d63d777f46d33cbd9c5fd2dd671c07d920c595961c6679b",
+      "bytes": 27235
     },
     {
       "path": "tools/verify_proof_binding.py",

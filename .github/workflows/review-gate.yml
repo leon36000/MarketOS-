@@ -31,4 +31,5 @@ jobs:
           --pull-request "${{ github.event.pull_request.number }}"
           --expected-base-sha "${{ github.event.pull_request.base.sha }}"
           --expected-head-sha "${{ github.event.pull_request.head.sha }}"
+          --pr-author "${{ github.event.pull_request.user.login }}"
           --json

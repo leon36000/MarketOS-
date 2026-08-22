@@ -17,6 +17,7 @@ from typing import Any
 TRUSTED_REVIEWERS_ENV = "MARKETOS_TRUSTED_REVIEWERS"
 OWNER_LOGIN = "leon36000"
 ALLOWED_VERDICTS = {"APPROVE", "APPROVE_WITH_NONBLOCKING_FINDINGS"}
+MAX_REVIEW_PAGES = 20
 
 
 def _trusted_reviewers() -> set[str]:
@@ -39,13 +40,28 @@ def _fetch_json(url: str) -> object:
         return json.loads(response.read(4 * 1024 * 1024))
 
 
-def _fetch_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
+def _fetch_review_page(
+    repository: str,
+    pull_request: int,
+    page: int,
+) -> list[dict[str, Any]]:
     payload = _fetch_json(
         f"https://api.github.com/repos/{repository}/pulls/{pull_request}/reviews"
+        f"?per_page=100&page={page}"
     )
     if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
         raise ValueError("GITHUB_REVIEWS_ROOT_MUST_BE_LIST_OF_OBJECTS")
     return payload
+
+
+def _fetch_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
+    reviews: list[dict[str, Any]] = []
+    for page in range(1, MAX_REVIEW_PAGES + 1):
+        current_page = _fetch_review_page(repository, pull_request, page)
+        reviews.extend(current_page)
+        if len(current_page) < 100:
+            return reviews
+    raise ValueError("GITHUB_REVIEWS_PAGINATION_LIMIT")
 
 
 def _fetch_tree(repository: str, commit_sha: str) -> str:
@@ -71,6 +87,19 @@ def _marker(body: object, key: str) -> str | None:
 
 def _canonical_findings(findings: object) -> str:
     return json.dumps(findings, sort_keys=True, separators=(",", ":"))
+
+
+def _findings_are_nonblocking(findings: object) -> bool:
+    if not isinstance(findings, list):
+        return False
+    for finding in findings:
+        if not isinstance(finding, dict):
+            return False
+        if finding.get("severity") in {"BLOCKER", "HIGH"} or finding.get("blocking") is True:
+            return False
+        if not isinstance(finding.get("summary"), str) or not finding["summary"].strip():
+            return False
+    return True
 
 
 def _review_is_exact(
@@ -104,7 +133,9 @@ def _review_is_exact(
         return False
     if verdict == "APPROVE" and findings:
         return False
-    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
+    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and (
+        not findings or not _findings_are_nonblocking(findings)
+    ):
         return False
     expected = {
         "MARKETOS_REVIEW_REPOSITORY": repository,
@@ -157,6 +188,8 @@ def verify_trusted_review_gate(
     head_sha: str,
     pr_author: str,
 ) -> dict[str, object]:
+    if not isinstance(pr_author, str) or not pr_author.strip():
+        return {"ok": False, "errors": ["PR_AUTHOR_INVALID"]}
     trusted_reviewers = _trusted_reviewers()
     if not trusted_reviewers:
         return {"ok": False, "errors": ["TRUSTED_REVIEWER_ALLOWLIST_EMPTY"]}

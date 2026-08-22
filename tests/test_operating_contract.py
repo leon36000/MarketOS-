@@ -111,6 +111,7 @@ class OperatingContractTests(unittest.TestCase):
             "reviewed_head_sha": self._git_value("rev-parse", "HEAD"),
             "reviewed_tree_sha": self._git_value("rev-parse", "HEAD^{tree}"),
             "pull_request": 30,
+            "pull_request_author": "leon36000",
             "review_id": 12345,
             "review_url": "https://github.com/leon36000/MarketOS-/pull/30#pullrequestreview-12345",
             "reviewer_login": "external-sol-reviewer",
@@ -121,6 +122,7 @@ class OperatingContractTests(unittest.TestCase):
         artifact = {
             "review_id": payload["review_id"],
             "pull_request": payload["pull_request"],
+            "pull_request_author": payload["pull_request_author"],
             "review_url": payload["review_url"],
             "reviewer_login": payload["reviewer_login"],
             "repository": payload["repository"],

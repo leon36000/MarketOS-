@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tools.verify_github_review import (
+    _fetch_github_reviews,
     _select_exact_review,
     verify_github_review,
 )
@@ -64,6 +65,7 @@ class ReviewGateTests(unittest.TestCase):
             head_sha=HEAD_SHA,
             tree_sha=TREE_SHA,
             owner_login="leon36000",
+            pr_author="leon36000",
         )
         self.assertEqual(selected["review_id"], 12345)
         self.assertEqual(selected["reviewer_login"], "external-sol-reviewer")
@@ -78,6 +80,7 @@ class ReviewGateTests(unittest.TestCase):
                 head_sha=HEAD_SHA,
                 tree_sha=TREE_SHA,
                 owner_login="leon36000",
+                pr_author="leon36000",
             )
 
         with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
@@ -93,6 +96,7 @@ class ReviewGateTests(unittest.TestCase):
                 head_sha=HEAD_SHA,
                 tree_sha=TREE_SHA,
                 owner_login="leon36000",
+                pr_author="leon36000",
             )
 
         with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
@@ -108,10 +112,62 @@ class ReviewGateTests(unittest.TestCase):
                 head_sha=HEAD_SHA,
                 tree_sha=TREE_SHA,
                 owner_login="leon36000",
+                pr_author="leon36000",
             )
 
         with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
             select_untrusted_review()
+
+    def test_selector_rejects_pull_request_author(self) -> None:
+        def select_author_review() -> dict[str, object]:
+            return _select_exact_review(
+                [_review()],
+                repository="leon36000/MarketOS-",
+                pull_request=30,
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                owner_login="leon36000",
+                pr_author="external-sol-reviewer",
+            )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_author_review()
+
+    def test_review_api_pagination_preserves_latest_withdrawal(self) -> None:
+        first_page = [
+            {
+                "id": 1000 + index,
+                "user": {"login": f"neutral-{index}"},
+                "state": "COMMENTED",
+                "commit_id": HEAD_SHA,
+                "body": "neutral",
+            }
+            for index in range(99)
+        ]
+        first_page.append(_review(id=1))
+        second_page = [_review(id=2, state="CHANGES_REQUESTED")]
+        with patch(
+            "tools.verify_github_review._fetch_github_review_page",
+            side_effect=[first_page, second_page],
+        ):
+            reviews = _fetch_github_reviews("leon36000/MarketOS-", 30)
+        self.assertEqual(len(reviews), 101)
+
+        def select_paginated_reviews() -> dict[str, object]:
+            return _select_exact_review(
+                reviews,
+                repository="leon36000/MarketOS-",
+                pull_request=30,
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                owner_login="leon36000",
+                pr_author="leon36000",
+            )
+
+        with self.assertRaisesRegex(ValueError, "NO_EXTERNAL_EXACT_HEAD_APPROVAL"):
+            select_paginated_reviews()
 
     def test_selector_accepts_permitted_nonblocking_findings(self) -> None:
         selected = _select_exact_review(
@@ -125,6 +181,7 @@ class ReviewGateTests(unittest.TestCase):
             head_sha=HEAD_SHA,
             tree_sha=TREE_SHA,
             owner_login="leon36000",
+            pr_author="leon36000",
         )
         self.assertEqual(selected["verdict"], "APPROVE_WITH_NONBLOCKING_FINDINGS")
         self.assertEqual(len(selected["findings"]), 1)
@@ -145,6 +202,7 @@ class ReviewGateTests(unittest.TestCase):
                 pull_request=30,
                 expected_base_sha=BASE_SHA,
                 expected_head_sha=current_head,
+                pr_author="leon36000",
             )
         self.assertFalse(report["ok"])
         self.assertTrue(
@@ -228,6 +286,7 @@ class ReviewGateTests(unittest.TestCase):
                 pull_request=30,
                 expected_base_sha=base,
                 expected_head_sha=feature_head,
+                pr_author="leon36000",
             )
         self.assertFalse(report["ok"])
         self.assertIn("CURRENT_HEAD_EVENT_MISMATCH", report["errors"])
@@ -242,6 +301,7 @@ class ReviewGateTests(unittest.TestCase):
                 pull_request=30,
                 expected_base_sha=base,
                 expected_head_sha=merge_head,
+                pr_author="leon36000",
             )
         self.assertFalse(merge_report["ok"])
         self.assertIn("GITHUB_REVIEW_GATE_FAILED:ValueError", merge_report["errors"])

@@ -343,6 +343,19 @@ def _canonical_findings_marker(findings: object) -> str:
     return json.dumps(findings, sort_keys=True, separators=(",", ":"))
 
 
+def _findings_are_nonblocking(findings: object) -> bool:
+    if not isinstance(findings, list):
+        return False
+    for finding in findings:
+        if not isinstance(finding, dict):
+            return False
+        if finding.get("severity") in {"BLOCKER", "HIGH"} or finding.get("blocking") is True:
+            return False
+        if not isinstance(finding.get("summary"), str) or not finding["summary"].strip():
+            return False
+    return True
+
+
 def _review_body_errors(
     body: object,
     receipt: dict[str, Any],
@@ -386,6 +399,8 @@ def _review_provenance_input_errors(
         errors.append("REVIEW_ID_INVALID")
     if not isinstance(receipt.get("review_url"), str) or not receipt["review_url"].strip():
         errors.append("REVIEW_URL_INVALID")
+    if not isinstance(receipt.get("pull_request_author"), str) or not receipt["pull_request_author"].strip():
+        errors.append("REVIEW_PR_AUTHOR_INVALID")
     valid_pull_request = pull_request if isinstance(pull_request, int) and pull_request > 0 else None
     valid_review_id = review_id if isinstance(review_id, int) and review_id > 0 else None
     return errors, provenance, valid_pull_request, valid_review_id
@@ -406,6 +421,8 @@ def _review_source_binding_errors(
         errors.append("REVIEW_SOURCE_REVIEWER_INVALID")
     if provenance.get("reject_owner_login") is True and reviewer_login == provenance.get("owner_login"):
         errors.append("REVIEW_SOURCE_SELF_REVIEW_REJECTED")
+    if receipt.get("pull_request_author") == reviewer_login:
+        errors.append("REVIEW_SOURCE_PR_AUTHOR_REJECTED")
     trusted_reviewers = _trusted_reviewer_logins()
     if not trusted_reviewers:
         errors.append("REVIEW_TRUSTED_REVIEWER_ALLOWLIST_EMPTY")
@@ -519,8 +536,11 @@ def _review_findings_errors(
         errors.extend(_review_finding_errors(finding, index, blocking_severities))
     if verdict == "APPROVE" and findings:
         errors.append("REVIEW_FINDINGS_WITH_APPROVE")
-    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
-        errors.append("REVIEW_NONBLOCKING_VERDICT_WITHOUT_FINDINGS")
+    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS":
+        if not findings:
+            errors.append("REVIEW_NONBLOCKING_VERDICT_WITHOUT_FINDINGS")
+        elif not _findings_are_nonblocking(findings):
+            errors.append("REVIEW_NONBLOCKING_FINDING_INVALID")
     return errors
 
 
@@ -545,6 +565,7 @@ def _artifact_binding_errors(
     for field in (
         "review_id",
         "pull_request",
+        "pull_request_author",
         "review_url",
         "reviewer_login",
         "repository",

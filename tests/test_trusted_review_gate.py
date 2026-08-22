@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from tools.trusted_review_gate import (
+    _fetch_reviews,
     _has_latest_exact_review,
     verify_trusted_review_gate,
 )
@@ -64,6 +65,57 @@ class TrustedReviewGateTests(unittest.TestCase):
         self.assertFalse(
             _has_latest_exact_review(
                 [_review(id=1), _review(id=2, state="CHANGES_REQUESTED")],
+                repository="leon36000/MarketOS-",
+                base_sha=BASE_SHA,
+                head_sha=HEAD_SHA,
+                tree_sha=TREE_SHA,
+                pr_author="leon36000",
+                trusted_reviewers={"trusted-reviewer"},
+            )
+        )
+
+    def test_nonblocking_verdict_rejects_high_or_malformed_findings(self) -> None:
+        for findings in (
+            [{"severity": "HIGH", "blocking": True, "summary": "unsafe merge"}],
+            [{}],
+        ):
+            self.assertFalse(
+                _has_latest_exact_review(
+                    [_review(
+                        review_verdict="APPROVE_WITH_NONBLOCKING_FINDINGS",
+                        findings=findings,
+                    )],
+                    repository="leon36000/MarketOS-",
+                    base_sha=BASE_SHA,
+                    head_sha=HEAD_SHA,
+                    tree_sha=TREE_SHA,
+                    pr_author="leon36000",
+                    trusted_reviewers={"trusted-reviewer"},
+                )
+            )
+
+    def test_review_api_pagination_preserves_latest_withdrawal(self) -> None:
+        first_page = [
+            {
+                "id": 1000 + index,
+                "user": {"login": f"neutral-{index}"},
+                "state": "COMMENTED",
+                "commit_id": HEAD_SHA,
+                "body": "neutral",
+            }
+            for index in range(99)
+        ]
+        first_page.append(_review(id=1))
+        second_page = [_review(id=2, state="CHANGES_REQUESTED")]
+        with patch(
+            "tools.trusted_review_gate._fetch_review_page",
+            side_effect=[first_page, second_page],
+        ):
+            reviews = _fetch_reviews("leon36000/MarketOS-", 30)
+        self.assertEqual(len(reviews), 101)
+        self.assertFalse(
+            _has_latest_exact_review(
+                reviews,
                 repository="leon36000/MarketOS-",
                 base_sha=BASE_SHA,
                 head_sha=HEAD_SHA,

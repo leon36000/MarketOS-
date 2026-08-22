@@ -20,19 +20,31 @@ from typing import Any
 try:
     from tools.verify_operating_contract import (
         _canonical_findings_marker,
+        _findings_are_nonblocking,
         _trusted_reviewer_logins,
         verify_operating_contract,
     )
 except ModuleNotFoundError:  # pragma: no cover - direct script execution
     from verify_operating_contract import (
         _canonical_findings_marker,
+        _findings_are_nonblocking,
         _trusted_reviewer_logins,
         verify_operating_contract,
     )
 
 
-def _fetch_github_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
-    url = f"https://api.github.com/repos/{repository}/pulls/{pull_request}/reviews"
+MAX_REVIEW_PAGES = 20
+
+
+def _fetch_github_review_page(
+    repository: str,
+    pull_request: int,
+    page: int,
+) -> list[dict[str, Any]]:
+    url = (
+        f"https://api.github.com/repos/{repository}/pulls/{pull_request}/reviews"
+        f"?per_page=100&page={page}"
+    )
     request = urllib.request.Request(
         url,
         headers={
@@ -48,6 +60,16 @@ def _fetch_github_reviews(repository: str, pull_request: int) -> list[dict[str, 
     if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
         raise ValueError("GITHUB_REVIEWS_ROOT_MUST_BE_LIST_OF_OBJECTS")
     return payload
+
+
+def _fetch_github_reviews(repository: str, pull_request: int) -> list[dict[str, Any]]:
+    reviews: list[dict[str, Any]] = []
+    for page in range(1, MAX_REVIEW_PAGES + 1):
+        current_page = _fetch_github_review_page(repository, pull_request, page)
+        reviews.extend(current_page)
+        if len(current_page) < 100:
+            return reviews
+    raise ValueError("GITHUB_REVIEWS_PAGINATION_LIMIT")
 
 
 def _marker(body: object, key: str) -> str | None:
@@ -85,7 +107,9 @@ def _review_verdict_and_findings(body: object) -> tuple[str, list[object]] | Non
         return None
     if verdict == "APPROVE" and findings:
         return None
-    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and not findings:
+    if verdict == "APPROVE_WITH_NONBLOCKING_FINDINGS" and (
+        not findings or not _findings_are_nonblocking(findings)
+    ):
         return None
     return verdict, findings
 
@@ -123,11 +147,12 @@ def _select_review_candidate(
     head_sha: str,
     tree_sha: str,
     owner_login: str,
+    pr_author: str,
 ) -> dict[str, Any] | None:
     trusted_reviewers = _trusted_reviewer_logins()
     if review.get("state") != "APPROVED":
         return None
-    if reviewer_login == owner_login or reviewer_login not in trusted_reviewers:
+    if reviewer_login in {owner_login, pr_author} or reviewer_login not in trusted_reviewers:
         return None
     if review.get("commit_id") != head_sha:
         return None
@@ -149,6 +174,7 @@ def _select_review_candidate(
         return None
     return {
         "pull_request": pull_request,
+        "pull_request_author": pr_author,
         "review_id": review["id"],
         "review_url": review["html_url"],
         "reviewer_login": reviewer_login,
@@ -173,6 +199,7 @@ def _select_exact_review(
     head_sha: str,
     tree_sha: str,
     owner_login: str,
+    pr_author: str,
 ) -> dict[str, Any]:
     for reviewer_login, review in _latest_reviews_by_reviewer(reviews).items():
         selected = _select_review_candidate(
@@ -184,6 +211,7 @@ def _select_exact_review(
             head_sha=head_sha,
             tree_sha=tree_sha,
             owner_login=owner_login,
+            pr_author=pr_author,
         )
         if selected is not None:
             return selected
@@ -201,6 +229,7 @@ def _build_receipt(root: Path, selected: dict[str, Any], workspace: Path) -> Pat
         for key in (
             "review_id",
             "pull_request",
+            "pull_request_author",
             "review_url",
             "reviewer_login",
             "repository",
@@ -246,7 +275,10 @@ def verify_github_review(
     pull_request: int,
     expected_base_sha: str,
     expected_head_sha: str,
+    pr_author: str,
 ) -> dict[str, object]:
+    if not isinstance(pr_author, str) or not pr_author.strip():
+        return {"ok": False, "errors": ["PR_AUTHOR_INVALID"]}
     current_head = _fetch_git_value(root, "rev-parse", "HEAD")
     current_tree = _fetch_git_value(root, "rev-parse", "HEAD^{tree}")
     if current_head != expected_head_sha:
@@ -263,6 +295,7 @@ def verify_github_review(
             head_sha=expected_head_sha,
             tree_sha=current_tree,
             owner_login="leon36000",
+            pr_author=pr_author,
         )
         with tempfile.TemporaryDirectory(
             dir=root / "authority",
@@ -296,6 +329,7 @@ def main() -> int:
     parser.add_argument("--pull-request", type=int, required=True)
     parser.add_argument("--expected-base-sha", required=True)
     parser.add_argument("--expected-head-sha", required=True)
+    parser.add_argument("--pr-author", required=True)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     report = verify_github_review(
@@ -304,6 +338,7 @@ def main() -> int:
         pull_request=args.pull_request,
         expected_base_sha=args.expected_base_sha,
         expected_head_sha=args.expected_head_sha,
+        pr_author=args.pr_author,
     )
     if args.json:
         print(json.dumps(report, indent=2, sort_keys=True))
