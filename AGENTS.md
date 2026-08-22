@@ -14,6 +14,10 @@ exacts et à la branche de base d'intégration résolue par la politique, ainsi
 qu'un artefact d'analyse hashé et reproductible ; l'absence de preuve reste
 une frontière non-promotable.
 
+La provenance de promotion doit aussi venir d'une revue GitHub externe
+`APPROVED`, non écrite par le propriétaire, liée au commit exact et vérifiée
+par `tools/verify_github_review.py` et le workflow `review-gate`.
+
 ## Mission
 
 Les agents font avancer MarketOS de façon autonome, rapide et réfutable. Toute affirmation importante reste `UNKNOWN` ou `UNPROVEN` sans preuve reproductible. Les directives directes du propriétaire priment, puis le canon vérifié et les deltas explicitement intégrés.

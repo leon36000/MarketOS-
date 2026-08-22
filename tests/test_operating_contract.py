@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tools.verify_operating_contract import verify_operating_contract
 
@@ -15,6 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class OperatingContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._github_source_patch = patch(
+            "tools.verify_operating_contract._fetch_github_review",
+            return_value=self._github_review_source(),
+        )
+        self._github_source_patch.start()
+        self.addCleanup(self._github_source_patch.stop)
+
     def _copy_fixture(self) -> Path:
         temp_dir = Path(tempfile.mkdtemp(prefix="marketos-operating-contract-"))
         self.addCleanup(shutil.rmtree, temp_dir, True)
@@ -64,6 +73,27 @@ class OperatingContractTests(unittest.TestCase):
             prefix,
         )
 
+    def _github_review_source(self, **overrides: object) -> dict[str, object]:
+        source: dict[str, object] = {
+            "id": 12345,
+            "user": {"login": "external-sol-reviewer"},
+            "state": "APPROVED",
+            "commit_id": self._git_value("rev-parse", "HEAD"),
+            "html_url": "https://github.com/leon36000/MarketOS-/pull/30#pullrequestreview-12345",
+            "body": (
+                "MARKETOS_REVIEW_REPOSITORY=leon36000/MarketOS-\n"
+                f"MARKETOS_REVIEW_BASE_SHA={self._base_sha()}\n"
+                f"MARKETOS_REVIEW_HEAD_SHA={self._git_value('rev-parse', 'HEAD')}\n"
+                f"MARKETOS_REVIEW_TREE_SHA={self._git_value('rev-parse', 'HEAD^{tree}')}\n"
+                "MARKETOS_REVIEW_VERDICT=APPROVE\n"
+                "MARKETOS_REVIEW_MODEL=GPT-5.6 Sol\n"
+                "MARKETOS_REVIEW_CONTEXT=independent_blind\n"
+                "Independent analysis and reproducible evidence are attached."
+            ),
+        }
+        source.update(overrides)
+        return source
+
     def _receipt(self, **overrides: object) -> Path:
         payload: dict[str, object] = {
             "repository": "leon36000/MarketOS-",
@@ -72,13 +102,19 @@ class OperatingContractTests(unittest.TestCase):
             "reviewed_base_sha": self._base_sha(),
             "reviewed_head_sha": self._git_value("rev-parse", "HEAD"),
             "reviewed_tree_sha": self._git_value("rev-parse", "HEAD^{tree}"),
-            "review_id": "sol-review-test-001",
+            "pull_request": 30,
+            "review_id": 12345,
+            "review_url": "https://github.com/leon36000/MarketOS-/pull/30#pullrequestreview-12345",
+            "reviewer_login": "external-sol-reviewer",
             "verdict": "APPROVE",
             "findings": [],
         }
         payload.update(overrides)
         artifact = {
             "review_id": payload["review_id"],
+            "pull_request": payload["pull_request"],
+            "review_url": payload["review_url"],
+            "reviewer_login": payload["reviewer_login"],
             "repository": payload["repository"],
             "reviewer_model": payload["reviewer_model"],
             "review_context": payload["review_context"],
@@ -263,6 +299,40 @@ class OperatingContractTests(unittest.TestCase):
         self.assertFalse(report["review_bound"])
         self.assertIn("REVIEW_ARTIFACT_DIGEST_MISMATCH", report["errors"])
 
+    def test_external_review_source_head_mismatch_is_rejected(self) -> None:
+        receipt = self._receipt()
+        source = self._github_review_source(commit_id="0" * 40)
+        with patch(
+            "tools.verify_operating_contract._fetch_github_review",
+            return_value=source,
+        ):
+            report = verify_operating_contract(
+                ROOT,
+                review_receipt=receipt,
+                expected_base_sha=self._base_sha(),
+            )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_SOURCE_HEAD_MISMATCH", report["errors"])
+
+    def test_external_owner_review_is_rejected(self) -> None:
+        receipt = self._receipt()
+        source = self._github_review_source(
+            user={"login": "leon36000"}
+        )
+        with patch(
+            "tools.verify_operating_contract._fetch_github_review",
+            return_value=source,
+        ):
+            report = verify_operating_contract(
+                ROOT,
+                review_receipt=receipt,
+                expected_base_sha=self._base_sha(),
+            )
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["review_bound"])
+        self.assertIn("REVIEW_SOURCE_SELF_REVIEW_REJECTED", report["errors"])
+
     def test_review_receipt_symlink_is_rejected(self) -> None:
         receipt = self._receipt()
         link = ROOT / "authority" / ".marketos-review-link.json"
@@ -275,6 +345,19 @@ class OperatingContractTests(unittest.TestCase):
         )
         self.assertFalse(report["ok"])
         self.assertIn("REVIEW_RECEIPT_SYMLINK_REJECTED", report["errors"])
+
+    def test_review_receipt_parent_symlink_is_rejected_by_openat(self) -> None:
+        receipt = self._receipt()
+        alias = ROOT / "authority-alias"
+        alias.symlink_to(ROOT / "authority", target_is_directory=True)
+        self.addCleanup(alias.unlink, missing_ok=True)
+        report = verify_operating_contract(
+            ROOT,
+            review_receipt=alias / receipt.name,
+            expected_base_sha=self._base_sha(),
+        )
+        self.assertFalse(report["ok"])
+        self.assertIn("REVIEW_RECEIPT_READ_FAILED", report["errors"])
 
     def test_oversized_review_receipt_is_rejected(self) -> None:
         receipt = self._write_authority_bytes(

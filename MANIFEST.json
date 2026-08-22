@@ -57,6 +57,11 @@
       "bytes": 3194
     },
     {
+      "path": ".github/workflows/review-gate.yml",
+      "sha256": "738a6be896812cd6548130676dfa4eead86209ac4449c6f460985a1d31fbe302",
+      "bytes": 971
+    },
+    {
       "path": ".github/workflows/validate.yml",
       "sha256": "0591fcf43d6294abb439a337d57b727708e6dfd193caed23d7c48c7c16746b7e",
       "bytes": 1896
@@ -73,13 +78,13 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "0d14002c0f5c16633a3d371fc10837a3883191bd0e32b4935dc0bbba59dc071c",
-      "bytes": 6753
+      "sha256": "16a6b44797e7d91378e1af8777f8c226c297864c55bad2b40e559ae1ccadb670",
+      "bytes": 6973
     },
     {
       "path": "CLAUDE.md",
-      "sha256": "e89d3bf16d05dc081d68d90991865df1a8f85bcf016f8c793f99e8e98df17626",
-      "bytes": 4393
+      "sha256": "65269063e4b56764ecc395b9e7db9bcfa35fe0b9a53d4fb5ef058d64bded113b",
+      "bytes": 4624
     },
     {
       "path": "Makefile",
@@ -88,8 +93,8 @@
     },
     {
       "path": "PROJECT_INSTRUCTIONS.md",
-      "sha256": "6526ca19c32a5466385b1ae7eade48a294ddf11857b75b1ce97271689ba78c99",
-      "bytes": 6009
+      "sha256": "f6dbb229cef14f06d1cbf568b18a0c3743932a188dcdc7a021be0d1557eb73b4",
+      "bytes": 6038
     },
     {
       "path": "README.md",
@@ -108,8 +113,8 @@
     },
     {
       "path": "authority/CLAUDE_CODE_TAKEOVER_GATE.json",
-      "sha256": "b38049b7de56e3f81cc9a41c4c22de2d989dbc6562d1c3a2ddaed0c6de9ed352",
-      "bytes": 910
+      "sha256": "858a2e933d7c434ed7e01ee050eb8e7379bad569918eec0991b65963b92858e1",
+      "bytes": 1030
     },
     {
       "path": "authority/CURRENT_STATE.json",
@@ -123,8 +128,8 @@
     },
     {
       "path": "authority/OPERATING_POLICY.json",
-      "sha256": "0474aedfcfabfea5ac140e42202f2d450ce14643ff61bc6ccbec683104a05489",
-      "bytes": 1093
+      "sha256": "20960a49542344c1f7138e8f88b8d65baa6f7ec429f39e50f478c73650905fdc",
+      "bytes": 1275
     },
     {
       "path": "canon/CANON_POINTER.json",
@@ -1413,8 +1418,8 @@
     },
     {
       "path": "tests/test_operating_contract.py",
-      "sha256": "6b3be87c612433dc6a71d429b5dd79065a2bf2e0b2f785b3d33605d48f4291e3",
-      "bytes": 12734
+      "sha256": "da247369ce64ec442a5ece996c3aa1decf6227d78827e3a5a57b31a42a3f471b",
+      "bytes": 16320
     },
     {
       "path": "tests/test_paper.py",
@@ -1475,6 +1480,11 @@
       "path": "tests/test_research_governance_adversarial.py",
       "sha256": "6367b1295aa91723cca8e86350b3896d4f50ab163b8e766be769210a6f5e66a1",
       "bytes": 11266
+    },
+    {
+      "path": "tests/test_review_gate.py",
+      "sha256": "a762563f5fae7f685c59a0e07b889ef9b5ae1b50bbd9119f6efe77ded3327139",
+      "bytes": 7047
     },
     {
       "path": "tests/test_rights.py",
@@ -1548,8 +1558,8 @@
     },
     {
       "path": "tools/validate_repository.py",
-      "sha256": "15a151c84d548d4b3be80a2b9030205d0f9fad7babfda1b18873e3f64b0c4f75",
-      "bytes": 12684
+      "sha256": "021f951453888eeaf37cda67862c521348c5ef2d4bb23b39dfe9f6827dac6644",
+      "bytes": 12800
     },
     {
       "path": "tools/verify_architecture_reconciliation.py",
@@ -1592,6 +1602,11 @@
       "bytes": 11283
     },
     {
+      "path": "tools/verify_github_review.py",
+      "sha256": "4a99bb23133bddbad98cb3728355663fab00bca51ae46f2a74f90a8f90f13e54",
+      "bytes": 7777
+    },
+    {
       "path": "tools/verify_market_data.py",
       "sha256": "e6af2129778c8323511d3cca885f5316a8eaf3775ce09f0949a98409abe78ae2",
       "bytes": 13574
@@ -1603,8 +1618,8 @@
     },
     {
       "path": "tools/verify_operating_contract.py",
-      "sha256": "0cea8119833af5a4f7577cbaeba3d82ff0e7c9bbbbf51a5568dd798ae7ec6ff6",
-      "bytes": 18600
+      "sha256": "58d53ced5ae059393fa2d6219f47d2f7dcdb18d89efe96d9fe777f3455363a0d",
+      "bytes": 24441
     },
     {
       "path": "tools/verify_proof_binding.py",

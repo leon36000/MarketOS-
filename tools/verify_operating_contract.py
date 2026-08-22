@@ -15,6 +15,7 @@ import os
 import re
 import stat
 import subprocess
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +51,13 @@ EXPECTED_POLICY = {
             "max_artifact_bytes": 262144,
             "minimum_analysis_chars": 32,
             "minimum_evidence_items": 1,
+        },
+        "provenance": {
+            "provider": "github",
+            "required": True,
+            "required_state": "APPROVED",
+            "owner_login": "leon36000",
+            "reject_owner_login": True,
         },
         "allowed_models": ["GPT-5.6 Sol"],
         "allowed_verdicts": [
@@ -176,24 +184,30 @@ def _safe_bounded_path(
     root: Path,
     raw_path: object,
     label: str,
-) -> tuple[Path | None, str | None]:
+) -> tuple[Path | None, tuple[str, ...] | None, str | None]:
     if not isinstance(raw_path, (str, Path)) or not str(raw_path).strip():
-        return None, f"{label}_PATH_INVALID"
+        return None, None, f"{label}_PATH_INVALID"
     candidate = Path(raw_path)
     if not candidate.is_absolute():
         candidate = root / candidate
+    try:
+        lexical_relative = candidate.relative_to(root)
+    except ValueError:
+        return None, None, f"{label}_OUTSIDE_ROOT"
+    if ".." in lexical_relative.parts:
+        return None, None, f"{label}_OUTSIDE_ROOT"
     if candidate.is_symlink():
-        return None, f"{label}_SYMLINK_REJECTED"
+        return None, None, f"{label}_SYMLINK_REJECTED"
     try:
         resolved = candidate.resolve(strict=True)
         resolved.relative_to(root)
     except FileNotFoundError:
-        return None, f"{label}_MISSING"
+        return None, None, f"{label}_MISSING"
     except ValueError:
-        return None, f"{label}_OUTSIDE_ROOT"
+        return None, None, f"{label}_OUTSIDE_ROOT"
     except (OSError, RuntimeError):
-        return None, f"{label}_PATH_INVALID"
-    return resolved, None
+        return None, None, f"{label}_PATH_INVALID"
+    return resolved, lexical_relative.parts, None
 
 
 def _read_bounded_file(
@@ -202,16 +216,26 @@ def _read_bounded_file(
     label: str,
     max_bytes: int,
 ) -> tuple[bytes | None, str | None]:
-    resolved, path_error = _safe_bounded_path(root, raw_path, label)
+    _, components, path_error = _safe_bounded_path(root, raw_path, label)
     if path_error is not None:
         return None, path_error
     nofollow = getattr(os, "O_NOFOLLOW", None)
-    if nofollow is None:
+    directory_flag = getattr(os, "O_DIRECTORY", None)
+    if nofollow is None or directory_flag is None:
         return None, f"{label}_ATOMIC_OPEN_UNAVAILABLE"
-    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | nofollow
-    descriptor: int | None = None
+    file_flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | nofollow
+    directory_flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | nofollow | directory_flag
+    opened_descriptor, open_error = _open_under_root(
+        root,
+        components,
+        file_flags,
+        directory_flags,
+        label,
+    )
+    if open_error is not None:
+        return None, open_error
+    descriptor = opened_descriptor
     try:
-        descriptor = os.open(resolved, flags)
         with os.fdopen(descriptor, "rb", closefd=True) as handle:
             descriptor = None
             metadata = os.fstat(handle.fileno())
@@ -228,6 +252,38 @@ def _read_bounded_file(
     finally:
         if descriptor is not None:
             os.close(descriptor)
+
+
+def _open_under_root(
+    root: Path,
+    components: tuple[str, ...] | None,
+    file_flags: int,
+    directory_flags: int,
+    label: str,
+) -> tuple[int | None, str | None]:
+    if components is None:
+        return None, f"{label}_OUTSIDE_ROOT"
+    if not components:
+        return None, f"{label}_NOT_REGULAR_FILE"
+    directory_fd: int | None = None
+    try:
+        directory_fd = os.open(root, directory_flags)
+        for component in components[:-1]:
+            next_fd = os.open(component, directory_flags, dir_fd=directory_fd)
+            os.close(directory_fd)
+            directory_fd = next_fd
+        descriptor = os.open(components[-1], file_flags, dir_fd=directory_fd)
+        return descriptor, None
+    except FileNotFoundError:
+        return None, f"{label}_MISSING"
+    except OSError:
+        return None, f"{label}_READ_FAILED"
+    finally:
+        if directory_fd is not None:
+            try:
+                os.close(directory_fd)
+            except OSError:
+                pass
 
 
 def _load_object_bytes(content: bytes) -> dict[str, Any]:
@@ -250,6 +306,97 @@ def _review_identity_errors(
         errors.append("REVIEWER_MODEL_INVALID")
     if receipt.get("verdict") not in review_policy.get("allowed_verdicts", []):
         errors.append("REVIEW_VERDICT_INVALID")
+    return errors
+
+
+def _fetch_github_review(
+    repository: str,
+    pull_request: int,
+    review_id: int,
+) -> dict[str, Any]:
+    url = f"https://api.github.com/repos/{repository}/pulls/{pull_request}/reviews/{review_id}"
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "MarketOS-operating-contract",
+        },
+    )
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    with urllib.request.urlopen(request, timeout=10) as response:
+        payload = json.loads(response.read(1024 * 1024))
+    if not isinstance(payload, dict):
+        raise ValueError("GITHUB_REVIEW_ROOT_MUST_BE_OBJECT")
+    return payload
+
+
+def _review_body_errors(
+    body: object,
+    receipt: dict[str, Any],
+) -> list[str]:
+    if not isinstance(body, str) or not body.strip():
+        return ["REVIEW_SOURCE_BODY_INVALID"]
+    expected_markers = {
+        "MARKETOS_REVIEW_REPOSITORY": receipt.get("repository"),
+        "MARKETOS_REVIEW_BASE_SHA": receipt.get("reviewed_base_sha"),
+        "MARKETOS_REVIEW_HEAD_SHA": receipt.get("reviewed_head_sha"),
+        "MARKETOS_REVIEW_TREE_SHA": receipt.get("reviewed_tree_sha"),
+        "MARKETOS_REVIEW_VERDICT": receipt.get("verdict"),
+        "MARKETOS_REVIEW_MODEL": receipt.get("reviewer_model"),
+        "MARKETOS_REVIEW_CONTEXT": receipt.get("review_context"),
+    }
+    return [
+        f"REVIEW_SOURCE_MARKER_MISSING:{key}"
+        for key, expected in expected_markers.items()
+        if f"{key}={expected}" not in body
+    ]
+
+
+def _review_provenance_errors(
+    receipt: dict[str, Any],
+    review_policy: dict[str, Any],
+) -> list[str]:
+    provenance = review_policy.get("provenance", {})
+    if provenance.get("provider") != "github" or provenance.get("required") is not True:
+        return ["REVIEW_PROVENANCE_POLICY_INVALID"]
+    if receipt.get("repository") != EXPECTED_POLICY["repository"]:
+        return ["REVIEW_REPOSITORY_MISMATCH"]
+    pull_request = receipt.get("pull_request")
+    review_id = receipt.get("review_id")
+    if not isinstance(pull_request, int) or pull_request <= 0:
+        return ["REVIEW_PULL_REQUEST_INVALID"]
+    if not isinstance(review_id, int) or review_id <= 0:
+        return ["REVIEW_ID_INVALID"]
+    if not isinstance(receipt.get("review_url"), str) or not receipt["review_url"].strip():
+        return ["REVIEW_URL_INVALID"]
+    try:
+        source = _fetch_github_review(
+            receipt["repository"],
+            pull_request,
+            review_id,
+        )
+    except (OSError, ValueError) as exc:
+        return [f"REVIEW_SOURCE_UNAVAILABLE:{type(exc).__name__}"]
+    errors: list[str] = []
+    if source.get("id") != review_id:
+        errors.append("REVIEW_SOURCE_ID_MISMATCH")
+    source_user = source.get("user")
+    reviewer_login = source_user.get("login") if isinstance(source_user, dict) else None
+    if not isinstance(reviewer_login, str) or not reviewer_login.strip():
+        errors.append("REVIEW_SOURCE_REVIEWER_INVALID")
+    if provenance.get("reject_owner_login") is True and reviewer_login == provenance.get("owner_login"):
+        errors.append("REVIEW_SOURCE_SELF_REVIEW_REJECTED")
+    if receipt.get("reviewer_login") != reviewer_login:
+        errors.append("REVIEW_SOURCE_REVIEWER_MISMATCH")
+    if source.get("state") != provenance.get("required_state"):
+        errors.append("REVIEW_SOURCE_STATE_INVALID")
+    if source.get("commit_id") != receipt.get("reviewed_head_sha"):
+        errors.append("REVIEW_SOURCE_HEAD_MISMATCH")
+    if source.get("html_url") != receipt.get("review_url"):
+        errors.append("REVIEW_SOURCE_URL_MISMATCH")
+    errors.extend(_review_body_errors(source.get("body"), receipt))
     return errors
 
 
@@ -334,7 +481,7 @@ def _review_findings_errors(
 def _review_evidence_metadata_errors(receipt: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     review_id = receipt.get("review_id")
-    if not isinstance(review_id, str) or not review_id.strip():
+    if not isinstance(review_id, int) or review_id <= 0:
         errors.append("REVIEW_ID_INVALID")
     artifact_digest = receipt.get("review_artifact_sha256")
     if not isinstance(artifact_digest, str) or SHA256_RE.fullmatch(artifact_digest) is None:
@@ -351,6 +498,9 @@ def _artifact_binding_errors(
     errors: list[str] = []
     for field in (
         "review_id",
+        "pull_request",
+        "review_url",
+        "reviewer_login",
         "repository",
         "reviewer_model",
         "review_context",
@@ -451,6 +601,7 @@ def _review_errors(
     errors.extend(_review_identity_errors(receipt, review_policy))
     errors.extend(_review_sha_errors(root, receipt, expected_base_sha, review_policy))
     errors.extend(_review_findings_errors(receipt.get("verdict"), findings, review_policy))
+    errors.extend(_review_provenance_errors(receipt, review_policy))
     errors.extend(_review_evidence_errors(root, receipt, review_policy))
     return errors, not errors
 

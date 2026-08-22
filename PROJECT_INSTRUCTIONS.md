@@ -10,7 +10,8 @@ MERGE_REQUIRES_EXACT_SHA_REVIEW=true
 `tools/verify_operating_contract.py` et `tools/validate_repository.py`. Elle
 lie les invariants des trois surfaces d'instructions et la preuve de revue
 au SHA exact et à la branche d'intégration résolue localement, avec artefact
-d'analyse hashé ; elle ne lève jamais les verrous financiers.
+d'analyse hashé et provenance GitHub externe ; elle ne lève jamais les verrous
+financiers.
 
 ## Mission
 
