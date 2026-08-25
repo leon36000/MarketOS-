@@ -1,0 +1,218 @@
+name: R13 source-content retrieval
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/r13-source-content-retrieval-v1
+    paths:
+      - ".github/workflows/r13-source-content-retrieval.yml"
+      - "MANIFEST.json"
+      - "planning/PHASE_INDEX.json"
+      - "requirements/REQUIREMENTS_INDEX.json"
+      - "tools/r13_source_retrieval.py"
+      - "tools/r13_retrieval/**"
+      - "tests/test_r13_source_retrieval.py"
+      - "research/r13_source_content_manifest.json"
+      - "research/r13_sources/**"
+      - "research/R13_SOURCE_CONTENT_RETRIEVAL.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r13-source-content-retrieval-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-retrieve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PYTHONHASHSEED: "0"
+      TZ: UTC
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile retrieval code
+        run: python -m compileall -q tools/r13_source_retrieval.py tools/r13_retrieval tests/test_r13_source_retrieval.py
+
+      - name: Run targeted and repository-wide contracts from a clean tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/r13-logs"
+          python -m unittest discover -s tests -p 'test_r13_source_retrieval.py' -v \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/r13-contract-tests.log"
+          python tools/regenerate_derived.py --root . --check --json \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/derived-check.log"
+          python -m unittest discover -s tests -v \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/all-tests.log"
+          python tools/validate_repository.py --root . --json \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/repository-validation.log"
+
+      - name: Validate manifest before network access
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from tools.r13_source_retrieval import load_manifest
+          manifest = load_manifest(Path("research/r13_source_content_manifest.json"))
+          print({
+              "status": "PASS",
+              "source_count": len(manifest["sources"]),
+              "thresholds": manifest["thresholds"],
+              "classification": manifest["classification"],
+          })
+          PY
+
+      - name: Retrieve exact response bytes and build receipt-only bundle
+        id: retrieval
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/r13-source-content
+          captured_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "captured_at=${captured_at}" >> "$GITHUB_OUTPUT"
+          python -m tools.r13_source_retrieval \
+            --manifest research/r13_source_content_manifest.json \
+            --output-root artifacts/r13-source-content \
+            --captured-at "$captured_at" \
+            --timeout 45 \
+            --retries 2 \
+            2>&1 | tee artifacts/r13-source-content/retrieval.log
+
+      - name: Prepare clean implementation evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          shared=artifacts/r13-source-content/shared
+          cp .github/workflows/r13-source-content-retrieval.yml \
+            "$shared/R13_SOURCE_CONTENT_RETRIEVAL_WORKFLOW.yml"
+          sha256sum \
+            tools/r13_source_retrieval.py \
+            $(find tools/r13_retrieval -type f -name "*.py" | sort) \
+            tests/test_r13_source_retrieval.py \
+            research/r13_source_content_manifest.json \
+            $(find research/r13_sources -type f -name "*.json" | sort) \
+            research/R13_SOURCE_CONTENT_RETRIEVAL.md \
+            .github/workflows/r13-source-content-retrieval.yml \
+            > "$shared/IMPLEMENTATION_HASHES.sha256"
+          find tools/r13_retrieval tests -type d -name __pycache__ -prune -exec rm -rf {} +
+          find tools/r13_retrieval tests -type f -name '*.pyc' -delete
+          if find tools/r13_retrieval tests \
+            \( -type d -name __pycache__ -o -type f -name '*.pyc' \) -print -quit | grep -q .; then
+            echo "generated Python bytecode remains in evidence paths" >&2
+            exit 1
+          fi
+
+      - name: Freshly validate shared outputs and prove no raw bytes are uploaded
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from tools.r13_source_retrieval import validate_receipt_bundle
+
+          root = Path("artifacts/r13-source-content")
+          shared = root / "shared"
+          bundle = shared / "MarketOS_R13_Source_Content_Retrieval_Addendum_v1.zip"
+          validation = validate_receipt_bundle(bundle)
+          forbidden = [
+              p for p in shared.rglob("*")
+              if p.is_file() and any(part in {"private", "private_raw", "raw_sources", "sources_raw", "__pycache__"} for part in p.parts)
+          ]
+          forbidden.extend(p for p in shared.rglob("*.pyc") if p.is_file())
+          if forbidden:
+              raise SystemExit(f"forbidden generated or raw paths in shared output: {forbidden}")
+          receipt = json.loads((shared / "MarketOS_R13_Source_Content_Retrieval_Addendum_v1_Receipt.json").read_text())
+          if receipt["epistemic_limits"]["raw_bytes_shared"] is not False:
+              raise SystemExit("raw_bytes_shared must remain false")
+          if receipt["epistemic_limits"]["technology_adoptions"] != 0:
+              raise SystemExit("technology adoption is forbidden in this research addendum")
+          original_workflow = Path(".github/workflows/r13-source-content-retrieval.yml")
+          copied_workflow = shared / "R13_SOURCE_CONTENT_RETRIEVAL_WORKFLOW.yml"
+          workflow_sha = hashlib.sha256(original_workflow.read_bytes()).hexdigest()
+          if hashlib.sha256(copied_workflow.read_bytes()).hexdigest() != workflow_sha:
+              raise SystemExit("workflow evidence copy does not match executed workflow")
+          implementation_hashes = (shared / "IMPLEMENTATION_HASHES.sha256").read_text()
+          if f"{workflow_sha}  {original_workflow.as_posix()}" not in implementation_hashes:
+              raise SystemExit("executed workflow hash missing from implementation index")
+          pre_receipt_file_count = sum(1 for p in shared.rglob("*") if p.is_file())
+          workflow_receipt = {
+              "schema_version": "marketos.r13-source-content-workflow-receipt.v1",
+              "status": "PASS",
+              "commit_sha": "${{ github.sha }}",
+              "run_id": "${{ github.run_id }}",
+              "run_attempt": "${{ github.run_attempt }}",
+              "captured_at": "${{ steps.retrieval.outputs.captured_at }}",
+              "bundle_name": bundle.name,
+              "bundle_sha256": hashlib.sha256(bundle.read_bytes()).hexdigest(),
+              "bundle_byte_count": bundle.stat().st_size,
+              "validation": validation,
+              "shared_file_count_before_workflow_receipt": pre_receipt_file_count,
+              "expected_final_shared_file_count": pre_receipt_file_count + 2,
+              "executed_workflow_sha256": workflow_sha,
+              "raw_source_bytes_uploaded": False,
+              "generated_python_bytecode_uploaded": False,
+              "phase_event_appended": False,
+              "technology_adoptions": 0,
+              "live_trading": "HARD_LOCKED",
+              "profitability": "UNPROVEN",
+          }
+          out = shared / "MarketOS_R13_Source_Content_Workflow_Receipt_v1.json"
+          out.write_text(json.dumps(workflow_receipt, indent=2, sort_keys=True) + "\n")
+          digest = hashlib.sha256(out.read_bytes()).hexdigest()
+          (shared / (out.name + ".sha256")).write_text(f"{digest}  {out.name}\n")
+          actual_final_count = sum(1 for p in shared.rglob("*") if p.is_file())
+          if actual_final_count != workflow_receipt["expected_final_shared_file_count"]:
+              raise SystemExit(
+                  f"final shared file count {actual_final_count} differs from expected "
+                  f"{workflow_receipt['expected_final_shared_file_count']}"
+              )
+          print(json.dumps(workflow_receipt, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload receipt-only evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketos-r13-source-content-receipts-${{ github.run_id }}
+          path: |
+            artifacts/r13-source-content/shared/**
+            ${{ runner.temp }}/r13-logs/**
+            artifacts/r13-source-content/retrieval.log
+            research/r13_source_content_manifest.json
+            research/r13_sources/**
+            research/R13_SOURCE_CONTENT_RETRIEVAL.md
+            tools/r13_source_retrieval.py
+            tools/r13_retrieval/*.py
+            tests/test_r13_source_retrieval.py
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload fail-closed diagnostics without raw bytes
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketos-r13-source-content-failure-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/r13-logs/**
+            artifacts/r13-source-content/retrieval.log
+            artifacts/r13-source-content/private/FAILED_RETRIEVAL_STATE.json
+            research/r13_source_content_manifest.json
+            research/r13_sources/**
+            tools/r13_source_retrieval.py
+            tools/r13_retrieval/*.py
+            tests/test_r13_source_retrieval.py
+          if-no-files-found: warn
+          retention-days: 14

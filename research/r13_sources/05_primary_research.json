@@ -1,0 +1,138 @@
+{
+  "category": "PRIMARY_RESEARCH",
+  "schema_version": "marketos.r13-source-content-source-shard.v1",
+  "sources": [
+    {
+      "authority_class": "AUTHOR_HOSTED_PAPER",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["application/pdf", "application/octet-stream"],
+      "max_bytes": 25000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-pbo-author",
+      "summary": "Defines PBO and the combinatorially symmetric cross-validation framework for detecting selection overfitting.",
+      "title": "The Probability of Backtest Overfitting",
+      "url": "https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf"
+    },
+    {
+      "authority_class": "AUTHOR_HOSTED_PAPER",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["application/pdf", "application/octet-stream"],
+      "max_bytes": 25000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-dsr-author",
+      "summary": "Adjusts Sharpe-ratio evidence for non-normal returns and multiple strategy selection.",
+      "title": "The Deflated Sharpe Ratio",
+      "url": "https://www.davidhbailey.com/dhbpapers/deflated-sharpe.pdf"
+    },
+    {
+      "authority_class": "PRIMARY_PREPRINT_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-dml-arxiv",
+      "summary": "Primary preprint for orthogonal scores and cross-fitting in causal estimation.",
+      "title": "Double/Debiased Machine Learning for Treatment and Causal Parameters",
+      "url": "https://arxiv.org/abs/1608.00060"
+    },
+    {
+      "authority_class": "PRIMARY_PREPRINT_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-grf-arxiv",
+      "summary": "Primary preprint for local moment estimation and heterogeneous treatment effects.",
+      "title": "Generalized Random Forests",
+      "url": "https://arxiv.org/abs/1610.01271"
+    },
+    {
+      "authority_class": "PRIMARY_PREPRINT_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-dml-treatment-arxiv",
+      "summary": "Application of orthogonal cross-fitting to ATE and ATTE estimation.",
+      "title": "Double/Debiased/Neyman Machine Learning of Treatment Effects",
+      "url": "https://arxiv.org/abs/1701.08687"
+    },
+    {
+      "authority_class": "PRIMARY_PREPRINT_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-dml-dynamic-arxiv",
+      "summary": "Extends cross-fitted causal estimation to sequential treatments and policy effects.",
+      "title": "Double/Debiased Machine Learning for Dynamic Treatment Effects",
+      "url": "https://arxiv.org/abs/2002.07285"
+    },
+    {
+      "authority_class": "PUBLISHER_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-white-reality-check",
+      "summary": "Primary publisher record for a benchmark-adjusted bootstrap test of specification search.",
+      "title": "A Reality Check for Data Snooping",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1111/1468-0262.00152"
+    },
+    {
+      "authority_class": "UNIVERSITY_TECHNICAL_REPORT_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-romano-wolf-stanford",
+      "summary": "Stanford record for stepdown family-wise error control under dependent tests.",
+      "title": "Stepwise Multiple Testing as Formalized Data Snooping",
+      "url": "https://statistics.stanford.edu/technical-reports/stepwise-multiple-testing-formalized-data-snooping"
+    },
+    {
+      "authority_class": "UNIVERSITY_WORKING_PAPER_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-romano-wolf-bse",
+      "summary": "Independent university record for Romano–Wolf data-snooping control.",
+      "title": "Stepwise Multiple Testing as Formalized Data Snooping — BSE record",
+      "url": "https://bse.eu/research/working-papers/stepwise-multiple-testing-formalized-data-snooping"
+    },
+    {
+      "authority_class": "PUBLISHER_RECORD",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-benjamini-hochberg",
+      "summary": "Primary publisher record for FDR control in multiple testing.",
+      "title": "Controlling the False Discovery Rate",
+      "url": "https://academic.oup.com/jrsssb/article/57/1/289/7035855"
+    },
+    {
+      "authority_class": "AUTHOR_HOSTED_PAPER",
+      "category": "PRIMARY_RESEARCH",
+      "expected_content_types": ["application/pdf", "application/octet-stream"],
+      "max_bytes": 25000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "paper-time-series-cv",
+      "summary": "Author-hosted treatment of cross-validation under temporal dependence.",
+      "title": "Cross-validation for time series",
+      "url": "https://robjhyndman.com/papers/cv.pdf"
+    }
+  ]
+}

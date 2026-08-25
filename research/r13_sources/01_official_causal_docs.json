@@ -1,0 +1,116 @@
+{
+  "category": "OFFICIAL_CAUSAL_DOCS",
+  "schema_version": "marketos.r13-source-content-source-shard.v1",
+  "sources": [
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "dowhy-readme",
+      "summary": "Official causal graph, identification, estimation, and refutation workflow.",
+      "title": "DoWhy official repository README",
+      "url": "https://raw.githubusercontent.com/py-why/dowhy/main/README.rst"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "econml-readme",
+      "summary": "Official heterogeneous-treatment-effect and orthogonal-learning toolkit overview.",
+      "title": "EconML official repository README",
+      "url": "https://raw.githubusercontent.com/py-why/EconML/main/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "doubleml-readme",
+      "summary": "Official double/debiased ML and cross-fitting implementation overview.",
+      "title": "DoubleML official repository README",
+      "url": "https://raw.githubusercontent.com/DoubleML/doubleml-for-py/main/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "causalml-readme",
+      "summary": "Official uplift and heterogeneous-treatment-effect toolkit overview.",
+      "title": "CausalML official repository README",
+      "url": "https://raw.githubusercontent.com/uber/causalml/master/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "grf-readme",
+      "summary": "Official implementation for generalized and causal forests.",
+      "title": "Generalized Random Forests official README",
+      "url": "https://raw.githubusercontent.com/grf-labs/grf/master/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/html",
+        "application/xhtml+xml"
+      ],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "dowhy-docs",
+      "summary": "Official causal-model workflow and robustness/refutation documentation.",
+      "title": "DoWhy documentation",
+      "url": "https://www.pywhy.org/dowhy/v0.13/"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_CAUSAL_DOCS",
+      "expected_content_types": [
+        "text/html",
+        "application/xhtml+xml"
+      ],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "doubleml-docs",
+      "summary": "Official cross-fitting, score, nuisance estimation, and inference documentation.",
+      "title": "DoubleML documentation",
+      "url": "https://docs.doubleml.org/stable/"
+    }
+  ]
+}

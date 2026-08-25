@@ -1,0 +1,62 @@
+{
+  "category": "OFFICIAL_LABEL_QUALITY_DOCS",
+  "schema_version": "marketos.r13-source-content-source-shard.v1",
+  "sources": [
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_LABEL_QUALITY_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "cleanlab-readme",
+      "summary": "Official confident-learning and label-quality toolkit overview.",
+      "title": "Cleanlab official repository README",
+      "url": "https://raw.githubusercontent.com/cleanlab/cleanlab/master/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_REPOSITORY",
+      "category": "OFFICIAL_LABEL_QUALITY_DOCS",
+      "expected_content_types": [
+        "text/plain",
+        "text/markdown",
+        "application/octet-stream"
+      ],
+      "max_bytes": 5000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "snorkel-readme",
+      "summary": "Official weak-supervision and programmatic-labeling framework overview.",
+      "title": "Snorkel official repository README",
+      "url": "https://raw.githubusercontent.com/snorkel-team/snorkel/main/README.md"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_LABEL_QUALITY_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "cleanlab-docs",
+      "summary": "Official label-issue scoring, confident learning, and data-quality APIs.",
+      "title": "Cleanlab documentation",
+      "url": "https://docs.cleanlab.ai/stable/"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_LABEL_QUALITY_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "snorkel-docs",
+      "summary": "Official labeling-function, label-model, and weak-supervision concepts.",
+      "title": "Snorkel documentation",
+      "url": "https://snorkel.readthedocs.io/en/v0.9.3/"
+    }
+  ]
+}

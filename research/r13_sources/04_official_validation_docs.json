@@ -1,0 +1,78 @@
+{
+  "category": "OFFICIAL_VALIDATION_DOCS",
+  "schema_version": "marketos.r13-source-content-source-shard.v1",
+  "sources": [
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-timeseriessplit",
+      "summary": "Documents forward-ordered splits and the explicit gap parameter.",
+      "title": "scikit-learn TimeSeriesSplit",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-groupkfold",
+      "summary": "Documents non-overlapping group folds for entity and issuer isolation.",
+      "title": "scikit-learn GroupKFold",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GroupKFold.html"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-stratified-groupkfold",
+      "summary": "Documents simultaneous class-balance and non-overlapping group constraints.",
+      "title": "scikit-learn StratifiedGroupKFold",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedGroupKFold.html"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-cross-validation-guide",
+      "summary": "Official guidance on dependence, groups, time-series evaluation, nested selection, and scoring.",
+      "title": "scikit-learn cross-validation guide",
+      "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": true,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-permutation-test",
+      "summary": "Official permutation-test API for model-score significance under an explicit null.",
+      "title": "scikit-learn permutation_test_score",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.permutation_test_score.html"
+    },
+    {
+      "authority_class": "OFFICIAL_PROJECT_DOCUMENTATION",
+      "category": "OFFICIAL_VALIDATION_DOCS",
+      "expected_content_types": ["text/html", "application/xhtml+xml"],
+      "max_bytes": 8000000,
+      "required": false,
+      "rights_class": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+      "source_id": "sklearn-cross-val-predict",
+      "summary": "Official out-of-fold prediction API relevant to stacking and meta-labeling contracts.",
+      "title": "scikit-learn cross_val_predict",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.cross_val_predict.html"
+    }
+  ]
+}
