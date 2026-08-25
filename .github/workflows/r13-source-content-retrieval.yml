@@ -7,6 +7,9 @@ on:
       - chatgpt/r13-source-content-retrieval-v1
     paths:
       - ".github/workflows/r13-source-content-retrieval.yml"
+      - "MANIFEST.json"
+      - "planning/PHASE_INDEX.json"
+      - "requirements/REQUIREMENTS_INDEX.json"
       - "tools/r13_source_retrieval.py"
       - "tools/r13_retrieval/**"
       - "tests/test_r13_source_retrieval.py"
@@ -42,11 +45,19 @@ jobs:
       - name: Compile retrieval code
         run: python -m compileall -q tools/r13_source_retrieval.py tools/r13_retrieval tests/test_r13_source_retrieval.py
 
-      - name: Run contract tests
+      - name: Run targeted and repository-wide contracts from a clean tree
+        shell: bash
         run: |
-          mkdir -p artifacts/r13-source-content/logs
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/r13-logs"
+          python -m unittest discover -s tests -p 'test_r13_source_retrieval.py' -v \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/r13-contract-tests.log"
+          python tools/regenerate_derived.py --root . --check --json \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/derived-check.log"
           python -m unittest discover -s tests -v \
-            2>&1 | tee artifacts/r13-source-content/logs/tests.log
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/all-tests.log"
+          python tools/validate_repository.py --root . --json \
+            2>&1 | tee "$RUNNER_TEMP/r13-logs/repository-validation.log"
 
       - name: Validate manifest before network access
         run: |
@@ -69,7 +80,7 @@ jobs:
           set -euo pipefail
           captured_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           echo "captured_at=${captured_at}" >> "$GITHUB_OUTPUT"
-          python tools/r13_source_retrieval.py \
+          python -m tools.r13_source_retrieval \
             --manifest research/r13_source_content_manifest.json \
             --output-root artifacts/r13-source-content \
             --captured-at "$captured_at" \
@@ -148,8 +159,8 @@ jobs:
           name: marketos-r13-source-content-receipts-${{ github.run_id }}
           path: |
             artifacts/r13-source-content/shared/**
-            artifacts/r13-source-content/logs/tests.log
             artifacts/r13-source-content/retrieval.log
+            ${{ runner.temp }}/r13-logs/**
             research/r13_source_content_manifest.json
             research/r13_sources/**
             research/R13_SOURCE_CONTENT_RETRIEVAL.md
@@ -165,7 +176,7 @@ jobs:
         with:
           name: marketos-r13-source-content-failure-${{ github.run_id }}
           path: |
-            artifacts/r13-source-content/logs/**
+            ${{ runner.temp }}/r13-logs/**
             artifacts/r13-source-content/retrieval.log
             artifacts/r13-source-content/private/FAILED_RETRIEVAL_STATE.json
             research/r13_source_content_manifest.json
