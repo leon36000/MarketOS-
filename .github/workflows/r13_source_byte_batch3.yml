@@ -1,0 +1,84 @@
+name: R13 primary source byte batch 003
+
+on:
+  push:
+    branches:
+      - chore/r13-source-byte-batch3-evidence
+    paths:
+      - "evidence/r13-source-byte-batch3/**"
+      - ".github/workflows/r13_source_byte_batch3.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout evidence branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: RED/GREEN contract tests
+        run: |
+          python -m unittest discover \
+            -s evidence/r13-source-byte-batch3/tests \
+            -p 'test_*.py' \
+            -v
+
+      - name: Build receipt-only batch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python evidence/r13-source-byte-batch3/generate_batch3.py \
+            --output-dir evidence/r13-source-byte-batch3/out
+
+      - name: Verify generated status and checksums
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import zipfile
+
+          out = pathlib.Path("evidence/r13-source-byte-batch3/out")
+          status_path = out / "MarketOS_R13_Primary_Source_Byte_Batch_003_Status.json"
+          status = json.loads(status_path.read_text(encoding="utf-8"))
+          assert status["status"] == "PASS_RECEIPT_ONLY_BATCH_VERIFIED"
+          assert status["retrieval"]["verified_in_batch"] == 14
+          assert status["retrieval"]["authoritative_observed_after"] == 30
+          assert status["retrieval"]["target_achieved"] is True
+          assert status["bundle"]["raw_source_bytes_in_bundle"] is False
+          assert status["r13_phase_event_appended"] is False
+          assert status["technology_adoptions"] == 0
+          assert status["hard_locks"]["live_trading"] == "HARD_LOCKED"
+          assert status["hard_locks"]["profitability"] == "UNPROVEN"
+
+          for sidecar in out.glob("*.sha256"):
+              expected, name = sidecar.read_text(encoding="utf-8").strip().split("  ", 1)
+              target = out / name
+              actual = hashlib.sha256(target.read_bytes()).hexdigest()
+              assert actual == expected, (target, actual, expected)
+
+          bundle = out / status["bundle"]["name"]
+          with zipfile.ZipFile(bundle) as archive:
+              assert archive.testzip() is None
+              names = archive.namelist()
+              assert names == sorted(names)
+              assert not any(name.startswith("raw/") for name in names)
+          print(json.dumps(status, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload receipt-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r13-primary-source-byte-batch-003
+          path: evidence/r13-source-byte-batch3/out/*
+          if-no-files-found: error
+          retention-days: 30
