@@ -2,9 +2,19 @@
   "version": "0.4.0",
   "files": [
     {
+      "path": ".github/workflows/r13-source-content-retrieval.yml",
+      "sha256": "ef984831db0ee985e942af05effc267144f8d8911ef28c43abdc8ed89b084a10",
+      "bytes": 7702
+    },
+    {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "b53d9b63087727da1b24031813cf19a477cf0eeb8fd7d9d72cd6a4277b0fbd26",
-      "bytes": 1910
+      "sha256": "363a7af9cc790eda1287c8f4e6c4c06ba179e8c1d3ed66c02a0e4adfaa2df427",
+      "bytes": 1931
+    },
+    {
+      "path": ".github/workflows/trusted-review-gate.yml",
+      "sha256": "754dcc02fc7c8d6b0a19d9771eac40d6c717dc22296447a1fd5636bacc80ab76",
+      "bytes": 1178
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -787,6 +797,41 @@
       "bytes": 8213
     },
     {
+      "path": "research/R13_SOURCE_CONTENT_RETRIEVAL.md",
+      "sha256": "56eed3c79b1411f170011d8f781b16d78b1875b62ab8b1f6c1cfe59f358a345c",
+      "bytes": 2632
+    },
+    {
+      "path": "research/r13_source_content_manifest.json",
+      "sha256": "cc6387a21df6a862715cedd9ae749179b5124419d6fd937af2446023d98bd2b0",
+      "bytes": 2334
+    },
+    {
+      "path": "research/r13_sources/01_official_causal_docs.json",
+      "sha256": "90094fe36e5648f3ec77adb0808d9bb4a819e113685a4663e8d31d18145ebc39",
+      "bytes": 4505
+    },
+    {
+      "path": "research/r13_sources/02_official_feature_data_docs.json",
+      "sha256": "e299ed1f55d5b4585595ac136a0b45225f7b86e7947040ee0771a19cc15a6134",
+      "bytes": 11039
+    },
+    {
+      "path": "research/r13_sources/03_official_label_quality_docs.json",
+      "sha256": "5f77f59d6e1f562264b000c59818950963b09f2059c9445d38cfe849169fd744",
+      "bytes": 2561
+    },
+    {
+      "path": "research/r13_sources/04_official_validation_docs.json",
+      "sha256": "a16b5da877da867a0f9c1c07e8b4243a97bef0c0e0ff555a58880587f84dfff1",
+      "bytes": 3966
+    },
+    {
+      "path": "research/r13_sources/05_primary_research.json",
+      "sha256": "7e3137828d6147d452ce3745476a3a1dadd40fb8c9ac99b756ae3c4140dd2112",
+      "bytes": 6734
+    },
+    {
       "path": "tests/test_c10_c12_design.py",
       "sha256": "f87a39f945f46771ec740614d39650329048f131571e8ff858694f9411f74695",
       "bytes": 6390
@@ -805,6 +850,11 @@
       "path": "tests/test_c7_c9_design.py",
       "sha256": "0bcc6c7cb6386359302c36ea79767372c059bbee19d99924273f05efa90383b3",
       "bytes": 5562
+    },
+    {
+      "path": "tests/test_r13_source_retrieval.py",
+      "sha256": "cbcd8d84ffaacdc773e6fd01ce9da7c2baf9bb601d928cc134bb9c69654b5e7d",
+      "bytes": 12997
     },
     {
       "path": "tests/test_regenerate_derived.py",
@@ -827,9 +877,54 @@
       "bytes": 2476
     },
     {
+      "path": "tools/r13_retrieval/__init__.py",
+      "sha256": "dfe9830cb0bec837b713758a509e2e732f882401e789d03c6ad9b3d890854f3a",
+      "bytes": 653
+    },
+    {
+      "path": "tools/r13_retrieval/bundle.py",
+      "sha256": "9e99c864cf4905ad7da4766128a10c75739148786e725110fa9da491d5f23c69",
+      "bytes": 9616
+    },
+    {
+      "path": "tools/r13_retrieval/cli.py",
+      "sha256": "3ded4874470a6ea152efd99143c237a78d61c64c1c2ec85fe1dfa586fd35112b",
+      "bytes": 3614
+    },
+    {
+      "path": "tools/r13_retrieval/core.py",
+      "sha256": "522771d8f83ee38567ba069cd16853bce171b85bdc974237f6d2f90c525d7ab1",
+      "bytes": 2532
+    },
+    {
+      "path": "tools/r13_retrieval/http.py",
+      "sha256": "120c82ba3eb4c5d2064b8bb9d643091339154beb4e2690a461a99881798a88c1",
+      "bytes": 3096
+    },
+    {
+      "path": "tools/r13_retrieval/manifest.py",
+      "sha256": "0c8319b9bf8c01bae618a870fca224cdb4cbe4bc3bd2c868ddb6a1d041bda317",
+      "bytes": 8736
+    },
+    {
+      "path": "tools/r13_retrieval/retrieval.py",
+      "sha256": "a7dd6130fff4714bd881ec90a568e590438665238fb6caf5374627ec86b249a0",
+      "bytes": 8199
+    },
+    {
+      "path": "tools/r13_source_retrieval.py",
+      "sha256": "da375c4ee8db51e2a826786d3cea8d746fd1493253b38430b5af1d982d448d06",
+      "bytes": 513
+    },
+    {
       "path": "tools/regenerate_derived.py",
       "sha256": "d44a2eb62b3f32380a3eb8d4bf38766c1bc845b0b18e0e03d85336dc5eb613d9",
       "bytes": 3809
+    },
+    {
+      "path": "tools/trusted_review_gate.py",
+      "sha256": "8d0809ec8d555022d9fa969b54f3b200f6f4459ae8173404dfd4ae3aad997478",
+      "bytes": 8536
     },
     {
       "path": "tools/validate_c1_design.py",
