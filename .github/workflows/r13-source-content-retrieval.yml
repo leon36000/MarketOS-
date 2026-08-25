@@ -78,6 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p artifacts/r13-source-content
           captured_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           echo "captured_at=${captured_at}" >> "$GITHUB_OUTPUT"
           python -m tools.r13_source_retrieval \
@@ -159,8 +160,8 @@ jobs:
           name: marketos-r13-source-content-receipts-${{ github.run_id }}
           path: |
             artifacts/r13-source-content/shared/**
-            artifacts/r13-source-content/retrieval.log
             ${{ runner.temp }}/r13-logs/**
+            artifacts/r13-source-content/retrieval.log
             research/r13_source_content_manifest.json
             research/r13_sources/**
             research/R13_SOURCE_CONTENT_RETRIEVAL.md
