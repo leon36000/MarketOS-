@@ -84,7 +84,7 @@
       "source_id": "dvc-versioning",
       "summary": "Official data, code, model, and experiment versioning semantics.",
       "title": "DVC data and model versioning",
-      "url": "https://dvc.org/doc/user-guide/data-management/data-versioning"
+      "url": "https://doc.dvc.org/example-scenarios/versioning-data-and-models/tutorial"
     },
     {
       "authority_class": "OFFICIAL_STANDARD_SPECIFICATION",
