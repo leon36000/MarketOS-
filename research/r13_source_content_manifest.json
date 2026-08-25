@@ -1,0 +1,74 @@
+{
+  "allowed_domains": [
+    "academic.oup.com",
+    "arxiv.org",
+    "bse.eu",
+    "davidhbailey.com",
+    "doc.dvc.org",
+    "docs.cleanlab.ai",
+    "docs.doubleml.org",
+    "docs.feast.dev",
+    "docs.hopsworks.ai",
+    "docs.lakefs.io",
+    "dvc.org",
+    "hudi.apache.org",
+    "iceberg.apache.org",
+    "marquezproject.ai",
+    "mlflow.org",
+    "onlinelibrary.wiley.com",
+    "openlineage.io",
+    "projectnessie.org",
+    "raw.githubusercontent.com",
+    "robjhyndman.com",
+    "scikit-learn.org",
+    "snorkel.readthedocs.io",
+    "statistics.stanford.edu",
+    "www.pywhy.org"
+  ],
+  "classification": "PREPHASE_RESEARCH_INPUT_NOT_PHASE_CLOSURE",
+  "hard_locks": {
+    "false_done": "FORBIDDEN",
+    "live_trading": "HARD_LOCKED",
+    "production_ready": false,
+    "profitability": "UNPROVEN",
+    "project_complete": false,
+    "stubs": "FORBIDDEN",
+    "technology_adoptions": 0
+  },
+  "program": {
+    "bootstrap_checkpoint_id": "12121212-1212-4212-8212-121212121234",
+    "bootstrap_snapshot_id": "1ed9c62f-c68f-4a2d-9c1c-c056703a821d",
+    "bootstrap_snapshot_sha256": "e241796dbfc59ef9d7e0f451bb7157fef6c7829900742260af5e00071fa264d9",
+    "domain": "FEATURE_ENGINEERING_LABELS_DATASETS_LEAKAGE_GOVERNANCE_CAUSAL_SIGNAL_FUSION",
+    "phase_event_appended": false,
+    "relaunch": 13,
+    "semantic_head": "R12.3",
+    "semantic_head_sha256": "08ff66fb5f630a654d624f4b85927834fbbdeeb71b5c17891d3691513cc181a9"
+  },
+  "rights_policy": {
+    "ai_ml_training_right_asserted": false,
+    "default": "RETRIEVAL_AND_HASH_ONLY_NO_REDISTRIBUTION_OR_TRAINING_RIGHT_ASSERTED",
+    "legal_review_required": true,
+    "raw_bytes_private": true,
+    "raw_bytes_shared": false,
+    "redistribution_right_asserted": false
+  },
+  "schema_version": "marketos.r13-source-content-manifest.v1",
+  "source_files": [
+    "r13_sources/01_official_causal_docs.json",
+    "r13_sources/02_official_feature_data_docs.json",
+    "r13_sources/03_official_label_quality_docs.json",
+    "r13_sources/04_official_validation_docs.json",
+    "r13_sources/05_primary_research.json"
+  ],
+  "thresholds": {
+    "minimum_by_category": {
+      "OFFICIAL_CAUSAL_DOCS": 5,
+      "OFFICIAL_FEATURE_DATA_DOCS": 10,
+      "OFFICIAL_LABEL_QUALITY_DOCS": 2,
+      "OFFICIAL_VALIDATION_DOCS": 5,
+      "PRIMARY_RESEARCH": 6
+    },
+    "minimum_successes": 28
+  }
+}
