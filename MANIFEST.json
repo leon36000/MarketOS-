@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "363a7af9cc790eda1287c8f4e6c4c06ba179e8c1d3ed66c02a0e4adfaa2df427",
-      "bytes": 1931
+      "sha256": "5606b60951152d60179f53dadb32bede261ec9e741590b046116eaf97ac98923",
+      "bytes": 1992
     },
     {
       "path": ".github/workflows/trusted-review-gate.yml",
