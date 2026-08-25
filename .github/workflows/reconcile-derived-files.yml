@@ -8,6 +8,7 @@ on:
       - "chatgpt/**"
     paths:
       - ".github/workflows/reconcile-derived-files.yml"
+      - ".github/workflows/r13-source-content-retrieval.yml"
       - ".github/workflows/validate.yml"
       - "requirements/REQUIREMENT_CROSSWALK.csv"
       - "requirements/README.md"
