@@ -89,6 +89,30 @@ jobs:
             --retries 2 \
             2>&1 | tee artifacts/r13-source-content/retrieval.log
 
+      - name: Prepare clean implementation evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          shared=artifacts/r13-source-content/shared
+          cp .github/workflows/r13-source-content-retrieval.yml \
+            "$shared/R13_SOURCE_CONTENT_RETRIEVAL_WORKFLOW.yml"
+          sha256sum \
+            tools/r13_source_retrieval.py \
+            $(find tools/r13_retrieval -type f -name "*.py" | sort) \
+            tests/test_r13_source_retrieval.py \
+            research/r13_source_content_manifest.json \
+            $(find research/r13_sources -type f -name "*.json" | sort) \
+            research/R13_SOURCE_CONTENT_RETRIEVAL.md \
+            .github/workflows/r13-source-content-retrieval.yml \
+            > "$shared/IMPLEMENTATION_HASHES.sha256"
+          find tools/r13_retrieval tests -type d -name __pycache__ -prune -exec rm -rf {} +
+          find tools/r13_retrieval tests -type f -name '*.pyc' -delete
+          if find tools/r13_retrieval tests \
+            \( -type d -name __pycache__ -o -type f -name '*.pyc' \) -print -quit | grep -q .; then
+            echo "generated Python bytecode remains in evidence paths" >&2
+            exit 1
+          fi
+
       - name: Freshly validate shared outputs and prove no raw bytes are uploaded
         shell: bash
         run: |
@@ -105,15 +129,25 @@ jobs:
           validation = validate_receipt_bundle(bundle)
           forbidden = [
               p for p in shared.rglob("*")
-              if p.is_file() and any(part in {"private", "private_raw", "raw_sources", "sources_raw"} for part in p.parts)
+              if p.is_file() and any(part in {"private", "private_raw", "raw_sources", "sources_raw", "__pycache__"} for part in p.parts)
           ]
+          forbidden.extend(p for p in shared.rglob("*.pyc") if p.is_file())
           if forbidden:
-              raise SystemExit(f"forbidden raw paths in shared output: {forbidden}")
+              raise SystemExit(f"forbidden generated or raw paths in shared output: {forbidden}")
           receipt = json.loads((shared / "MarketOS_R13_Source_Content_Retrieval_Addendum_v1_Receipt.json").read_text())
           if receipt["epistemic_limits"]["raw_bytes_shared"] is not False:
               raise SystemExit("raw_bytes_shared must remain false")
           if receipt["epistemic_limits"]["technology_adoptions"] != 0:
               raise SystemExit("technology adoption is forbidden in this research addendum")
+          original_workflow = Path(".github/workflows/r13-source-content-retrieval.yml")
+          copied_workflow = shared / "R13_SOURCE_CONTENT_RETRIEVAL_WORKFLOW.yml"
+          workflow_sha = hashlib.sha256(original_workflow.read_bytes()).hexdigest()
+          if hashlib.sha256(copied_workflow.read_bytes()).hexdigest() != workflow_sha:
+              raise SystemExit("workflow evidence copy does not match executed workflow")
+          implementation_hashes = (shared / "IMPLEMENTATION_HASHES.sha256").read_text()
+          if f"{workflow_sha}  {original_workflow.as_posix()}" not in implementation_hashes:
+              raise SystemExit("executed workflow hash missing from implementation index")
+          pre_receipt_file_count = sum(1 for p in shared.rglob("*") if p.is_file())
           workflow_receipt = {
               "schema_version": "marketos.r13-source-content-workflow-receipt.v1",
               "status": "PASS",
@@ -125,8 +159,11 @@ jobs:
               "bundle_sha256": hashlib.sha256(bundle.read_bytes()).hexdigest(),
               "bundle_byte_count": bundle.stat().st_size,
               "validation": validation,
-              "shared_file_count": sum(1 for p in shared.rglob("*") if p.is_file()),
+              "shared_file_count_before_workflow_receipt": pre_receipt_file_count,
+              "expected_final_shared_file_count": pre_receipt_file_count + 2,
+              "executed_workflow_sha256": workflow_sha,
               "raw_source_bytes_uploaded": False,
+              "generated_python_bytecode_uploaded": False,
               "phase_event_appended": False,
               "technology_adoptions": 0,
               "live_trading": "HARD_LOCKED",
@@ -136,22 +173,14 @@ jobs:
           out.write_text(json.dumps(workflow_receipt, indent=2, sort_keys=True) + "\n")
           digest = hashlib.sha256(out.read_bytes()).hexdigest()
           (shared / (out.name + ".sha256")).write_text(f"{digest}  {out.name}\n")
+          actual_final_count = sum(1 for p in shared.rglob("*") if p.is_file())
+          if actual_final_count != workflow_receipt["expected_final_shared_file_count"]:
+              raise SystemExit(
+                  f"final shared file count {actual_final_count} differs from expected "
+                  f"{workflow_receipt['expected_final_shared_file_count']}"
+              )
           print(json.dumps(workflow_receipt, indent=2, sort_keys=True))
           PY
-
-      - name: Hash code, tests, and manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          sha256sum \
-            tools/r13_source_retrieval.py \
-            $(find tools/r13_retrieval -type f -name "*.py" | sort) \
-            tests/test_r13_source_retrieval.py \
-            research/r13_source_content_manifest.json \
-            $(find research/r13_sources -type f -name "*.json" | sort) \
-            research/R13_SOURCE_CONTENT_RETRIEVAL.md \
-            .github/workflows/r13-source-content-retrieval.yml \
-            > artifacts/r13-source-content/shared/IMPLEMENTATION_HASHES.sha256
 
       - name: Upload receipt-only evidence
         if: success()
@@ -166,7 +195,7 @@ jobs:
             research/r13_sources/**
             research/R13_SOURCE_CONTENT_RETRIEVAL.md
             tools/r13_source_retrieval.py
-            tools/r13_retrieval/**
+            tools/r13_retrieval/*.py
             tests/test_r13_source_retrieval.py
           if-no-files-found: error
           retention-days: 30
@@ -183,7 +212,7 @@ jobs:
             research/r13_source_content_manifest.json
             research/r13_sources/**
             tools/r13_source_retrieval.py
-            tools/r13_retrieval/**
+            tools/r13_retrieval/*.py
             tests/test_r13_source_retrieval.py
           if-no-files-found: warn
           retention-days: 14
