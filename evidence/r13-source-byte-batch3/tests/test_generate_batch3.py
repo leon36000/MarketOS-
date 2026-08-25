@@ -45,6 +45,12 @@ class Batch3ContractTests(unittest.TestCase):
         ).hexdigest()
         self.assertEqual(expected, self.mod.git_blob_sha1(payload))
 
+    def test_github_base64_decoder_accepts_api_line_wrapping_but_remains_strict(self) -> None:
+        wrapped = "Y2Fub25pY2Fs\nIGJ5dGVzCg==\n"
+        self.assertEqual(b"canonical bytes\n", self.mod.decode_github_base64(wrapped))
+        with self.assertRaisesRegex(ValueError, "Invalid GitHub base64"):
+            self.mod.decode_github_base64("Y2Fub25pY2Fs*IGJ5dGVz")
+
     def test_build_receipt_rejects_blob_identity_mismatch(self) -> None:
         source = {
             "id": "bad",
