@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "codex/**"
+      - "chatgpt/**"
     paths:
       - ".github/workflows/reconcile-derived-files.yml"
       - ".github/workflows/validate.yml"
