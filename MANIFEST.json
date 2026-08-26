@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/convergence-sonar-trigger.yml",
-      "sha256": "0bb5fd8c42c35ccba1785c4d5e4fdc4db32ffb728eb979b398c187d3a182e331",
-      "bytes": 2485
+      "sha256": "24b537609227dfe68dc6e1e8350ce07fcb6974a7f6c701a95f4e837114fc95a0",
+      "bytes": 2499
     },
     {
       "path": ".github/workflows/data-foundation.yml",
