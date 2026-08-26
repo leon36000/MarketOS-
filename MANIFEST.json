@@ -1502,6 +1502,11 @@
       "bytes": 11266
     },
     {
+      "path": "tests/test_review_policy_correction.py",
+      "sha256": "135d779da13a73902860b2aad1ce9013c773cc04ac1dec524adc613546bc7dd4",
+      "bytes": 5643
+    },
+    {
       "path": "tests/test_rights.py",
       "sha256": "3c80835a161a9ec5639024113eb9cfc5ec7eca7f13ed3233db58029d0fd71564",
       "bytes": 1943
@@ -1573,8 +1578,8 @@
     },
     {
       "path": "tools/trusted_review_gate.py",
-      "sha256": "8d0809ec8d555022d9fa969b54f3b200f6f4459ae8173404dfd4ae3aad997478",
-      "bytes": 8536
+      "sha256": "7fc79b35e166fa400b7837b024545e4bc82a54e3774867c94a65c879c52581d9",
+      "bytes": 10553
     },
     {
       "path": "tools/validate_c1_design.py",
