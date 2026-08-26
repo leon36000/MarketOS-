@@ -357,6 +357,11 @@
       "bytes": 1076
     },
     {
+      "path": "docs/audit/INTEGRATION_CONVERGENCE_2026-08-26.md",
+      "sha256": "606dd65edca5792a184284e43e8dc10475b9f448389600653e1806e744f83119",
+      "bytes": 1101
+    },
+    {
       "path": "docs/audit/PR14_PR20_RECONCILIATION.md",
       "sha256": "16801774d0d15491c2f67fa6ebf0d5fcaa87470a00773d9646d808f295ca31cc",
       "bytes": 4717
@@ -440,6 +445,11 @@
       "path": "docs/implementation/SECURITY_MASTER_DATA_FABRIC_REVIEW.md",
       "sha256": "63427330ee8f29e1016cc291f5c57d1c2fac5cb070fc8a8bb20adb4fee9d2c46",
       "bytes": 2563
+    },
+    {
+      "path": "docs/implementation/SQLITE_EVENT_STORE_INTEGRITY.md",
+      "sha256": "39679ce99c371b755e943b810f3613a6baba43f36f4ab3f76f28386ac510e0b6",
+      "bytes": 6307
     },
     {
       "path": "docs/research/C10_SOURCE_LEDGER.md",
@@ -552,6 +562,11 @@
       "bytes": 19464
     },
     {
+      "path": "docs/superpowers/plans/2026-08-21-sqlite-event-store-integrity.md",
+      "sha256": "84aea3ead6fbf44d0d05e242cee1ff09378c1a7134014de17abb17dc3b2cfa25",
+      "bytes": 9638
+    },
+    {
       "path": "docs/superpowers/specs/2026-08-20-c13-1-pre-trade-execution-safety-design.md",
       "sha256": "89fa20139de6ae2a41b78ae692cd7d9de66c3d46c906acc8241de2bbde4d7f63",
       "bytes": 10808
@@ -565,6 +580,11 @@
       "path": "docs/superpowers/specs/2026-08-21-c13-2-checkpoint-authenticity-reconstruction-design.md",
       "sha256": "3c68f2b926b6dbcad0ffbdb281669d11747de0dc2d8b2ae57e1be848f807839b",
       "bytes": 8951
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-21-sqlite-event-store-integrity-design.md",
+      "sha256": "bdb911fc5729a0134c03d6ce71038ca4b370aaf92bee0ad19077f6ab4f6c7d5b",
+      "bytes": 7567
     },
     {
       "path": "examples/paper_scenario.jsonl",
@@ -1128,8 +1148,8 @@
     },
     {
       "path": "src/marketos/events.py",
-      "sha256": "2be433a2dd82cc0f15d0a4c1645b26c54b166c0e3d4a11c1bb2489353da41d5b",
-      "bytes": 3732
+      "sha256": "a5516456483e37de8dcdf6029a364d4b4158ede70941f91c850d6e13135b9cbe",
+      "bytes": 4231
     },
     {
       "path": "src/marketos/execution_calibration.py",
@@ -1198,8 +1218,8 @@
     },
     {
       "path": "src/marketos/replay.py",
-      "sha256": "f3c4f8d7a3a115b0130f4550ffe325a21af571cf9f8ee6bfed5516004b19c0fc",
-      "bytes": 14266
+      "sha256": "2de42b64c2fde2a1186dcdaf803e81a7f2c3ae0d39ad96394e4e1ab9b4d59f37",
+      "bytes": 14426
     },
     {
       "path": "src/marketos/rights.py",
@@ -1223,8 +1243,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "417dc30b195c5dcfa8403b04e8aeabe98ae48d933f1376021e855e13e888e18f",
-      "bytes": 11082
+      "sha256": "7a9a0d6584a9e52f75b85a9c946207d55a66d12d800bad56a916d5f31bdec26c",
+      "bytes": 34935
     },
     {
       "path": "src/marketos/time.py",
@@ -1458,8 +1478,8 @@
     },
     {
       "path": "tests/test_replay.py",
-      "sha256": "4ccef612cc660274421aab800f6c62b7d1c77cc697e0b909bf48076874b800c4",
-      "bytes": 5361
+      "sha256": "7f86f5dd30212e76124ff3aff7328007343c32a4d6202ab4ad4bedb255bbf927",
+      "bytes": 6136
     },
     {
       "path": "tests/test_repository_contract.py",
@@ -1503,8 +1523,18 @@
     },
     {
       "path": "tests/test_store.py",
-      "sha256": "f033da5c07fdb88d61587d51d100674aeb238e1d32a3c00af756c25f08fa5019",
-      "bytes": 3896
+      "sha256": "b2cd0c78ede2939e1398e8822968b2ee5d6d0dd5b9688648b78eff24fa956621",
+      "bytes": 19349
+    },
+    {
+      "path": "tests/test_store_integrity_concurrency.py",
+      "sha256": "32407a58ffc1558d945485197c6b9e10ca58aeacfef21455ba574ff98da94560",
+      "bytes": 8309
+    },
+    {
+      "path": "tests/test_store_schema_contract.py",
+      "sha256": "980758cd65b4f3506bd0bb67c8ce1474f765c6244a8c19b489cfdb4ea9330671",
+      "bytes": 5936
     },
     {
       "path": "tests/test_takeover_gate.py",
@@ -1598,8 +1628,8 @@
     },
     {
       "path": "tools/verify_foundation.py",
-      "sha256": "67c047cec64316ab0101c4674b5bb1f039c498787faecb0184a8e3a041512bd4",
-      "bytes": 11283
+      "sha256": "99176f3686028307dbf3f121352d53dffc1d37d68522fac90d8aa93ee556dcb2",
+      "bytes": 11388
     },
     {
       "path": "tools/verify_market_data.py",
