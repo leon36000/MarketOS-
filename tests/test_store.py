@@ -184,16 +184,15 @@ class StoreTests(unittest.TestCase):
         with SQLiteEventStore(self.path) as store:
             for index, wrapper in enumerate(wrappers, start=1):
                 with self.subTest(wrapper=type(wrapper).__name__):
+                    event = self.event(
+                        f"wrapped-event-{index}",
+                        payload={"wrapped": wrapper},
+                    )
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "AMBIGUOUS_DECIMAL_MARKER",
                     ):
-                        store.append(
-                            self.event(
-                                f"wrapped-event-{index}",
-                                payload={"wrapped": wrapper},
-                            )
-                        )
+                        store.append(event)
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "AMBIGUOUS_DECIMAL_MARKER",
@@ -205,11 +204,9 @@ class StoreTests(unittest.TestCase):
         marker_mapping = {DecimalMarkerKey(): "5.00"}
         with SQLiteEventStore(self.path) as store:
             with self.assertRaisesRegex(InvariantViolation, "NON_CANONICAL_PAYLOAD_KEYS"):
-                store.append(
-                    self.event(
-                        "normalized-key-event",
-                        payload={"wrapped": marker_mapping},
-                    )
+                self.event(
+                    "normalized-key-event",
+                    payload={"wrapped": marker_mapping},
                 )
             with self.assertRaisesRegex(InvariantViolation, "AMBIGUOUS_DECIMAL_MARKER"):
                 store.append_evidence("RISK", {"wrapped": marker_mapping})
@@ -228,16 +225,15 @@ class StoreTests(unittest.TestCase):
         with SQLiteEventStore(self.path) as store:
             for index, value in enumerate(values, start=1):
                 with self.subTest(value=type(value).__name__):
+                    event = self.event(
+                        f"unsupported-event-{index}",
+                        payload={"value": value},
+                    )
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "NON_RECONSTRUCTIBLE_PAYLOAD_TYPE",
                     ):
-                        store.append(
-                            self.event(
-                                f"unsupported-event-{index}",
-                                payload={"value": value},
-                            )
-                        )
+                        store.append(event)
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "NON_RECONSTRUCTIBLE_PAYLOAD_TYPE",
@@ -264,16 +260,15 @@ class StoreTests(unittest.TestCase):
         with SQLiteEventStore(self.path) as store:
             for index, value in enumerate(tagged_values, start=1):
                 with self.subTest(index=index):
+                    event = self.event(
+                        f"tagged-event-{index}",
+                        payload={"value": value},
+                    )
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "AMBIGUOUS_CANONICAL_TAG",
                     ):
-                        store.append(
-                            self.event(
-                                f"tagged-event-{index}",
-                                payload={"value": value},
-                            )
-                        )
+                        store.append(event)
                     with self.assertRaisesRegex(
                         InvariantViolation,
                         "AMBIGUOUS_CANONICAL_TAG",

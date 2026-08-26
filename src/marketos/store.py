@@ -18,31 +18,35 @@ from .time import EventTime
 _ZERO_HASH = "0" * 64
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _BEGIN_IMMEDIATE = "BEGIN IMMEDIATE"
-_CANONICAL_TAGS = frozenset({"$decimal", "$datetime", "$path", "$uuid"})
+_DECIMAL_TAG = "$decimal"
+_CANONICAL_TAGS = frozenset({_DECIMAL_TAG, "$datetime", "$path", "$uuid"})
 
 
 def _decode(value: Any) -> Any:
     if isinstance(value, list):
         return [_decode(item) for item in value]
     if isinstance(value, dict):
-        if set(value) == {"$decimal"}:
-            return Decimal(value["$decimal"])
+        if set(value) == {_DECIMAL_TAG}:
+            return Decimal(value[_DECIMAL_TAG])
         return {key: _decode(item) for key, item in value.items()}
     return value
 
 
+def _validated_mapping_values(value: Mapping[Any, Any]) -> tuple[Any, ...]:
+    normalized_items = tuple((str(key), item) for key, item in value.items())
+    normalized_keys = tuple(key for key, _ in normalized_items)
+    if len(set(normalized_keys)) != len(normalized_keys):
+        raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
+    if normalized_keys == (_DECIMAL_TAG,):
+        raise InvariantViolation("AMBIGUOUS_DECIMAL_MARKER")
+    if len(normalized_keys) == 1 and normalized_keys[0] in _CANONICAL_TAGS:
+        raise InvariantViolation(f"AMBIGUOUS_CANONICAL_TAG:{normalized_keys[0]}")
+    return tuple(item for _, item in normalized_items)
+
+
 def _reject_ambiguous_decimal_maps(value: Any) -> None:
     if isinstance(value, Mapping):
-        normalized_items = tuple((str(key), item) for key, item in value.items())
-        normalized_keys = tuple(key for key, _ in normalized_items)
-        normalized_key_set = set(normalized_keys)
-        if len(normalized_key_set) != len(normalized_keys):
-            raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
-        if normalized_key_set == {"$decimal"}:
-            raise InvariantViolation("AMBIGUOUS_DECIMAL_MARKER")
-        if len(normalized_keys) == 1 and normalized_keys[0] in _CANONICAL_TAGS:
-            raise InvariantViolation(f"AMBIGUOUS_CANONICAL_TAG:{normalized_keys[0]}")
-        for _, item in normalized_items:
+        for item in _validated_mapping_values(value):
             _reject_ambiguous_decimal_maps(item)
         return
     if isinstance(value, (list, tuple, set, frozenset)):

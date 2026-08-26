@@ -12,16 +12,6 @@
       "bytes": 738
     },
     {
-      "path": ".github/workflows/convergence-sonar-cleanup.yml",
-      "sha256": "e46af19364e23c9a32536683e018b875dbe28b43f5706812ba2eae137781eece",
-      "bytes": 10442
-    },
-    {
-      "path": ".github/workflows/convergence-sonar-trigger.yml",
-      "sha256": "24b537609227dfe68dc6e1e8350ce07fcb6974a7f6c701a95f4e837114fc95a0",
-      "bytes": 2499
-    },
-    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "d9634c164042c7325ad83ba47d4ce8b429655981a0b452c7b098bb6bc8e9a7cc",
       "bytes": 2742
@@ -1253,8 +1243,8 @@
     },
     {
       "path": "src/marketos/store.py",
-      "sha256": "7a9a0d6584a9e52f75b85a9c946207d55a66d12d800bad56a916d5f31bdec26c",
-      "bytes": 34935
+      "sha256": "1f7c073d9c2b434a03353c61e9866f525fc6a1e7fb5913aed7e3e57bea5e88b4",
+      "bytes": 35033
     },
     {
       "path": "src/marketos/time.py",
@@ -1533,8 +1523,8 @@
     },
     {
       "path": "tests/test_store.py",
-      "sha256": "b2cd0c78ede2939e1398e8822968b2ee5d6d0dd5b9688648b78eff24fa956621",
-      "bytes": 19349
+      "sha256": "873100b3afd1527e324046c20c9f4adcfa9afaff25878ea4f5289cb740e43554",
+      "bytes": 19153
     },
     {
       "path": "tests/test_store_integrity_concurrency.py",
@@ -1570,11 +1560,6 @@
       "path": "tools/build_claude_pack.py",
       "sha256": "1d02b3bd07951e30aef1194c2e7e2fbcbd3707aee8b6d9d8d08dff9ec40f17eb",
       "bytes": 20945
-    },
-    {
-      "path": "tools/convergence_sonar_cleanup.py",
-      "sha256": "77d7a8e78b1a8b6f6fd6897908f9cf25e1eb3836cd952ff361b219b7a3b303b2",
-      "bytes": 6755
     },
     {
       "path": "tools/ingest_requirements.py",
