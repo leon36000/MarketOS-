@@ -23,7 +23,7 @@ jobs:
         run: |
           BASE=123c15e15e118b6c35aa1d6a0eff97c96b9830a2
           git merge-base --is-ancestor "$BASE" HEAD
-          unexpected="$(git diff --name-only "$BASE"..HEAD | grep -Ev '^(.github/workflows/convergence-sonar-cleanup.yml|.github/workflows/convergence-sonar-trigger.yml|tools/convergence_sonar_cleanup.py)$' || true)"
+          unexpected="$(git diff --name-only "$BASE"..HEAD | grep -Ev '^(.github/workflows/convergence-sonar-cleanup.yml|.github/workflows/convergence-sonar-trigger.yml|tools/convergence_sonar_cleanup.py|MANIFEST.json)$' || true)"
           test -z "$unexpected"
       - name: Apply exact cleanup
         run: python tools/convergence_sonar_cleanup.py
