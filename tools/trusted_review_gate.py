@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-"""Trusted-ref review gate used by the protected-base workflow.
+"""Exact-SHA review gate used by the protected-base workflow.
+
+The default mode verifies a GitHub-carried, exact-base/head/tree GPT-5.6 Sol
+blind review.  It does not confuse a second GitHub account with intellectual
+independence.  Callers may opt into the stricter external-identity mode for
+explicitly designated risk classes; that mode remains fail closed and requires
+a distinct allowlisted GitHub reviewer with an APPROVED review.
 
 This file is intentionally self-contained.  The trusted workflow checks out
-the base SHA before executing it, so a pull request cannot replace the gate
-implementation it is asking GitHub to satisfy.
+the protected base SHA before executing it, so a pull request cannot replace
+the gate implementation it is asking GitHub to satisfy.
 """
 from __future__ import annotations
 
@@ -17,6 +23,7 @@ from typing import Any
 TRUSTED_REVIEWERS_ENV = "MARKETOS_TRUSTED_REVIEWERS"
 OWNER_LOGIN = "leon36000"
 ALLOWED_VERDICTS = {"APPROVE", "APPROVE_WITH_NONBLOCKING_FINDINGS"}
+ORDINARY_REVIEW_STATES = {"COMMENTED", "APPROVED"}
 MAX_REVIEW_PAGES = 20
 
 
@@ -102,6 +109,23 @@ def _findings_are_nonblocking(findings: object) -> bool:
     return True
 
 
+def _reviewer_is_authorized(
+    *,
+    reviewer_login: str,
+    review_state: object,
+    pr_author: str,
+    trusted_reviewers: set[str],
+    external_identity_required: bool,
+) -> bool:
+    if external_identity_required:
+        return (
+            reviewer_login not in {OWNER_LOGIN, pr_author}
+            and reviewer_login in trusted_reviewers
+            and review_state == "APPROVED"
+        )
+    return review_state in ORDINARY_REVIEW_STATES
+
+
 def _review_is_exact(
     review: dict[str, Any],
     *,
@@ -111,14 +135,21 @@ def _review_is_exact(
     tree_sha: str,
     pr_author: str,
     trusted_reviewers: set[str],
+    external_identity_required: bool = False,
 ) -> bool:
     user = review.get("user")
     reviewer_login = user.get("login") if isinstance(user, dict) else None
-    if not isinstance(reviewer_login, str):
+    if not isinstance(reviewer_login, str) or not reviewer_login.strip():
         return False
-    if reviewer_login in {OWNER_LOGIN, pr_author} or reviewer_login not in trusted_reviewers:
+    if not _reviewer_is_authorized(
+        reviewer_login=reviewer_login,
+        review_state=review.get("state"),
+        pr_author=pr_author,
+        trusted_reviewers=trusted_reviewers,
+        external_identity_required=external_identity_required,
+    ):
         return False
-    if review.get("state") != "APPROVED" or review.get("commit_id") != head_sha:
+    if review.get("commit_id") != head_sha:
         return False
     body = review.get("body")
     verdict = _marker(body, "MARKETOS_REVIEW_VERDICT")
@@ -150,6 +181,14 @@ def _review_is_exact(
     return all(_marker(body, key) == value for key, value in expected.items())
 
 
+def _review_sort_key(review: dict[str, Any]) -> tuple[int, str, int]:
+    submitted_at = review.get("submitted_at")
+    timestamp = submitted_at.strip() if isinstance(submitted_at, str) else ""
+    review_id = review.get("id")
+    numeric_id = review_id if isinstance(review_id, int) else -1
+    return (1 if timestamp else 0, timestamp, numeric_id)
+
+
 def _has_latest_exact_review(
     reviews: list[dict[str, Any]],
     *,
@@ -159,6 +198,7 @@ def _has_latest_exact_review(
     tree_sha: str,
     pr_author: str,
     trusted_reviewers: set[str],
+    external_identity_required: bool = False,
 ) -> bool:
     latest_by_reviewer: dict[str, dict[str, Any]] = {}
     for review in sorted(reviews, key=_review_sort_key):
@@ -175,17 +215,10 @@ def _has_latest_exact_review(
             tree_sha=tree_sha,
             pr_author=pr_author,
             trusted_reviewers=trusted_reviewers,
+            external_identity_required=external_identity_required,
         )
         for review in latest_by_reviewer.values()
     )
-
-
-def _review_sort_key(review: dict[str, Any]) -> tuple[int, str, int]:
-    submitted_at = review.get("submitted_at")
-    timestamp = submitted_at.strip() if isinstance(submitted_at, str) else ""
-    review_id = review.get("id")
-    numeric_id = review_id if isinstance(review_id, int) else -1
-    return (1 if timestamp else 0, timestamp, numeric_id)
 
 
 def verify_trusted_review_gate(
@@ -195,12 +228,20 @@ def verify_trusted_review_gate(
     base_sha: str,
     head_sha: str,
     pr_author: str,
+    external_identity_required: bool = False,
 ) -> dict[str, object]:
+    review_mode = (
+        "EXTERNAL_EXACT_SHA" if external_identity_required else "SOL_EXACT_SHA"
+    )
     if not isinstance(pr_author, str) or not pr_author.strip():
-        return {"ok": False, "errors": ["PR_AUTHOR_INVALID"]}
+        return {"ok": False, "errors": ["PR_AUTHOR_INVALID"], "review_mode": review_mode}
     trusted_reviewers = _trusted_reviewers()
-    if not trusted_reviewers:
-        return {"ok": False, "errors": ["TRUSTED_REVIEWER_ALLOWLIST_EMPTY"]}
+    if external_identity_required and not trusted_reviewers:
+        return {
+            "ok": False,
+            "errors": ["TRUSTED_REVIEWER_ALLOWLIST_EMPTY"],
+            "review_mode": review_mode,
+        }
     try:
         tree_sha = _fetch_tree(repository, head_sha)
         reviews = _fetch_reviews(repository, pull_request)
@@ -212,12 +253,28 @@ def verify_trusted_review_gate(
             tree_sha=tree_sha,
             pr_author=pr_author,
             trusted_reviewers=trusted_reviewers,
+            external_identity_required=external_identity_required,
         )
     except (OSError, ValueError) as exc:
-        return {"ok": False, "errors": [f"TRUSTED_REVIEW_GATE_FAILED:{type(exc).__name__}"]}
+        return {
+            "ok": False,
+            "errors": [f"TRUSTED_REVIEW_GATE_FAILED:{type(exc).__name__}"],
+            "review_mode": review_mode,
+        }
     if not accepted:
-        return {"ok": False, "errors": ["NO_TRUSTED_EXACT_HEAD_APPROVAL"]}
-    return {"ok": True, "errors": [], "head_sha": head_sha, "tree_sha": tree_sha}
+        error = (
+            "NO_TRUSTED_EXACT_HEAD_APPROVAL"
+            if external_identity_required
+            else "NO_SOL_EXACT_HEAD_REVIEW"
+        )
+        return {"ok": False, "errors": [error], "review_mode": review_mode}
+    return {
+        "ok": True,
+        "errors": [],
+        "head_sha": head_sha,
+        "tree_sha": tree_sha,
+        "review_mode": review_mode,
+    }
 
 
 def main() -> int:
@@ -227,6 +284,7 @@ def main() -> int:
     parser.add_argument("--base-sha", required=True)
     parser.add_argument("--head-sha", required=True)
     parser.add_argument("--pr-author", required=True)
+    parser.add_argument("--external-identity-required", action="store_true")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     report = verify_trusted_review_gate(
@@ -235,6 +293,7 @@ def main() -> int:
         base_sha=args.base_sha,
         head_sha=args.head_sha,
         pr_author=args.pr_author,
+        external_identity_required=args.external_identity_required,
     )
     if args.json:
         print(json.dumps(report, indent=2, sort_keys=True))
