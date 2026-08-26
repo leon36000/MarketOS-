@@ -6,6 +6,7 @@ import argparse
 from dataclasses import replace
 import hashlib
 import json
+import re
 from pathlib import Path
 import sqlite3
 import subprocess
@@ -36,6 +37,48 @@ def _source_tree_sha256(source_hashes: dict[str, str]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+_SHA1_RE = re.compile(r"[0-9a-f]{40}")
+
+
+def _source_parent_is_ancestor(root: Path, value: object) -> bool:
+    """Return whether an exact lowercase SHA-1 is reachable from ``HEAD``.
+
+    The validated SHA is supplied through stdin rather than as a Git command
+    argument. Git emits at most one ancestry witness, so history depth cannot
+    create an unbounded captured output.
+    """
+
+    if not isinstance(value, str) or _SHA1_RE.fullmatch(value) is None:
+        return False
+    try:
+        head_result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+        head = head_result.stdout.strip()
+        if head_result.returncode != 0 or _SHA1_RE.fullmatch(head) is None:
+            return False
+        if value == head:
+            return True
+        result = subprocess.run(
+            ["git", "rev-list", "--max-count=1", "--ancestry-path", "--stdin"],
+            cwd=root,
+            input=f"{value}..{head}\n",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0 and bool(result.stdout.strip())
+
 C13_SOURCE_PATHS = (
     "docs/implementation/C13_AUTHORITATIVE_BOOKS_RISK_VETO.md",
     "docs/superpowers/plans/2026-08-20-c13-authoritative-books-risk-veto.md",
@@ -46,6 +89,7 @@ C13_SOURCE_PATHS = (
     "planning/phases/C13/EXECUTION_CONTRACT.md",
     "src/marketos/authoritative_books.py",
     "tests/test_c13_authoritative_books.py",
+    "tests/test_c13_source_parent_validation.py",
     "tools/verify_c13_contract.py",
 )
 
@@ -343,19 +387,7 @@ def verify_c13_contract(root: Path) -> dict[str, Any]:
                 source_hashes_match = False
                 errors.append(f"C13_SOURCE_HASH_MISMATCH:{relative}")
     source_parent_commit = source_receipt.get("source_parent_commit")
-    source_parent_valid = False
-    if isinstance(source_parent_commit, str) and len(source_parent_commit) == 40:
-        try:
-            git_result = subprocess.run(
-                ["git", "merge-base", "--is-ancestor", source_parent_commit, "HEAD"],
-                cwd=root,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            source_parent_valid = git_result.returncode == 0
-        except OSError:
-            source_parent_valid = False
+    source_parent_valid = _source_parent_is_ancestor(root, source_parent_commit)
     checks["source_parent_commit"] = source_parent_valid
     if not source_parent_valid:
         errors.append("C13_SOURCE_PARENT_COMMIT_INVALID")
