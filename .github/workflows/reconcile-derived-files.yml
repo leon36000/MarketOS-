@@ -5,16 +5,9 @@ on:
   push:
     branches:
       - "codex/**"
+      - "chatgpt/**"
     paths:
-      - ".github/workflows/reconcile-derived-files.yml"
-      - ".github/workflows/validate.yml"
-      - ".github/workflows/implementation-foundation.yml"
-      - ".github/workflows/data-foundation.yml"
-      - ".github/workflows/market-data.yml"
-      - ".github/workflows/feature-foundation.yml"
-      - ".github/workflows/research-governance.yml"
-      - ".github/workflows/execution-calibration.yml"
-      - ".github/workflows/architecture-reconciliation.yml"
+      - ".github/workflows/**"
       - "pyproject.toml"
       - "src/**"
       - "config/**"

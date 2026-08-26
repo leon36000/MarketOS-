@@ -48,13 +48,18 @@
     },
     {
       "path": ".github/workflows/reconcile-derived-files.yml",
-      "sha256": "784b6ff371e6a2eb444079d8b86b5664d2159e794d9b5a29c1ea735f79ebc76c",
-      "bytes": 3316
+      "sha256": "843789c4c8207f0d188472c36492e3ab82dbae463b1336a794e1651066d282a0",
+      "bytes": 2904
     },
     {
       "path": ".github/workflows/research-governance.yml",
       "sha256": "dea98c1f486aac9e3114340054e74400b3ce735b42ec2d30f5363448195dfdb0",
       "bytes": 3194
+    },
+    {
+      "path": ".github/workflows/trusted-review-gate.yml",
+      "sha256": "754dcc02fc7c8d6b0a19d9771eac40d6c717dc22296447a1fd5636bacc80ab76",
+      "bytes": 1178
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -1437,6 +1442,11 @@
       "bytes": 1219
     },
     {
+      "path": "tests/test_reconcile_derived_workflow_coverage.py",
+      "sha256": "3d0189fc4caad1cbe6bfa8fe4240e97304328039b8877f74e9dda54c735e3a44",
+      "bytes": 1056
+    },
+    {
       "path": "tests/test_regenerate_derived.py",
       "sha256": "7fef99e93c30e823216d8c8ff421fb71fecca893c5e3aabddd385a2cca9f3ab2",
       "bytes": 2027
@@ -1525,6 +1535,11 @@
       "path": "tools/regenerate_derived.py",
       "sha256": "d44a2eb62b3f32380a3eb8d4bf38766c1bc845b0b18e0e03d85336dc5eb613d9",
       "bytes": 3809
+    },
+    {
+      "path": "tools/trusted_review_gate.py",
+      "sha256": "8d0809ec8d555022d9fa969b54f3b200f6f4459ae8173404dfd4ae3aad997478",
+      "bytes": 8536
     },
     {
       "path": "tools/validate_c1_design.py",
