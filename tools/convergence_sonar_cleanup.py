@@ -108,13 +108,12 @@ def patch_tests() -> None:
                         payload={"wrapped": marker_mapping},
                     )
                 )''',
-        '''        event = self.event(
-            "normalized-key-event",
-            payload={"wrapped": marker_mapping},
-        )
-        with SQLiteEventStore(self.path) as store:
+        '''        with SQLiteEventStore(self.path) as store:
             with self.assertRaisesRegex(InvariantViolation, "NON_CANONICAL_PAYLOAD_KEYS"):
-                store.append(event)''',
+                self.event(
+                    "normalized-key-event",
+                    payload={"wrapped": marker_mapping},
+                )''',
         "normalized key exception isolation",
     )
     text = replace_once(
