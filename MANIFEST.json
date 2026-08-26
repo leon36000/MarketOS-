@@ -12,6 +12,11 @@
       "bytes": 738
     },
     {
+      "path": ".github/workflows/convergence-sonar-cleanup.yml",
+      "sha256": "e46af19364e23c9a32536683e018b875dbe28b43f5706812ba2eae137781eece",
+      "bytes": 10442
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "d9634c164042c7325ad83ba47d4ce8b429655981a0b452c7b098bb6bc8e9a7cc",
       "bytes": 2742
