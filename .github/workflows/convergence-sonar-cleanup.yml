@@ -6,6 +6,9 @@ on:
       - chatgpt/integration-convergence-2026-08-26
     paths:
       - .github/workflows/convergence-sonar-cleanup.yml
+  pull_request:
+    types:
+      - reopened
 
 permissions:
   contents: write
@@ -16,13 +19,17 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Bind exact parent
-        run: test "$(git rev-parse HEAD^)" = "123c15e15e118b6c35aa1d6a0eff97c96b9830a2"
+      - name: Bind exact source tree
+        run: |
+          BASE=123c15e15e118b6c35aa1d6a0eff97c96b9830a2
+          git merge-base --is-ancestor "$BASE" HEAD
+          unexpected="$(git diff --name-only "$BASE"..HEAD | grep -v '^.github/workflows/convergence-sonar-cleanup.yml$' || true)"
+          test -z "$unexpected"
       - name: Apply exact Sonar cleanup
         run: |
           python - <<'PY'
