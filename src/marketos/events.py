@@ -36,7 +36,18 @@ _KIND_PRIORITY: dict[EventKind, int] = {
 
 def _freeze(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return MappingProxyType({str(key): _freeze(item) for key, item in value.items()})
+        raw_items = tuple(value.items())
+        normalized_items = tuple((str(key), item) for key, item in raw_items)
+        normalized_keys = tuple(key for key, _ in normalized_items)
+        if any(not isinstance(key, str) for key, _ in raw_items):
+            raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
+        if len(set(normalized_keys)) != len(normalized_keys):
+            raise InvariantViolation("NON_CANONICAL_PAYLOAD_KEYS")
+        return MappingProxyType(
+            {
+                key: _freeze(item) for key, item in normalized_items
+            }
+        )
     if isinstance(value, list):
         return tuple(_freeze(item) for item in value)
     if isinstance(value, tuple):
