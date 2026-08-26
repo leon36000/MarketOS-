@@ -17,6 +17,11 @@
       "bytes": 10442
     },
     {
+      "path": ".github/workflows/convergence-sonar-trigger.yml",
+      "sha256": "0bb5fd8c42c35ccba1785c4d5e4fdc4db32ffb728eb979b398c187d3a182e331",
+      "bytes": 2485
+    },
+    {
       "path": ".github/workflows/data-foundation.yml",
       "sha256": "d9634c164042c7325ad83ba47d4ce8b429655981a0b452c7b098bb6bc8e9a7cc",
       "bytes": 2742
@@ -1565,6 +1570,11 @@
       "path": "tools/build_claude_pack.py",
       "sha256": "1d02b3bd07951e30aef1194c2e7e2fbcbd3707aee8b6d9d8d08dff9ec40f17eb",
       "bytes": 20945
+    },
+    {
+      "path": "tools/convergence_sonar_cleanup.py",
+      "sha256": "77d7a8e78b1a8b6f6fd6897908f9cf25e1eb3836cd952ff361b219b7a3b303b2",
+      "bytes": 6755
     },
     {
       "path": "tools/ingest_requirements.py",
